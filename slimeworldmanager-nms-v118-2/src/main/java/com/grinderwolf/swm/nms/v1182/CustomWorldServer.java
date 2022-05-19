@@ -167,12 +167,25 @@ public class CustomWorldServer extends ServerLevel {
             LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
 
             chunk = new LevelChunk(this, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
-                    0L, null, null, null);
+                    0L, null, null, null){
+            @Override
+            public void unloadCallback() {
+                super.unloadCallback();
+                SlimeChunk slimeChunk = slimeWorld.getChunk(pos.x, pos.z);
+                //System.out.println("Fetching chunk for unload: " + slimeChunk);
+
+                if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                    slimeWorld.updateChunk(convertChunk(nmsSlimeChunk));
+                } else {
+                   // Bukkit.getLogger().log(Level.SEVERE, "Missing slime chunk for NMS chunk? (%s, %s)".formatted(pos.x, pos.z));
+                }
+            }
+        };
 
             slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
         } else if (slimeChunk instanceof NMSSlimeChunk) {
             chunk = ((NMSSlimeChunk) slimeChunk).getChunk(); // This shouldn't happen anymore, unloading should cleanup the chunk
-           // Bukkit.getLogger().log(Level.WARNING, "Improper cleanup of chunk at (%s, %s). Reusing NMS chunk".formatted(x, z));
+            Bukkit.getLogger().log(Level.WARNING, "Improper cleanup of chunk at (%s, %s). Reusing NMS chunk".formatted(x, z));
         } else {
             chunk = convertChunk(slimeChunk);
 
