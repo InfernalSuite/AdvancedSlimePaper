@@ -92,11 +92,12 @@ public class UnloadWorldCmd implements Subcommand {
 
         spawnLocation.setY(64);
         while (spawnLocation.getBlock().getType() != Material.AIR || spawnLocation.getBlock().getRelative(BlockFace.UP).getType() != Material.AIR) {
-            if(spawnLocation.getY() >= 256) {
-                spawnLocation.getWorld().getBlockAt(0, 64 ,0).setType(Material.BEDROCK);
-            }else {
+            if(spawnLocation.getY() >= 320) {
                 spawnLocation.add(0, 1, 0);
+                break;
             }
+
+            spawnLocation.add(0, 1, 0);
         }
         return spawnLocation;
     }
