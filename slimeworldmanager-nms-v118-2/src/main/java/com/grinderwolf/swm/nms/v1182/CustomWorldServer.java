@@ -172,7 +172,6 @@ public class CustomWorldServer extends ServerLevel {
             slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
         } else if (slimeChunk instanceof NMSSlimeChunk) {
             chunk = ((NMSSlimeChunk) slimeChunk).getChunk(); // This shouldn't happen anymore, unloading should cleanup the chunk
-            Bukkit.getLogger().log(Level.WARNING, "Improper cleanup of chunk at (%s, %s). Reusing NMS chunk".formatted(x, z));
         } else {
             chunk = convertChunk(slimeChunk);
 
@@ -372,9 +371,6 @@ public class CustomWorldServer extends ServerLevel {
 
     @Override
     public void unload(LevelChunk chunk) {
-        SlimeChunk slimeChunk = slimeWorld.getChunk(chunk.getPos().x, chunk.getPos().z);
-        //System.out.println("Fetching chunk for unload: " + slimeChunk);
-
         // Spigot Start
         for (net.minecraft.world.level.block.entity.BlockEntity tileentity : chunk.getBlockEntities().values()) {
             if (tileentity instanceof net.minecraft.world.Container) {
