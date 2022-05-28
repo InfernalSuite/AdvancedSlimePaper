@@ -59,7 +59,7 @@ public class UnloadWorldCmd implements Subcommand {
 
         if (!players.isEmpty()) {
             Location spawnLocation = findValidDefaultSpawn();
-            players.forEach(player -> player.teleportAsync(spawnLocation));
+            players.forEach(player -> player.teleport(spawnLocation));
         }
 
         if (!Bukkit.unloadWorld(world, true)) {
