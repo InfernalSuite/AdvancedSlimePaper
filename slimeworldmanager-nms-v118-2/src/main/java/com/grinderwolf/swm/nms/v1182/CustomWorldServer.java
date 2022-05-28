@@ -167,20 +167,7 @@ public class CustomWorldServer extends ServerLevel {
             LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
 
             chunk = new LevelChunk(this, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
-                    0L, null, null, null){
-            @Override
-            public void unloadCallback() {
-                super.unloadCallback();
-                SlimeChunk slimeChunk = slimeWorld.getChunk(pos.x, pos.z);
-                //System.out.println("Fetching chunk for unload: " + slimeChunk);
-
-                if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
-                    slimeWorld.updateChunk(convertChunk(nmsSlimeChunk));
-                } else {
-                   // Bukkit.getLogger().log(Level.SEVERE, "Missing slime chunk for NMS chunk? (%s, %s)".formatted(pos.x, pos.z));
-                }
-            }
-        };
+                    0L, null, null, null);
 
             slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
         } else if (slimeChunk instanceof NMSSlimeChunk) {
@@ -308,20 +295,7 @@ public class CustomWorldServer extends ServerLevel {
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
         LevelChunk nmsChunk = new LevelChunk(this, pos,
                 UpgradeData.EMPTY,
-                blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null){
-            @Override
-            public void unloadCallback() {
-                super.unloadCallback();
-                SlimeChunk slimeChunk = slimeWorld.getChunk(pos.x, pos.z);
-                //System.out.println("Fetching chunk for unload: " + slimeChunk);
-
-                if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
-                    slimeWorld.updateChunk(convertChunk(nmsSlimeChunk));
-                } else {
-                   // Bukkit.getLogger().log(Level.SEVERE, "Missing slime chunk for NMS chunk? (%s, %s)".formatted(pos.x, pos.z));
-                }
-            }
-        };
+                blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
 
         // Height Maps
         EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
@@ -400,10 +374,6 @@ public class CustomWorldServer extends ServerLevel {
     public void unload(LevelChunk chunk) {
         SlimeChunk slimeChunk = slimeWorld.getChunk(chunk.getPos().x, chunk.getPos().z);
         //System.out.println("Fetching chunk for unload: " + slimeChunk);
-
-        if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
-           // Bukkit.getLogger().log(Level.INFO, "World ran unload BEFORE chunk was converted. This is fine but let owen know (%s,%s)".formatted(nmsSlimeChunk.getX(), nmsSlimeChunk.getZ()));
-        }
 
         // Spigot Start
         for (net.minecraft.world.level.block.entity.BlockEntity tileentity : chunk.getBlockEntities().values()) {
