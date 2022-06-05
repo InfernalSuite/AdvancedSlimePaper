@@ -106,9 +106,7 @@ public class FileLoader implements SlimeLoader {
             }
         }
 
-        if (tempFile) {
-            worldFile.close();
-        }
+        worldFile.close();
     }
 
     @Override
