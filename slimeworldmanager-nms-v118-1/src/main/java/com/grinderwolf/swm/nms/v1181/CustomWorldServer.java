@@ -55,6 +55,7 @@ import org.bukkit.craftbukkit.v1_18_R1.entity.CraftHumanEntity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.bukkit.generator.BiomeProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -83,11 +84,11 @@ public class CustomWorldServer extends ServerLevel {
     public CustomWorldServer(v1181SlimeWorld world, ServerLevelData worldData,
                              ResourceKey<net.minecraft.world.level.Level> worldKey, ResourceKey<LevelStem> dimensionKey,
                              DimensionType dimensionManager, ChunkGenerator chunkGenerator,
-                             org.bukkit.World.Environment environment) throws IOException {
+                             org.bukkit.World.Environment environment, org.bukkit.generator.ChunkGenerator gen, BiomeProvider biomeProvider) throws IOException {
         super(MinecraftServer.getServer(), MinecraftServer.getServer().executor,
                 v1181SlimeNMS.CUSTOM_LEVEL_STORAGE.createAccess(world.getName() + UUID.randomUUID(), dimensionKey),
                 worldData, worldKey, dimensionManager, MinecraftServer.getServer().progressListenerFactory.create(11),
-                chunkGenerator, false, 0, new ArrayList<>(), true, environment, null, null);
+                chunkGenerator, false, 0, Collections.emptyList(), true, environment, gen, biomeProvider);
 
 
         this.slimeWorld = world;

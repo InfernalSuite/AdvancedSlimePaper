@@ -41,6 +41,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.jetbrains.annotations.Nullable;
 
@@ -252,10 +253,11 @@ public class v1181SlimeNMS implements SlimeNMS {
                 new ResourceLocation(worldName.toLowerCase(java.util.Locale.ENGLISH))) : dimensionOverride;
 
         CustomWorldServer level;
+        CraftServer server = MinecraftServer.getServer().server;
 
         try {
             level = new CustomWorldServer(nmsWorld, worldDataServer,
-                    worldKey, dimension, type, chunkGenerator, environment);
+                    worldKey, dimension, type, chunkGenerator, environment, server.getGenerator(worldName), server.getBiomeProvider(worldName));
             nmsWorld.setHandle(level);
         } catch (IOException ex) {
             throw new RuntimeException(ex); // TODO do something better with this?
