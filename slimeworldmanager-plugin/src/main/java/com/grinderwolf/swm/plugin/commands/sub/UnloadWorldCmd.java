@@ -1,6 +1,7 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
+import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
@@ -16,6 +17,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Getter
 public class UnloadWorldCmd implements Subcommand {
@@ -57,28 +61,31 @@ public class UnloadWorldCmd implements Subcommand {
         // Teleport all players outside the world before unloading it
         var players = world.getPlayers();
 
+        AtomicBoolean success = new AtomicBoolean();
+
         if (!players.isEmpty()) {
             Location spawnLocation = findValidDefaultSpawn();
-            players.forEach(player -> player.teleport(spawnLocation));
+            CompletableFuture<Void> cf = CompletableFuture.allOf(players.stream().map(player -> player.teleportAsync(spawnLocation)).collect(Collectors.toList()).toArray(CompletableFuture[]::new));
+            cf.thenRun(() -> Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true))));
         }
 
-        if (!Bukkit.unloadWorld(world, true)) {
+        if (!success.get()) {
             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
             return true;
-        }else{
+        } else {
             world.save();
         }
 
         System.out.println("Attempting to unlock world.. " + worldName + ".");
         try {
-            if(loader != null && loader.isWorldLocked(worldName)) {
+            if (loader != null && loader.isWorldLocked(worldName)) {
                 System.out.println("World.. " + worldName + " is locked.");
                 loader.unlockWorld(worldName);
                 System.out.println("Attempted to unlock world.. " + worldName + ".");
             } else {
                 System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
             }
-        } catch(UnknownWorldException | IOException e) {
+        } catch (UnknownWorldException | IOException e) {
             e.printStackTrace();
         }
         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
@@ -92,7 +99,7 @@ public class UnloadWorldCmd implements Subcommand {
 
         spawnLocation.setY(64);
         while (spawnLocation.getBlock().getType() != Material.AIR || spawnLocation.getBlock().getRelative(BlockFace.UP).getType() != Material.AIR) {
-            if(spawnLocation.getY() >= 320) {
+            if (spawnLocation.getY() >= 320) {
                 spawnLocation.add(0, 1, 0);
                 break;
             }
