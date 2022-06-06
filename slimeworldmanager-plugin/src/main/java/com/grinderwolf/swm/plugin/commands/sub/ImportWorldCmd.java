@@ -8,6 +8,9 @@ import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
 import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.config.ConfigManager;
+import com.grinderwolf.swm.plugin.config.WorldData;
+import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
 import lombok.Getter;
@@ -62,6 +65,14 @@ public class ImportWorldCmd implements Subcommand {
                     String worldName = (args.length > 2 ? args[2] : worldDir.getName());
                     sender.sendMessage(Logging.COMMAND_PREFIX + "Importing world " + worldDir.getName() + " into data source " + dataSource + "...");
 
+                    WorldsConfig config = ConfigManager.getWorldConfig();
+
+                    if (config.getWorlds().containsKey(worldName)) {
+                        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "There is already a world called  " + worldName + " inside the worlds config file.");
+
+                        return true;
+                    }
+
                     Bukkit.getScheduler().runTaskAsynchronously(SWMPlugin.getInstance(), () -> {
 
                         try {
@@ -69,7 +80,13 @@ public class ImportWorldCmd implements Subcommand {
                             SWMPlugin.getInstance().importWorld(worldDir, worldName, loader);
 
                             sender.sendMessage(Logging.COMMAND_PREFIX +  ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " imported " +
-                                    "successfully in " + (System.currentTimeMillis() - start) + "ms. Remember to add it to the worlds config file before loading it.");
+                                    "successfully in " + (System.currentTimeMillis() - start) + "ms.");
+
+                            WorldData worldData = new WorldData();
+                            worldData.setDataSource(dataSource);
+                            config.getWorlds().put(worldName, worldData);
+                            config.save();
+
                         } catch (WorldAlreadyExistsException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Data source " + dataSource + " already contains a world called " + worldName + ".");
                         } catch (InvalidWorldException ex) {
