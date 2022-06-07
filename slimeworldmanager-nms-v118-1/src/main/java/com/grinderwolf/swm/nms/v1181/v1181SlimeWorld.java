@@ -12,7 +12,6 @@ import com.grinderwolf.swm.nms.world.ChunkSerialization;
 import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_18_R1.scheduler.MinecraftInternalPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class v1181SlimeWorld extends AbstractSlimeNMSWorld {
 
-    private static final MinecraftInternalPlugin INTERNAL_PLUGIN = new MinecraftInternalPlugin();
+    private static final InternalPlugin INTERNAL_PLUGIN = new InternalPlugin();
 
     private CustomWorldServer handle;
 
