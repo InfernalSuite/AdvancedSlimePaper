@@ -149,8 +149,7 @@ public class v1182SlimeWorld extends AbstractSlimeNMSWorld {
 
                     // 200 max ms on one tick for saving OR if the server is stopping force it to finish OR if it's on main thread to avoid deadlock
                     while (futuresIterator.hasNext() && (timeSaved < 200 || Bukkit.isStopping() || Bukkit.isPrimaryThread())) {
-                        Runnable iterator = futuresIterator.next();
-                        iterator.run();
+                        futuresIterator.next().run();
                         timeSaved += System.currentTimeMillis() - capturedTime;
                     }
 
