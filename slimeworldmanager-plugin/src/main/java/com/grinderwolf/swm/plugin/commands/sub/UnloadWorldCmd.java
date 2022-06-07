@@ -66,29 +66,29 @@ public class UnloadWorldCmd implements Subcommand {
         if (!players.isEmpty()) {
             Location spawnLocation = findValidDefaultSpawn();
             CompletableFuture<Void> cf = CompletableFuture.allOf(players.stream().map(player -> player.teleportAsync(spawnLocation)).collect(Collectors.toList()).toArray(CompletableFuture[]::new));
-            cf.thenRun(() -> Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true))));
+            cf.thenRun(() -> {
+                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true)));
+                if (!success.get()) {
+                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
+                } else {
+                    world.save();
+                }
+                System.out.println("Attempting to unlock world.. " + worldName + ".");
+                try {
+                    if (loader != null && loader.isWorldLocked(worldName)) {
+                        System.out.println("World.. " + worldName + " is locked.");
+                        loader.unlockWorld(worldName);
+                        System.out.println("Attempted to unlock world.. " + worldName + ".");
+                    } else {
+                        System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
+                    }
+                } catch (UnknownWorldException | IOException e) {
+                    e.printStackTrace();
+                }
+                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
+            });
         }
 
-        if (!success.get()) {
-            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
-            return true;
-        } else {
-            world.save();
-        }
-
-        System.out.println("Attempting to unlock world.. " + worldName + ".");
-        try {
-            if (loader != null && loader.isWorldLocked(worldName)) {
-                System.out.println("World.. " + worldName + " is locked.");
-                loader.unlockWorld(worldName);
-                System.out.println("Attempted to unlock world.. " + worldName + ".");
-            } else {
-                System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
-            }
-        } catch (UnknownWorldException | IOException e) {
-            e.printStackTrace();
-        }
-        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
         return true;
     }
 
