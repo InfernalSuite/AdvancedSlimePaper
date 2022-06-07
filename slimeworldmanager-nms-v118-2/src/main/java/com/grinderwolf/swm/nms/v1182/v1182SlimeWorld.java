@@ -13,18 +13,16 @@ import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_18_R2.scheduler.MinecraftInternalPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class v1182SlimeWorld extends AbstractSlimeNMSWorld {
 
-    private static final MinecraftInternalPlugin INTERNAL_PLUGIN = new MinecraftInternalPlugin();
+    private static final InternalPlugin INTERNAL_PLUGIN = new InternalPlugin();
 
     private CustomWorldServer handle;
 
@@ -45,8 +43,8 @@ public class v1182SlimeWorld extends AbstractSlimeNMSWorld {
     }
 
     @Override
-    public CompletableFuture<ChunkSerialization> serializeChunks(List<SlimeChunk> chunks, byte worldVersion) throws IOException {
-        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
+    public CompletableFuture<ChunkSerialization> serializeChunks(List<SlimeChunk> chunks, byte worldVersion) {
+        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(27000000);
         DataOutputStream outStream = new DataOutputStream(outByteStream);
 
         List<Runnable> runnables = new ArrayList<>(chunks.size() + 1);
@@ -151,7 +149,8 @@ public class v1182SlimeWorld extends AbstractSlimeNMSWorld {
 
                     // 200 max ms on one tick for saving OR if the server is stopping force it to finish OR if it's on main thread to avoid deadlock
                     while (futuresIterator.hasNext() && (timeSaved < 200 || Bukkit.isStopping() || Bukkit.isPrimaryThread())) {
-                        futuresIterator.next().run();
+                        Runnable iterator = futuresIterator.next();
+                        iterator.run();
                         timeSaved += System.currentTimeMillis() - capturedTime;
                     }
 
