@@ -1,5 +1,5 @@
 name: SlimeWorldManager
-version: 2.8.1
+version: 2.8.2
 main: com.grinderwolf.swm.plugin.SWMPlugin
 authors:
   - Grinderwolf
