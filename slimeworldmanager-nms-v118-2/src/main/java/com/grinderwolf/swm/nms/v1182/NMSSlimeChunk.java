@@ -26,6 +26,7 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +35,12 @@ import java.util.Map;
 public class NMSSlimeChunk implements SlimeChunk {
 
     private LevelChunk chunk;
+    @Nullable
+    private final SlimeChunk slimeChunk;
 
-    public NMSSlimeChunk(LevelChunk chunk) {
+    public NMSSlimeChunk(@Nullable SlimeChunk slimeChunk, LevelChunk chunk) {
         this.chunk = chunk;
+        this.slimeChunk = slimeChunk;
     }
 
     @Override
@@ -125,6 +129,10 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     @Override
     public List<CompoundTag> getTileEntities() {
+        if (shouldDefaultBackToSlimeChunk()) {
+            return slimeChunk.getTileEntities();
+        }
+
         List<CompoundTag> tileEntities = new ArrayList<>();
 
         for (BlockEntity entity : chunk.blockEntities.values()) {
@@ -161,5 +169,16 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     public void setChunk(LevelChunk chunk) {
         this.chunk = chunk;
+    }
+
+    /*
+    Slime chunks can still be requested but not actually loaded, this caused
+    some things to not properly save because they are not "loaded" into the chunk.
+    See ChunkMap#protoChunkToFullChunk
+    anything in the if statement will not be loaded and is stuck inside the runnable.
+    Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
+     */
+    public boolean shouldDefaultBackToSlimeChunk() {
+        return slimeChunk != null && !this.chunk.loaded;
     }
 }

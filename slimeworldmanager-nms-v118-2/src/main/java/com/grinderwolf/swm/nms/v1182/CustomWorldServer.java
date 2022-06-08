@@ -170,13 +170,13 @@ public class CustomWorldServer extends ServerLevel {
             chunk = new LevelChunk(this, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                     0L, null, null, null);
 
-            slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
+            slimeWorld.updateChunk(new NMSSlimeChunk(null, chunk));
         } else if (slimeChunk instanceof NMSSlimeChunk) {
             chunk = ((NMSSlimeChunk) slimeChunk).getChunk(); // This shouldn't happen anymore, unloading should cleanup the chunk
         } else {
             chunk = convertChunk(slimeChunk);
 
-            slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
+            slimeWorld.updateChunk(new NMSSlimeChunk(slimeChunk, chunk));
         }
 
         return new ImposterProtoChunk(chunk, false);
@@ -335,7 +335,7 @@ public class CustomWorldServer extends ServerLevel {
         if (slimeChunk instanceof NMSSlimeChunk) {
             ((NMSSlimeChunk) slimeChunk).setChunk(chunk);
         } else {
-            slimeWorld.updateChunk(new NMSSlimeChunk(chunk));
+            slimeWorld.updateChunk(new NMSSlimeChunk(slimeChunk, chunk));
         }
     }
     public CompletableFuture<ChunkEntities<Entity>> handleEntityLoad(EntityStorage storage, ChunkPos pos) {
