@@ -44,7 +44,7 @@ public class v1182SlimeWorld extends AbstractSlimeNMSWorld {
 
     @Override
     public CompletableFuture<ChunkSerialization> serializeChunks(List<SlimeChunk> chunks, byte worldVersion) {
-        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(27000000);
+        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
         DataOutputStream outStream = new DataOutputStream(outByteStream);
 
         List<Runnable> runnables = new ArrayList<>(chunks.size() + 1);
