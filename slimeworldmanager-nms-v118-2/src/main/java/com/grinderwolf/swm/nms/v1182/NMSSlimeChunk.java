@@ -36,7 +36,7 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     private LevelChunk chunk;
     @Nullable
-    private final SlimeChunk slimeChunk;
+    private SlimeChunk slimeChunk;
 
     public NMSSlimeChunk(@Nullable SlimeChunk slimeChunk, LevelChunk chunk) {
         this.chunk = chunk;
@@ -180,5 +180,9 @@ public class NMSSlimeChunk implements SlimeChunk {
      */
     public boolean shouldDefaultBackToSlimeChunk() {
         return slimeChunk != null && !this.chunk.loaded;
+    }
+
+    public void dirtySlime() {
+        this.slimeChunk = null;
     }
 }

@@ -65,6 +65,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -174,9 +175,15 @@ public class CustomWorldServer extends ServerLevel {
         } else if (slimeChunk instanceof NMSSlimeChunk) {
             chunk = ((NMSSlimeChunk) slimeChunk).getChunk(); // This shouldn't happen anymore, unloading should cleanup the chunk
         } else {
-            chunk = convertChunk(slimeChunk);
+            AtomicReference<NMSSlimeChunk> jank = new AtomicReference<>();
+            chunk = convertChunk(slimeChunk, () -> {
+                jank.get().dirtySlime();
+            });
 
-            slimeWorld.updateChunk(new NMSSlimeChunk(slimeChunk, chunk));
+            NMSSlimeChunk nmsSlimeChunk = new NMSSlimeChunk(slimeChunk, chunk);
+            jank.set(nmsSlimeChunk);
+
+            slimeWorld.updateChunk(nmsSlimeChunk);
         }
 
         return new ImposterProtoChunk(chunk, false);
@@ -190,7 +197,7 @@ public class CustomWorldServer extends ServerLevel {
                 chunk.getMinSection(), chunk.getMaxSection());
     }
 
-    private LevelChunk convertChunk(SlimeChunk chunk) {
+    private LevelChunk convertChunk(SlimeChunk chunk, Runnable onUnload) {
         int x = chunk.getX();
         int z = chunk.getZ();
 
@@ -295,7 +302,13 @@ public class CustomWorldServer extends ServerLevel {
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
         LevelChunk nmsChunk = new LevelChunk(this, pos,
                 UpgradeData.EMPTY,
-                blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
+                blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null) {
+            @Override
+            public void unloadCallback() {
+                super.unloadCallback();
+                onUnload.run();
+            }
+        };
 
         // Height Maps
         EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
