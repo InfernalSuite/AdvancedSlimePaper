@@ -115,7 +115,7 @@ public class CustomWorldServer extends ServerLevel {
 
     @Override
     public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled) {
-        if (!slimeWorld.isReadOnly() && !savingDisabled) {
+        if (!slimeWorld.isReadOnly()) {
             Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
             this.getChunkSource().save(forceSave);
