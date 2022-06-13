@@ -1,0 +1,6 @@
+{
+    java.util.concurrent.CompletableFuture future = (java.util.concurrent.CompletableFuture) com.grinderwolf.swm.clsm.ClassModifier.loadEntities($0, $1);
+    if (future != null) {
+        return future;
+    }
+}

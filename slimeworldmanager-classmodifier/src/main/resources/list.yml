@@ -36,3 +36,16 @@ v1_18_R2:
     - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_18_R2/EntityStorage_loadEntities.txt
     - a(net.minecraft.world.level.entity.ChunkEntities)@v1_18_R2/EntityStorage_storeEntities.txt
     - a(boolean)@v1_18_R2/EntityStorage_flush.txt
+
+v1_19_R1:
+  net/minecraft/server/level/PlayerChunkMap:
+    - a(net.minecraft.world.level.chunk.IChunkAccess)@v1_19_R1/PlayerChunkMap_saveChunk.txt
+    - g(net.minecraft.world.level.ChunkCoordIntPair)@v1_19_R1/PlayerChunkMap_loadChunk.txt
+  net/minecraft/world/level/saveddata/PersistentBase:
+    - a(java.io.File)@v1_19_R1/PersistentBase_saveData.txt
+  net/minecraft/world/level/levelgen/GeneratorSettings:
+    - d()@v1_19_R1/GeneratorSettings_injectWorlds.txt
+  net/minecraft/world/level/chunk/storage/EntityStorage:
+    - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_19_R1/EntityStorage_loadEntities.txt
+    - a(net.minecraft.world.level.entity.ChunkEntities)@v1_19_R1/EntityStorage_storeEntities.txt
+    - a(boolean)@v1_19_R1/EntityStorage_flush.txt

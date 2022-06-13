@@ -161,6 +161,7 @@ public class NMSTransformer implements ClassFileTransformer {
             case "1.17.1" -> "v1_17_R1";
             case "1.18.1" -> "v1_18_R1";
             case "1.18.2" -> "v1_18_R2";
+            case "1.19" -> "v1_19_R1";
             default -> throw new UnsupportedOperationException(minecraftVersion);
         };
     }

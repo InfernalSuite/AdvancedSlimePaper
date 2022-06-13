@@ -1,0 +1,6 @@
+{
+    if (!$1.getParentFile().exists()) {
+        $0.a(false);
+        return;
+    }
+}
