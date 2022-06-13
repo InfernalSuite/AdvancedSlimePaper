@@ -77,6 +77,7 @@ public class UnloadWorldCmd implements Subcommand {
                 unlockWorldFinally(world, loader, sender);
             });
         }else{
+            Bukkit.unloadWorld(world, true);
             unlockWorldFinally(world, loader, sender);
         }
 
