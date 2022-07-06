@@ -81,7 +81,7 @@ Thanks to:
  
  * All the contributors who helped us by adding features to SWM.
  * [Grinderwolf](https://github.com/Grinderwolf) Original Creator.
- * [Glare](https://glaremasters.me) for providing me with a Maven repository.
+ * [Glare](https://glaremasters.me) for providing the original Maven repository.
  * [Minikloon](https://twitter.com/Minikloon) and all the [Hypixel](https://twitter.com/HypixelNetwork) team for developing the SRF.
  
 ## YourKit
