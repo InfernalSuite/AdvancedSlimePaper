@@ -69,8 +69,17 @@ Javadocs can be found [here](https://grinderwolf.github.io/Slime-World-Manager/a
 
 ## Credits
 
-Thanks to: 
- * All the contributors who helped me by adding features to ASWM.
+Thanks to:
+ * All of the contributors that actively maintain ASWM.
+ * [Paul19988](https://github.com/Paul19988) ASWM Creator.
+ * [ComputerNerd100](https://github.com/ComputerNerd100) Large Contributor & Maintainer.
+ * [b0ykoe](https://github.com/b0ykoe) Provider of Build services & repos.
+ * [Owen1212055](https://github.com/Owen1212055) Large Contributor & Maintainer.
+ * [Gerolmed](https://github.com/Gerolmed) Contributor & Maintainer.
+ 
+ --
+ 
+ * All the contributors who helped us by adding features to SWM.
  * [Grinderwolf](https://github.com/Grinderwolf) Original Creator.
  * [Glare](https://glaremasters.me) for providing me with a Maven repository.
  * [Minikloon](https://twitter.com/Minikloon) and all the [Hypixel](https://twitter.com/HypixelNetwork) team for developing the SRF.
