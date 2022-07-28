@@ -1,5 +1,5 @@
 name: SlimeWorldManager
-version: 2.9.1
+version: 2.10.0
 main: com.grinderwolf.swm.plugin.SWMPlugin
 authors:
   - Grinderwolf
@@ -11,7 +11,7 @@ authors:
   - Owen
   - ComputerNerd100
 description: Advanced Slime World Manager is a resource that implements the Slime Region Format, designed by the Hypixel Team to load and save worlds more efficiently.
-api-version: 1.17
+api-version: 1.18
 commands:
   swm:
     aliases: aswm

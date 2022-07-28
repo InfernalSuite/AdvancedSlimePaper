@@ -1,5 +1,0 @@
-{
-    if (com.grinderwolf.swm.clsm.ClassModifier.storeEntities($0, $1)) {
-        return;
-    }
-}

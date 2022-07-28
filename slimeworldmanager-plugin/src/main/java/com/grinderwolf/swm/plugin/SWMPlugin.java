@@ -10,8 +10,6 @@ import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.nms.SlimeNMS;
-import com.grinderwolf.swm.nms.v1171.v1171SlimeNMS;
-import com.grinderwolf.swm.nms.v1181.v1181SlimeNMS;
 import com.grinderwolf.swm.nms.v1182.v1182SlimeNMS;
 import com.grinderwolf.swm.nms.v119.v119SlimeNMS;
 import com.grinderwolf.swm.nms.v1191.v1191SlimeNMS;
@@ -183,8 +181,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         int dataVersion = Bukkit.getUnsafe().getDataVersion();
         return switch (dataVersion) {
-            case 2730 -> new v1171SlimeNMS(isPaperMC);
-            case 2865 -> new v1181SlimeNMS(isPaperMC);
             case 2975 -> new v1182SlimeNMS(isPaperMC);
             case 3105 -> new v119SlimeNMS(isPaperMC);
             case 3117 -> new v1191SlimeNMS(isPaperMC);

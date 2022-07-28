@@ -1,28 +1,4 @@
 # Good resources: nms.screamingsandals.org
-v1_17_R1:
-  net/minecraft/server/level/PlayerChunkMap:
-    - saveChunk(net.minecraft.world.level.chunk.IChunkAccess)@v1_17_R1/PlayerChunkMap_saveChunk.txt
-    - f(net.minecraft.world.level.ChunkCoordIntPair)@v1_17_R1/PlayerChunkMap_loadChunk.txt
-  net/minecraft/world/level/saveddata/PersistentBase:
-    - a(java.io.File)@v1_17_R1/PersistentBase_saveData.txt
-  net/minecraft/world/level/levelgen/GeneratorSettings:
-    - d()@v1_17_R1/GeneratorSettings_injectWorlds.txt
-  net/minecraft/world/level/chunk/storage/EntityStorage:
-    - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_17_R1/EntityStorage_loadEntities.txt
-    - a(net.minecraft.world.level.entity.ChunkEntities)@v1_17_R1/EntityStorage_storeEntities.txt
-    - a(boolean)@v1_17_R1/EntityStorage_flush.txt
-v1_18_R1:
-  net/minecraft/server/level/PlayerChunkMap:
-    - a(net.minecraft.world.level.chunk.IChunkAccess)@v1_18_R1/PlayerChunkMap_saveChunk.txt
-    - g(net.minecraft.world.level.ChunkCoordIntPair)@v1_18_R1/PlayerChunkMap_loadChunk.txt
-  net/minecraft/world/level/saveddata/PersistentBase:
-    - a(java.io.File)@v1_18_R1/PersistentBase_saveData.txt
-  net/minecraft/world/level/levelgen/GeneratorSettings:
-    - d()@v1_18_R1/GeneratorSettings_injectWorlds.txt
-  net/minecraft/world/level/chunk/storage/EntityStorage:
-    - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_18_R1/EntityStorage_loadEntities.txt
-    - a(net.minecraft.world.level.entity.ChunkEntities)@v1_18_R1/EntityStorage_storeEntities.txt
-    - a(boolean)@v1_18_R1/EntityStorage_flush.txt
 
 v1_18_R2:
   net/minecraft/server/level/PlayerChunkMap:

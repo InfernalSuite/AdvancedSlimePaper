@@ -1,5 +1,0 @@
-{
-    if (com.grinderwolf.swm.clsm.ClassModifier.saveChunk($0.o, $1)) {
-        return false;
-    }
-}

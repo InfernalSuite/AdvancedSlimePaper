@@ -1,7 +1,0 @@
-{ 
-    java.util.concurrent.CompletableFuture chunk = com.grinderwolf.swm.clsm.ClassModifier.getFutureChunk($0.o, $1.b, $1.c);
-    
-    if (chunk != null) { 
-        return chunk;
-    }
-}
