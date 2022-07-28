@@ -7,6 +7,7 @@ import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -69,6 +70,14 @@ public interface SlimePlugin {
      * @return the loaded world, or {@code null} if no loaded world matches the given name
      */
     SlimeWorld getWorld(String worldName);
+
+    /**
+     * Gets a list of worlds which have been loaded by ASWM.
+     *
+     * @apiNote the returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
+     * @return a list of worlds
+     */
+    List<SlimeWorld> getLoadedWorlds();
 
     /**
      * Creates an empty world and stores it using a specified

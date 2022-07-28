@@ -16,7 +16,7 @@ buildscript {
 allprojects {
 
     group = "com.grinderwolf"
-    version = "2.9.0-SNAPSHOT"
+    version = "2.9.1-SNAPSHOT"
 
     apply(plugin = "java")
     apply(plugin = "io.freefair.lombok")
@@ -26,7 +26,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
 
-        maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://repo.codemc.io/repository/nms/")
         maven("https://repo.rapture.pw/repository/maven-releases/")
         maven("https://repo.glaremasters.me/repository/concuncan/")
@@ -39,6 +39,7 @@ allprojects {
 
     tasks.withType<Javadoc> {
         options.encoding = Charsets.UTF_8.name()
+        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:", "implSec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
     }
 
     tasks.withType<ProcessResources> {

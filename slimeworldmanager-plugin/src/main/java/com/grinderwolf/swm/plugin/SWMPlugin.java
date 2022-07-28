@@ -2,6 +2,7 @@ package com.grinderwolf.swm.plugin;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
+import com.google.common.collect.ImmutableList;
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.events.*;
 import com.grinderwolf.swm.api.exceptions.*;
@@ -283,8 +284,13 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return world;
     }
 
+    @Override
     public SlimeWorld getWorld(String worldName) {
         return loadedWorlds.get(worldName);
+    }
+
+    public List<SlimeWorld> getLoadedWorlds() {
+        return ImmutableList.copyOf(loadedWorlds.values());
     }
 
     @Override
