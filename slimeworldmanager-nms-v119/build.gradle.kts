@@ -30,4 +30,4 @@ tasks {
 
 }
 
-description = "slimeworldmanager-nms-v118-2"
+description = "slimeworldmanager-nms-v119"
