@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":slimeworldmanager-nms-v118-2", "reobf"))
     implementation(project(":slimeworldmanager-nms-v119", "reobf"))
     implementation(project(":slimeworldmanager-nms-v119-1", "reobf"))
+    implementation(project(":slimeworldmanager-nms-v119-2", "reobf"))
     implementation(project(":slimeworldmanager-classmodifierapi"))
 
     implementation("com.flowpowered:flow-nbt:2.0.2")

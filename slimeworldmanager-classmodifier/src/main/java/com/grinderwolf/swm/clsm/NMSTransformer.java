@@ -159,7 +159,7 @@ public class NMSTransformer implements ClassFileTransformer {
     public @NonNull String getNMSVersion(final @NonNull String minecraftVersion) {
         return switch (minecraftVersion) {
             case "1.18.2" -> "v1_18_R2";
-            case "1.19", "1.19.1" -> "v1_19_R1";
+            case "1.19", "1.19.1", "1.19.2" -> "v1_19_R1";
             default -> throw new UnsupportedOperationException(minecraftVersion);
         };
     }

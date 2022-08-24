@@ -13,6 +13,7 @@ import com.grinderwolf.swm.nms.SlimeNMS;
 import com.grinderwolf.swm.nms.v1182.v1182SlimeNMS;
 import com.grinderwolf.swm.nms.v119.v119SlimeNMS;
 import com.grinderwolf.swm.nms.v1191.v1191SlimeNMS;
+import com.grinderwolf.swm.nms.v1192.v1192SlimeNMS;
 import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
@@ -184,6 +185,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             case 2975 -> new v1182SlimeNMS(isPaperMC);
             case 3105 -> new v119SlimeNMS(isPaperMC);
             case 3117 -> new v1191SlimeNMS(isPaperMC);
+            case 3120 -> new v1192SlimeNMS(isPaperMC);
             default -> throw new InvalidVersionException("" + dataVersion);
         };
     }
