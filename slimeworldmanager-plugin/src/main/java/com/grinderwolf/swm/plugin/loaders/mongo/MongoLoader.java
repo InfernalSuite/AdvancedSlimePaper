@@ -3,6 +3,7 @@ package com.grinderwolf.swm.plugin.loaders.mongo;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldInUseException;
+import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
@@ -19,6 +20,7 @@ import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.bukkit.Bukkit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -90,16 +92,12 @@ public class MongoLoader extends UpdatableLoader {
             Logging.warning("Make sure no other servers with older SWM versions are using this database.");
             Logging.warning("Shut down the server to prevent your database from being updated.");
 
-            try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException ignored) {
-
-            }
-
-            while (documents.hasNext()) {
-                String worldName = documents.next().getString("name");
-                mongoCollection.updateOne(Filters.eq("name", worldName), Updates.set("locked", 0L));
-            }
+            Bukkit.getScheduler().scheduleSyncDelayedTask(SWMPlugin.getInstance(), () -> {
+                while (documents.hasNext()) {
+                    String name = documents.next().getString("name");
+                    mongoCollection.updateOne(Filters.eq("name", name), Updates.set("locked", 0L));
+                }
+            }, 200L);
         }
     }
 
