@@ -1,6 +1,6 @@
 # Properties API
 
-Property "types" are handled by [SlimeProperty][1] instances. Whilst not allowing to create [SlimeProperty][1] objects, there is a [list of all availeable properties][2]. Properties and their values are stored in [SlimePropertyMaps][3].
+Property "types" are handled by [SlimeProperty][1] instances. Whilst creating [SlimeProperty][1] objects is not allowed, there is a [list of all available properties][2]. Properties and their values are stored in [SlimePropertyMaps][3].
 
 
 **Example Usage:**
