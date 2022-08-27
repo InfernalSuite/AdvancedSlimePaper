@@ -47,8 +47,8 @@ public class WorldImporter {
             return 0x06; // 1.16 world
         } else if (dataVersion <= 2730) {
             return 0x07; // 1.17 world
-        } else if (dataVersion <= 3105) {
-            return 0x08; // 1.18 & 1.19 world (world version did not change)
+        } else if (dataVersion <= 3120) {
+            return 0x08; // 1.18 & 1.19.2 world (world version did not change)
         } else {
             throw new UnsupportedOperationException("Unsupported world version: " + dataVersion);
         }
