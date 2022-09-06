@@ -10,7 +10,7 @@ Yes, you can! However, it does not work on versions 1.19+.
 
 ### My server stops when booting up with a 'Failed to find ClassModifier classes' error.
 
-Go to [Installing Slime World Manager](usage/install.md) and follow the steps described there.
+Go to [Installing Slime World Manager](../usage/install.md) and follow the steps described there.
 
 ### I'm getting a `javassist.CannotCompileException: [source error] acceptConnections() not found in net.minecraft.server.v1_14_R1.ServerConnection` error on startup.
 
