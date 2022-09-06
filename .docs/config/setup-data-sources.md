@@ -1,8 +1,11 @@
+## Data Source Configuration
+
 Before using MySQL or MongoDB to store your worlds, you've got to configure them. To do so, navigate to the SWM config folder located inside your plugins directory, and open the 'sources.yml' file. Inside there are all the parameters you need to set. Here's an example of how your sources.yml should look like:
 
 ```yaml
 file:
-    path: slime_worlds # The path to the directory where slime worlds are stored
+    # The path to the directory where slime worlds are stored
+    path: slime_worlds
 mysql:
     enabled: true
     host: 127.0.0.1

@@ -5,16 +5,15 @@ Property "types" are handled by [SlimeProperty][1] instances. Whilst creating [S
 
 **Example Usage:**
 ```java
-// Create a new and empty property map
+// create a new and empty property map
 SlimePropertyMap properties = new SlimePropertyMap();
 
 properties.setString(SlimeProperties.DIFFICULTY, "normal");
 properties.setInt(SlimeProperties.SPAWN_X, 123);
 properties.setInt(SlimeProperties.SPAWN_Y, 112);
 properties.setInt(SlimeProperties.SPAWN_Z, 170);
-/* Add as many as you like */
+// add as many as you would like
 ```
-
 
 [1]: ../../slimeworldmanager-api/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperty.java
 [2]: ../../slimeworldmanager-api/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java

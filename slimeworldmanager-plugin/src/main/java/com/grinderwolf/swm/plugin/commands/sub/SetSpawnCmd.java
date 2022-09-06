@@ -25,7 +25,7 @@ public class SetSpawnCmd implements Subcommand {
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
         if(!(sender instanceof Player)) {
-            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "This command is for players)");
+            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "This command is for players");
         }
 
         if (args.length > 0) {

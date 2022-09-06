@@ -1,4 +1,6 @@
-To be able to load a world with SWM, you have to convert it to the SRF. There are two ways of doing this:
+# Converting Worlds
+
+To be able to load a world with ASWM, you have to convert it to the SRF. There are two ways of doing this:
 
 ## Using the in-game command
 
@@ -34,7 +36,7 @@ The importer tool provides some command line arguments to configure the behavior
 
 ### Usage as API
 
-The importer tool may be used as a dependency in your projects to import worlds programatically.
+The importer tool may be used as a dependency in your projects to import worlds programmatically.
 
 The basic usage of the API is as follows:
 ```java
@@ -42,9 +44,7 @@ File theOutputFile = SWMImporter.getDestinationFile(theWorldDir);
 
 try {
     SWMImporter.importWorld(theWorldDir, theOutputFile, true);
-} catch (IOException e) {
-    e.printStackTrace();
-} catch (InvalidWorldException e) {
-    e.printStackTrace();
+} catch (IOException | InvalidWorldException exception) {
+    // exception handling
 }
 ```

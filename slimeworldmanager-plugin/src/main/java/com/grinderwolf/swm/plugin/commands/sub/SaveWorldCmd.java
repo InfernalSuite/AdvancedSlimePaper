@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 public class SaveWorldCmd implements Subcommand {
 
-    private final String usage = "save <world>>";
+    private final String usage = "save <world>";
     private final String description = "Saves a world.";
     private final String permission = "swm.saveworld";
 
