@@ -10,6 +10,7 @@ gradle clean shadowJar
 
 ## Using the API
 
+
 If your plugin wants to use Advanced Slime World Manager add the following in your plugin:
 
 ### Maven
@@ -36,7 +37,6 @@ If your plugin wants to use Advanced Slime World Manager add the following in yo
 ### Gradle
 ```groovy
 repositories {
-    maven { url = 'https://repo.rapture.pw/repository/maven-releases/' }
     maven { url = 'https://repo.rapture.pw/repository/maven-snapshots/' }
 }
 
@@ -44,3 +44,5 @@ dependencies {
     compileOnly 'com.grinderwolf:slimeworldmanager-api:INSERT LATEST VERSION HERE'
 }
 ```
+
+**If you run into any Flow-NBT errors when building your project, add the additional repository: `https://repo.rapture.pw/repository/maven-releases/`**

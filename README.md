@@ -12,7 +12,7 @@ releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #ne
 
 ## Using SWM in your plugin
 
-#### Maven
+### Maven
 ```xml
 <repositories>
   <repository>
@@ -33,10 +33,9 @@ releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #ne
 </dependencies>
 ```
 
-#### Gradle
+### Gradle
 ```groovy
 repositories {
-    maven { url = 'https://repo.rapture.pw/repository/maven-releases/' }
     maven { url = 'https://repo.rapture.pw/repository/maven-snapshots/' }
 }
 
@@ -45,7 +44,9 @@ dependencies {
 }
 ```
 
-#### Javadocs
+**If you run into any Flow-NBT errors when building your project, add the additional repository: `https://repo.rapture.pw/repository/maven-releases/`**
+
+### Javadocs
 
 The Javadocs can be found [here](https://grinderwolf.github.io/Slime-World-Manager/apidocs/).
 
