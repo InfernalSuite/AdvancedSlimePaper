@@ -265,8 +265,10 @@ public class CustomWorldServer extends ServerLevel {
                     biomePalette =new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES);
                 }
 
-                LevelChunkSection section = new LevelChunkSection(sectionId << 4, blockPalette, biomePalette);
-                sections[sectionId] = section;
+                if (sectionId < sections.length) {
+                    LevelChunkSection section = new LevelChunkSection(sectionId << 4, blockPalette, biomePalette);
+                    sections[sectionId] = section;
+                }
             }
         }
 

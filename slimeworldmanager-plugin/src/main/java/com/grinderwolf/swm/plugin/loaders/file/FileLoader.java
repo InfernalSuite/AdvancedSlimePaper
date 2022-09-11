@@ -6,7 +6,10 @@ import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.NotDirectoryException;
@@ -37,15 +40,17 @@ public class FileLoader implements SlimeLoader {
             throw new UnknownWorldException(worldName);
         }
 
-        RandomAccessFile file = worldFiles.computeIfAbsent(worldName, (world) -> {
+//        RandomAccessFile file = worldFiles.computeIfAbsent(worldName, (world) -> {
+//
+//            try {
+//                return new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
+//            } catch (FileNotFoundException ex) {
+//                return null; // This is never going to happen as we've just checked if the world exists
+//            }
+//
+//        });
 
-            try {
-                return new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
-            } catch (FileNotFoundException ex) {
-                return null; // This is never going to happen as we've just checked if the world exists
-            }
-
-        });
+        RandomAccessFile file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
 
         if(!readOnly) {
             if(file != null && file.getChannel().isOpen()) {
