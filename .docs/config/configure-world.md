@@ -1,4 +1,6 @@
-To configure a world, open the 'worlds.yml' file inside the SWM config folder. Here is an example of a worlds.yml file:
+# World Configuration
+
+To configure a world, open the 'worlds.yml' file inside the ASWM config folder. Here is an example of a worlds.yml file:
 ```yaml
 worlds:
     my_great_world:

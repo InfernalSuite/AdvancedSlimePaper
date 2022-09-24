@@ -1,28 +1,48 @@
-### Building
+# Development Setup
 
-To build SWM, execute the following command int the project root:
+## Building the Plugin
+
+To build ASWM, execute the following command in the project root:
 
 ```
-mvn clean install
+gradle clean shadowJar
 ```
 
 ## Using the API
 
-If your plugin wants to use Slime World Manager add the following in your pom.xml
+
+If your plugin wants to use Advanced Slime World Manager add the following in your plugin:
 
 ### Maven
+```xml
+<repositories>
+  <repository>
+    <id>rapture-snapshots</id>
+    <url>https://repo.rapture.pw/repository/maven-snapshots/</url>
+  </repository>
+</repositories>
+```
 
 ```xml
-<repository>
-    <id>swm-repo</id>
-    <url>https://repo.glaremasters.me/repository/concuncan/</url>
-</repository>
-```
-```xml
-<dependency>
+<dependencies>
+  <dependency>
     <groupId>com.grinderwolf</groupId>
     <artifactId>slimeworldmanager-api</artifactId>
-    <version>(insert latest version here)</version>
+    <version>INSERT LATEST VERSION HERE</version>
     <scope>provided</scope>
-</dependency>
+  </dependency>
+</dependencies>
 ```
+
+### Gradle
+```groovy
+repositories {
+    maven { url = 'https://repo.rapture.pw/repository/maven-snapshots/' }
+}
+
+dependencies {
+    compileOnly 'com.grinderwolf:slimeworldmanager-api:INSERT LATEST VERSION HERE'
+}
+```
+
+**If you run into any Flow-NBT errors when building your project, add the additional repository: `https://repo.rapture.pw/repository/maven-releases/`**
