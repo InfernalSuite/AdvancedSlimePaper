@@ -146,6 +146,12 @@ public class CustomWorldServer extends ServerLevel {
         }
     }
 
+    // This may not work with spigot.
+    @Override
+    public void save(@Nullable ProgressListener progressListener, boolean flush, boolean savingDisabled, boolean close) {
+        this.save(progressListener, flush, savingDisabled);
+    }
+
     private void save() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
             try {
