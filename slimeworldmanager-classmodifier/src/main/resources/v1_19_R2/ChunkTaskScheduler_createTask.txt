@@ -1,0 +1,6 @@
+{
+    io.papermc.paper.chunk.system.scheduling.ChunkProgressionTask task = (io.papermc.paper.chunk.system.scheduling.ChunkProgressionTask) com.grinderwolf.swm.clsm.ClassModifier.getChunkTask($0, $0.world, $1, $2, $4, $7, $6);
+    if (task != null) {
+        return task;
+    }
+}

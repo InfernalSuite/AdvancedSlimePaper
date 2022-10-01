@@ -199,7 +199,7 @@ public class CustomWorldServer extends ServerLevel {
                 chunk.getMinSection(), chunk.getMaxSection());
     }
 
-    private LevelChunk convertChunk(SlimeChunk chunk, Runnable onUnload) {
+    public LevelChunk convertChunk(SlimeChunk chunk, Runnable onUnload) {
         int x = chunk.getX();
         int z = chunk.getZ();
 

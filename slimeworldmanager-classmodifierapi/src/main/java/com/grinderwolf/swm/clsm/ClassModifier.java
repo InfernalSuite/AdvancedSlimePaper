@@ -16,6 +16,14 @@ public class ClassModifier {
 
     private static CLSMBridge customLoader;
 
+    public static Object getChunkTask(final Object scheduler, final Object world, final int chunkX, final int chunkZ, final Object chunkHolder, final Object priority, final Object status) {
+        if (customLoader == null || !isCustomWorld(world)) {
+            return null;
+        }
+
+        return customLoader.getChunkTask(scheduler, world, chunkX, chunkZ, chunkHolder, priority, status);
+    }
+
     public static CompletableFuture getFutureChunk(Object world, int x, int z) {
         if (customLoader == null || !isCustomWorld(world)) {
             return null;

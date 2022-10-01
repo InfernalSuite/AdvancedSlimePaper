@@ -283,5 +283,15 @@ public class NMSTransformer implements ClassFileTransformer {
         private final String content;
         private final boolean optional;
 
+
+        @Override
+        public String toString() {
+            return "Change{" +
+                    "methodName='" + methodName + '\'' +
+                    ", params=" + Arrays.toString(params) +
+                    ", content='" + content + '\'' +
+                    ", optional=" + optional +
+                    '}';
+        }
     }
 }

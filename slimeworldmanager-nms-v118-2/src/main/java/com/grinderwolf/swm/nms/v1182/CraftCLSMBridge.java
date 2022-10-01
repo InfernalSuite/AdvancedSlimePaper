@@ -4,6 +4,7 @@ import com.grinderwolf.swm.clsm.CLSMBridge;
 import com.grinderwolf.swm.clsm.ClassModifier;
 import com.mojang.datafixers.util.Either;
 import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -92,6 +93,11 @@ public class CraftCLSMBridge implements CLSMBridge {
     @Override
     public Object injectCustomWorlds() {
         return nmsInstance.injectDefaultWorlds();
+    }
+
+    @Override
+    public @NonNull Object getChunkTask(Object scheduler, Object world, int chunkX, int chunkZ, Object chunkHolder, Object priority, Object status) {
+        throw new UnsupportedOperationException();
     }
 
     static void initialize(v1182SlimeNMS instance) {

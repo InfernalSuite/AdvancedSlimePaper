@@ -1,5 +1,7 @@
 package com.grinderwolf.swm.clsm;
 
+import lombok.NonNull;
+
 public interface CLSMBridge {
 
     /**
@@ -68,4 +70,6 @@ public interface CLSMBridge {
      */
     Object injectCustomWorlds();
 
+    @NonNull
+    Object getChunkTask(Object scheduler, Object world, int chunkX, int chunkZ, Object chunkHolder, Object priority, Object status);
 }
