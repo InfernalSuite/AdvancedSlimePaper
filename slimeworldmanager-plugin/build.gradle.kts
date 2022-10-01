@@ -1,5 +1,6 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
 dependencies {
@@ -38,6 +39,13 @@ tasks {
     assemble {
         dependsOn(shadowJar)
     }
+
+    runServer {
+        minecraftVersion("1.19.2")
+        jvmArgs("-javaagent:" + project(":slimeworldmanager-classmodifier").tasks.named<AbstractArchiveTask>("shadowJar").flatMap { shadow -> shadow.archiveFile }.get().asFile.toPath())
+    }
 }
+
+
 
 description = "slimeworldmanager-plugin"

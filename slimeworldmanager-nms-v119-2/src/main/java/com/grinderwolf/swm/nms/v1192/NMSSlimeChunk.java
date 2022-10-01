@@ -24,6 +24,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.PalettedContainerRO;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.entity.LevelEntityGetter;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -148,9 +149,9 @@ public class NMSSlimeChunk implements SlimeChunk {
     public List<CompoundTag> getEntities() {
         List<CompoundTag> entities = new ArrayList<>();
 
-        PersistentEntitySectionManager<Entity> entityManager = chunk.level.entityManager;
+        LevelEntityGetter<Entity> entityManager = chunk.level.getEntities();
 
-        for (Entity entity : entityManager.getEntityGetter().getAll()) {
+        for (Entity entity : entityManager.getAll()) {
             ChunkPos chunkPos = chunk.getPos();
             ChunkPos entityPos = entity.chunkPosition();
 

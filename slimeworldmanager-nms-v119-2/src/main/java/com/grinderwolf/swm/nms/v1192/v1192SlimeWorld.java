@@ -1,6 +1,7 @@
 package com.grinderwolf.swm.nms.v1192;
 
 import com.flowpowered.nbt.CompoundTag;
+import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeChunk;
 import com.grinderwolf.swm.api.world.SlimeChunkSection;
@@ -38,10 +39,6 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
         this.handle = handle;
     }
 
-    public Iterable<Entity> getLoadedEntities() {
-        return this.handle.entityManager.getEntityGetter().getAll();
-    }
-
     @Override
     public CompletableFuture<ChunkSerialization> serializeChunks(List<SlimeChunk> chunks, byte worldVersion) {
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
@@ -55,7 +52,7 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
         runnables.add(() -> {
             if (handle != null) {
                 SlimeLogger.debug("Saving entities");
-                this.handle.entityManager.saveAll();
+               // this.handle.entityDataControllerNew.saveAll();
                 for (List<CompoundTag> value : this.entities.values()) {
                     entities.addAll(value);
                 }
