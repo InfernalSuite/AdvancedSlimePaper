@@ -1,23 +1,25 @@
 package com.grinderwolf.swm.nms.v1192;
 
 import com.flowpowered.nbt.CompoundTag;
-import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeChunk;
 import com.grinderwolf.swm.api.world.SlimeChunkSection;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
+import com.grinderwolf.swm.nms.NmsUtil;
 import com.grinderwolf.swm.nms.SlimeLogger;
 import com.grinderwolf.swm.nms.SlimeNMS;
 import com.grinderwolf.swm.nms.world.AbstractSlimeNMSWorld;
 import com.grinderwolf.swm.nms.world.ChunkSerialization;
 import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
+import io.papermc.paper.chunk.system.scheduling.NewChunkHolder;
+import io.papermc.paper.world.ChunkEntitySlices;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,6 +28,17 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
     private static final InternalPlugin INTERNAL_PLUGIN = new InternalPlugin();
 
     private CustomWorldServer handle;
+
+    private static final Method SAVE_ENTITIES;
+    static {
+        try {
+            Method method = NewChunkHolder.class.getDeclaredMethod("saveEntities", ChunkEntitySlices.class, boolean.class);
+            method.setAccessible(true);
+            SAVE_ENTITIES = method;
+        } catch (Throwable e) {
+            throw new AssertionError(e);
+        }
+    }
 
     public v1192SlimeWorld(SlimeNMS nms, byte version, SlimeLoader loader, String name,
                            Long2ObjectOpenHashMap<SlimeChunk> chunks, CompoundTag extraData,
@@ -52,9 +65,27 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
         runnables.add(() -> {
             if (handle != null) {
                 SlimeLogger.debug("Saving entities");
-               // this.handle.entityDataControllerNew.saveAll();
-                for (List<CompoundTag> value : this.entities.values()) {
-                    entities.addAll(value);
+                List<NewChunkHolder> holders = this.handle.chunkTaskScheduler.chunkHolderManager.getChunkHolders();
+                for (NewChunkHolder holder : holders) {
+                    if (holder != null && holder.getEntityChunk() != null) {
+                        SlimeLogger.debug("Booping (%s,%s)".formatted(holder.chunkX, holder.chunkZ));
+                        try {
+                            if (holder.getEntityChunk() != null) {
+                                boolean save = (boolean) SAVE_ENTITIES.invoke(holder, holder.getEntityChunk(), false);
+                                if (save) {
+                                    List<CompoundTag> tags = this.entities.get(NmsUtil.asLong(holder.chunkX, holder.chunkZ));
+                                    if (tags != null) {
+                                        if (!tags.isEmpty()) {
+                                            SlimeLogger.debug("Saving entities for " + holder.chunkX + " " + holder.chunkZ + " (%s)".formatted(tags.size()));
+                                        }
+                                        entities.addAll(tags);
+                                    }
+                                }
+                            }
+                        } catch (Throwable e) {
+                            throw new AssertionError(e);
+                        }
+                    }
                 }
             }
         });
@@ -110,7 +141,6 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
                             outStream.write(section.getSkyLight().getBacking());
                         }
                     }
-
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -146,7 +176,11 @@ public class v1192SlimeWorld extends AbstractSlimeNMSWorld {
 
                     // 200 max ms on one tick for saving OR if the server is stopping force it to finish OR if it's on main thread to avoid deadlock
                     while (futuresIterator.hasNext() && (timeSaved < 200 || Bukkit.isStopping() || Bukkit.isPrimaryThread())) {
-                        futuresIterator.next().run();
+                        try {
+                            futuresIterator.next().run();
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
                         timeSaved += System.currentTimeMillis() - capturedTime;
                     }
 

@@ -274,7 +274,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             if (!readOnly) { // Unlock the world as we're not using it
                 loader.unlockWorld(worldName);
             }
-
             throw ex;
         }
 

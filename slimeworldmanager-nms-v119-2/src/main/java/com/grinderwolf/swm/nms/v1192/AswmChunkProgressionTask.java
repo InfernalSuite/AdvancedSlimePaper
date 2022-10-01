@@ -2,12 +2,15 @@ package com.grinderwolf.swm.nms.v1192;
 
 import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 import com.grinderwolf.swm.api.world.SlimeChunk;
+import com.grinderwolf.swm.nms.NmsUtil;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import io.papermc.paper.chunk.system.poi.PoiChunk;
 import io.papermc.paper.chunk.system.scheduling.*;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.material.Fluid;
@@ -15,10 +18,13 @@ import net.minecraft.world.ticks.LevelChunkTicks;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * This class is a identical copy of {@link ChunkLoadTask}.
@@ -279,8 +285,11 @@ public final class AswmChunkProgressionTask extends ChunkProgressionTask {
                             0L, null, null, null);
 
                     slimeWorld.updateChunk(new NMSSlimeChunk(null, chunk));
-                } else if (slimeChunk instanceof NMSSlimeChunk) {
-                    chunk = ((NMSSlimeChunk) slimeChunk).getChunk(); // This shouldn't happen anymore, unloading should cleanup the chunk
+                } else if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                    // Recreate chunk, can't reuse the chunk holders
+                    LevelChunk backing = nmsSlimeChunk.getChunk();
+
+                    chunk = new LevelChunk(backing.level, backing.getPos(), backing.getUpgradeData(), (LevelChunkTicks<Block>) backing.getBlockTicks(), (LevelChunkTicks<Fluid>) backing.getFluidTicks(), backing.getInhabitedTime(), backing.getSections(), null, null);
                 } else {
                     AtomicReference<NMSSlimeChunk> jank = new AtomicReference<>();
                     chunk = ((CustomWorldServer) this.world).convertChunk(slimeChunk, () -> {
@@ -291,6 +300,18 @@ public final class AswmChunkProgressionTask extends ChunkProgressionTask {
                     jank.set(nmsSlimeChunk);
 
                     slimeWorld.updateChunk(nmsSlimeChunk);
+                }
+
+
+                List<com.flowpowered.nbt.CompoundTag> entities = slimeWorld.getEntities().get(NmsUtil.asLong(this.chunkX, this.chunkZ));
+                if (entities != null) {
+                    this.world.getEntityLookup().addLegacyChunkEntities(new ArrayList<>(
+                            EntityType.loadEntitiesRecursive(entities
+                                            .stream()
+                                            .map((tag) -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag))
+                                            .collect(Collectors.toList()), this.world)
+                                    .toList()
+                    ));
                 }
 
                 return new ImposterProtoChunk(chunk, false);

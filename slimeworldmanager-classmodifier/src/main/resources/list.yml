@@ -25,5 +25,20 @@ v1_19_R1:
     - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_19_R1/EntityStorage_loadEntities.txt
     - a(net.minecraft.world.level.entity.ChunkEntities)@v1_19_R1/EntityStorage_storeEntities.txt
     - a(boolean)@v1_19_R1/EntityStorage_flush.txt
+v1_19_R2:
+  net/minecraft/server/level/PlayerChunkMap:
+    - a(net.minecraft.world.level.chunk.IChunkAccess)@v1_19_R1/PlayerChunkMap_saveChunk.txt
+    - g(net.minecraft.world.level.ChunkCoordIntPair)@v1_19_R1/PlayerChunkMap_loadChunk.txt
+  net/minecraft/world/level/saveddata/PersistentBase:
+    - a(java.io.File)@v1_19_R1/PersistentBase_saveData.txt
+  net/minecraft/world/level/levelgen/GeneratorSettings:
+    - d()@v1_19_R1/GeneratorSettings_injectWorlds.txt
+  # net/minecraft/world/level/chunk/storage/EntityStorage:
+    #  - a(net.minecraft.world.level.ChunkCoordIntPair)@v1_19_R1/EntityStorage_loadEntities.txt
+    # - a(boolean)@v1_19_R1/EntityStorage_flush.txt
+  io/papermc/paper/chunk/system/scheduling/NewChunkHolder:
+    - saveEntities(io.papermc.paper.world.ChunkEntitySlices,boolean)@v1_19_R2/EntityStorage_storeEntities.txt
   io/papermc/paper/chunk/system/scheduling/ChunkTaskScheduler:
     - createTask(int,int,net.minecraft.world.level.chunk.IChunkAccess,io.papermc.paper.chunk.system.scheduling.NewChunkHolder,java.util.List,net.minecraft.world.level.chunk.ChunkStatus,ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor$Priority)@v1_19_R2/ChunkTaskScheduler_createTask.txt
+  net/minecraft/server/level/ChunkProviderServer:
+    - close(boolean)@v1_19_R2/ServerChunkCache_close.txt

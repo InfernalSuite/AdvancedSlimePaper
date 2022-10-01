@@ -9,9 +9,7 @@ import com.grinderwolf.swm.api.utils.NibbleArray;
 import com.grinderwolf.swm.api.world.SlimeChunk;
 import com.grinderwolf.swm.api.world.SlimeChunkSection;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-import com.grinderwolf.swm.nms.CraftSlimeChunk;
-import com.grinderwolf.swm.nms.CraftSlimeChunkSection;
-import com.grinderwolf.swm.nms.NmsUtil;
+import com.grinderwolf.swm.nms.*;
 import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.slime.SlimeWorldReader;
@@ -142,6 +140,7 @@ public class v1_9SlimeWorldFormat implements SlimeWorldReader {
             if (entitiesCompound != null) {
                 List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
+                SlimeLogger.debug("Serialized entities: " + serializedEntities);
                 for (CompoundTag entityCompound : serializedEntities) {
                     ListTag<DoubleTag> listTag = (ListTag<DoubleTag>) entityCompound.getAsListTag("Pos").get();
 

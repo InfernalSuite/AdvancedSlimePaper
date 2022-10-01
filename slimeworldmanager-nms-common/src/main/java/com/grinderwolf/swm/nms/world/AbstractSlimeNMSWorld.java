@@ -12,6 +12,7 @@ import com.grinderwolf.swm.api.utils.SlimeFormat;
 import com.grinderwolf.swm.api.world.SlimeChunk;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.nms.NmsUtil;
+import com.grinderwolf.swm.nms.SlimeLogger;
 import com.grinderwolf.swm.nms.SlimeNMS;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -147,6 +148,7 @@ public abstract class AbstractSlimeNMSWorld extends AbstractSlimeLoadedWorld {
                         // Entities
 
                         List<CompoundTag> entitiesList = chunkSerialization.entities();
+                        SlimeLogger.debug("entitiesList being serialized: " + entitiesList.size());
                         outStream.writeBoolean(!entitiesList.isEmpty());
 
                         if (!entitiesList.isEmpty()) {

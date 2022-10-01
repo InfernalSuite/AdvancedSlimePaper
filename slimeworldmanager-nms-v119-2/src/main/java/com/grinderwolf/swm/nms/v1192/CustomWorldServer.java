@@ -1,6 +1,7 @@
 package com.grinderwolf.swm.nms.v1192;
 
 import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
+import com.destroystokyo.paper.util.maplist.EntityList;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.LongArrayTag;
@@ -14,8 +15,11 @@ import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.nms.CraftSlimeChunk;
 import com.grinderwolf.swm.nms.NmsUtil;
+import com.grinderwolf.swm.nms.SlimeLogger;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import io.papermc.paper.chunk.system.scheduling.NewChunkHolder;
+import io.papermc.paper.world.ChunkEntitySlices;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.core.BlockPos;
@@ -34,10 +38,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.biome.FixedBiomeSource;
+import net.minecraft.world.level.biome.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -52,6 +53,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.ticks.LevelChunkTicks;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftHumanEntity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -60,6 +62,7 @@ import org.bukkit.generator.BiomeProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -91,7 +94,7 @@ public class CustomWorldServer extends ServerLevel {
 
         super(MinecraftServer.getServer(), MinecraftServer.getServer().executor,
                 v1192SlimeNMS.CUSTOM_LEVEL_STORAGE.createAccess(world.getName() + UUID.randomUUID(),
-                dimensionKey), primaryLevelData, worldKey, worldDimension,
+                        dimensionKey), primaryLevelData, worldKey, worldDimension,
                 MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
                 Collections.emptyList(), true, environment, gen, biomeProvider);
 
@@ -120,7 +123,7 @@ public class CustomWorldServer extends ServerLevel {
         if (!slimeWorld.isReadOnly() && !savingDisabled) {
             Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
-            this.getChunkSource().save(forceSave);
+            //this.getChunkSource().save(forceSave);
             this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
             this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save());
 
@@ -268,7 +271,7 @@ public class CustomWorldServer extends ServerLevel {
                     });
                     biomePalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
                 } else {
-                    biomePalette =new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES);
+                    biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES);
                 }
 
                 if (sectionId < sections.length) {
@@ -326,10 +329,10 @@ public class CustomWorldServer extends ServerLevel {
         EnumSet<Heightmap.Types> unsetHeightMaps = EnumSet.noneOf(Heightmap.Types.class);
 
         // Light
-       if (v1192SlimeNMS.isPaperMC) {
-           nmsChunk.setBlockNibbles((SWMRNibbleArray[]) blockNibbles);
-           nmsChunk.setSkyNibbles((SWMRNibbleArray[]) skyNibbles);
-       }
+        if (v1192SlimeNMS.isPaperMC) {
+            nmsChunk.setBlockNibbles((SWMRNibbleArray[]) blockNibbles);
+            nmsChunk.setSkyNibbles((SWMRNibbleArray[]) skyNibbles);
+        }
 
         for (Heightmap.Types type : heightMapTypes) {
             String name = type.getSerializedName();
@@ -361,6 +364,7 @@ public class CustomWorldServer extends ServerLevel {
             slimeWorld.updateChunk(new NMSSlimeChunk(slimeChunk, chunk));
         }
     }
+
     public CompletableFuture<ChunkEntities<Entity>> handleEntityLoad(EntityStorage storage, ChunkPos pos) {
         List<CompoundTag> entities = slimeWorld.getEntities().get(NmsUtil.asLong(pos.x, pos.z));
         if (entities == null) {
@@ -378,19 +382,55 @@ public class CustomWorldServer extends ServerLevel {
 
     }
 
-    public void handleEntityUnLoad(EntityStorage storage, ChunkEntities<Entity> entities) {
-        ChunkPos pos = entities.getPos();
+    public void handleEntityUnLoad(NewChunkHolder storage, ChunkEntitySlices entities) {
+        /**z
+         *  See: {@link ChunkEntitySlices#save()}
+         */
+        EntityList entityList = null;
+        SlimeLogger.debug("Saving entities for (%s,%s)".formatted(storage.chunkZ, storage.chunkZ));
+        SlimeLogger.debug("E Saving entities for (%s,%s)".formatted(entities.chunkZ, entities.chunkZ));
+        try {
+            Field field = ChunkEntitySlices.class.getDeclaredField("entities");
+            field.setAccessible(true);
+
+            entityList = (EntityList) field.get(entities);
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return;
+        }
+
+        Entity[] entityArray = entityList.getRawData();
+        SlimeLogger.debug("Raw entities: " + Arrays.toString(entityArray));
+        final List<Entity> collectedEntities = new ArrayList<>(entityArray.length);
+        for (Entity entity : entityArray) {
+            if (entity != null && entity.shouldBeSaved()) {
+                collectedEntities.add(entity);
+            }
+        }
+
+        SlimeLogger.debug("Collected entities: (%s, %s)".formatted(entities.chunkZ, entities.chunkZ) + collectedEntities.isEmpty());
+        if (collectedEntities.isEmpty()) {
+            return;
+        }
+
         List<CompoundTag> entitiesSerialized = new ArrayList<>();
 
-        entities.getEntities().forEach((entity) -> {
+        collectedEntities.forEach((entity) -> {
             net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
             if (entity.save(tag)) {
                 entitiesSerialized.add((CompoundTag) Converter.convertTag("", tag));
             }
-
         });
 
-        slimeWorld.getEntities().put(NmsUtil.asLong(pos.x, pos.z), entitiesSerialized);
+        List<CompoundTag> old = slimeWorld.getEntities().put(NmsUtil.asLong(entities.chunkX, entities.chunkZ), entitiesSerialized);
+        SlimeLogger.debug("Handling entity unload, unloading chunk %s %s, replacing with %s saved entities from %s saved entities (%s)".formatted(
+                entities.chunkX,
+                entities.chunkZ,
+                entitiesSerialized.size(),
+                old == null ? null : old.size(),
+                entities.isTransient()
+        ));
     }
 
     @Override
@@ -402,7 +442,7 @@ public class CustomWorldServer extends ServerLevel {
                 // chests for example can apply physics to the world
                 // so instead we just change the active container and call the event
                 for (HumanEntity h : Lists.newArrayList(((Container) tileentity).getViewers())) {
-                    ((CraftHumanEntity)h).getHandle().closeUnloadedInventory(InventoryCloseEvent.Reason.UNLOADED); // Paper
+                    ((CraftHumanEntity) h).getHandle().closeUnloadedInventory(InventoryCloseEvent.Reason.UNLOADED); // Paper
                 }
                 // Paper end
             }
