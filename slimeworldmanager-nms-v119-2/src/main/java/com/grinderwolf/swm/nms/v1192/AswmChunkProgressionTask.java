@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
@@ -288,8 +289,10 @@ public final class AswmChunkProgressionTask extends ChunkProgressionTask {
                 } else if (slimeChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
                     // Recreate chunk, can't reuse the chunk holders
                     LevelChunk backing = nmsSlimeChunk.getChunk();
-
                     chunk = new LevelChunk(backing.level, backing.getPos(), backing.getUpgradeData(), (LevelChunkTicks<Block>) backing.getBlockTicks(), (LevelChunkTicks<Fluid>) backing.getFluidTicks(), backing.getInhabitedTime(), backing.getSections(), null, null);
+                    for (BlockEntity block : backing.getBlockEntities().values()) {
+                        chunk.addAndRegisterBlockEntity(block);
+                    }
                 } else {
                     AtomicReference<NMSSlimeChunk> jank = new AtomicReference<>();
                     chunk = ((CustomWorldServer) this.world).convertChunk(slimeChunk, () -> {
