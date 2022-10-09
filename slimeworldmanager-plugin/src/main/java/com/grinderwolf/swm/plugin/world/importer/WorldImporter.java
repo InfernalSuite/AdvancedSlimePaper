@@ -275,7 +275,14 @@ public class WorldImporter {
                     .orElse(new ListTag<>("entities", TagType.TAG_COMPOUND, new ArrayList<>()))).getValue();
             sectionsTag = (ListTag<CompoundTag>) compound.getAsListTag("sections").get();
 
-            minSectionY = compound.getIntValue("yPos").orElseThrow();
+            Class<?> type = compound.getValue().get("yPos").getValue().getClass();
+
+            if (type == Byte.class) {
+                minSectionY = compound.getByteValue("yPos").orElseThrow();
+            } else {
+                minSectionY = compound.getIntValue("yPos").orElseThrow();
+            }
+
             maxSectionY = sectionsTag.getValue().stream().map(c -> c.getByteValue("Y").orElseThrow()).max(Byte::compareTo).orElse((byte) 0) + 1; // Add 1 to the section, as we serialize it with the 1 added.
         }
         SlimeChunkSection[] sectionArray = new SlimeChunkSection[maxSectionY - minSectionY];
