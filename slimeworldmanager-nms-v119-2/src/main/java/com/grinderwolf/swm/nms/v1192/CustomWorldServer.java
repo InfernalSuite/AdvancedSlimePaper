@@ -387,8 +387,8 @@ public class CustomWorldServer extends ServerLevel {
          *  See: {@link ChunkEntitySlices#save()}
          */
         EntityList entityList = null;
-        SlimeLogger.debug("Saving entities for (%s,%s)".formatted(storage.chunkZ, storage.chunkZ));
-        SlimeLogger.debug("E Saving entities for (%s,%s)".formatted(entities.chunkZ, entities.chunkZ));
+        SlimeLogger.debug("Saving entities for (%s,%s)".formatted(storage.chunkX, storage.chunkZ));
+        SlimeLogger.debug("E Saving entities for (%s,%s)".formatted(entities.chunkX, entities.chunkZ));
         try {
             Field field = ChunkEntitySlices.class.getDeclaredField("entities");
             field.setAccessible(true);
@@ -409,8 +409,10 @@ public class CustomWorldServer extends ServerLevel {
             }
         }
 
-        SlimeLogger.debug("Collected entities: (%s, %s)".formatted(entities.chunkZ, entities.chunkZ) + collectedEntities.isEmpty());
+        SlimeLogger.debug("Collected entities: (%s, %s)".formatted(entities.chunkX, entities.chunkZ) + collectedEntities.isEmpty());
         if (collectedEntities.isEmpty()) {
+            SlimeLogger.debug("No entities in chunk, clearing saved entities. (%s, %s)".formatted(storage.chunkX, storage.chunkZ));
+            slimeWorld.getEntities().remove(NmsUtil.asLong(entities.chunkX, entities.chunkZ));
             return;
         }
 
