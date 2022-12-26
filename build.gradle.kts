@@ -24,6 +24,16 @@ allprojects {
             languageVersion.set(JavaLanguageVersion.of(17))
         }
     }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://repo.codemc.io/repository/nms/")
+        maven("https://repo.rapture.pw/repository/maven-releases/")
+        maven("https://repo.glaremasters.me/repository/concuncan/")
+    }
 }
 
 dependencies {

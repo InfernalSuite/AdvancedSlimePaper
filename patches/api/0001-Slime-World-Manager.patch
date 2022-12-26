@@ -1,0 +1,1876 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
+Date: Mon, 26 Dec 2022 12:08:15 -0500
+Subject: [PATCH] Slime World Manager
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 3c4dd6ebc2289c44c2f5723e7920aadffdc51884..7d2432af1c72cd1ba422f2777786bb1ea00568d5 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -22,6 +22,7 @@ configurations.api {
+ }
+ 
+ dependencies {
++    implementation(project(":api")) // ASWM
+     // api dependencies are listed transitively to API consumers
+     api("com.google.guava:guava:31.1-jre")
+     api("com.google.code.gson:gson:2.10")
+diff --git a/src/main/java/com/grinderwolf/swm/api/SlimePlugin.java b/src/main/java/com/grinderwolf/swm/api/SlimePlugin.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..45ff5b434df07d30a9a8ae1c77203dd315507641
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/SlimePlugin.java
+@@ -0,0 +1,149 @@
++package com.grinderwolf.swm.api;
++
++import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
++import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
++import com.grinderwolf.swm.api.exceptions.NewerFormatException;
++import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
++import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
++import com.grinderwolf.swm.api.exceptions.WorldInUseException;
++import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
++import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++
++import java.io.File;
++import java.io.IOException;
++import java.util.List;
++import java.util.Optional;
++import java.util.concurrent.CompletableFuture;
++
++/**
++ * Main class of the SWM API. From here, you can load
++ * worlds and add them to the server's world list, and
++ * also add your own implementations of the {@link SlimeLoader}
++ * interface, to load and store worlds from other data sources.
++ */
++public interface SlimePlugin {
++
++    /**
++     * Loads a world using a specificied {@link SlimeLoader}.
++     * This world can then be added to the server's world
++     * list by using the {@link #generateWorld(SlimeWorld)} method.
++     *
++     * @param loader {@link SlimeLoader} used to retrieve the world.
++     * @param worldName Name of the world.
++     * @param readOnly Whether or not read-only mode is enabled.
++     * @param propertyMap A {@link SlimePropertyMap} object containing all the properties of the world.
++     *
++     * @return A {@link SlimeWorld}, which is the in-memory representation of the world.
++     *
++     * @throws UnknownWorldException if the world cannot be found.
++     * @throws IOException if the world cannot be obtained from the speficied data source.
++     * @throws CorruptedWorldException if the world retrieved cannot be parsed into a {@link SlimeWorld} object.
++     * @throws NewerFormatException if the world uses a newer version of the SRF.
++     * @throws WorldInUseException if the world is already being used on another server when trying to open it without read-only mode enabled.
++     */
++    SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
++            UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldInUseException;
++
++    /**
++     * Gets a world which has already been loaded by ASWM.
++     *
++     * @param worldName the name of the world to get
++     * @return the loaded world, or {@code null} if no loaded world matches the given name
++     */
++    SlimeWorld getWorld(String worldName);
++
++    /**
++     * Gets a list of worlds which have been loaded by ASWM.
++     *
++     * @apiNote the returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
++     * @return a list of worlds
++     */
++    List<SlimeWorld> getLoadedWorlds();
++
++    /**
++     * Creates an empty world and stores it using a specified
++     * {@link SlimeLoader}. This world can then be added to
++     * the server's world list by using the {@link #generateWorld(SlimeWorld)} method.
++     *
++     * @param loader {@link SlimeLoader} used to store the world.
++     * @param worldName Name of the world.
++     * @param readOnly Whether or not read-only mode is enabled.
++     * @param propertyMap A {@link SlimePropertyMap} object containing all the properties of the world.
++     *
++     * @return A {@link SlimeWorld}, which is the in-memory representation of the world.
++     *
++     * @throws WorldAlreadyExistsException if the provided data source already contains a world with the same name.
++     * @throws IOException if the world could not be stored.
++     */
++    SlimeWorld createEmptyWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws WorldAlreadyExistsException, IOException;
++
++    /**
++     * Generates a Minecraft World from a {@link SlimeWorld} and
++     * adds it to the server's world list.
++     *
++     * @param world {@link SlimeWorld} world to be added to the server's world list
++     */
++    void generateWorld(SlimeWorld world);
++
++    /**
++     * Migrates a {@link SlimeWorld} to another datasource.
++     *
++     * @param worldName The name of the world to be migrated.
++     * @param currentLoader The {@link SlimeLoader} of the data source where the world is currently stored in.
++     * @param newLoader The {@link SlimeLoader} of the data source where the world will be moved to.
++     *
++     * @throws IOException if the world could not be migrated.
++     * @throws WorldInUseException if the world is being used on a server.
++     * @throws WorldAlreadyExistsException if a world with the same name already exists inside the new data source.
++     * @throws UnknownWorldException if the world has been removed from the old data source.
++     */
++    void migrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) throws IOException, WorldInUseException, WorldAlreadyExistsException, UnknownWorldException;
++
++    /**
++     * Returns the {@link SlimeLoader} that is able to
++     * read and store worlds from a specified data source.
++     *
++     * @param dataSource {@link String} containing the data source.
++     *
++     * @return The {@link SlimeLoader} capable of reading and writing to the data source.
++     */
++    SlimeLoader getLoader(String dataSource);
++
++    /**
++     * Registers a custom {@link SlimeLoader}. This loader can
++     * then be used by Slime World Manager to load and store worlds.
++     *
++     * @param dataSource The data source this loader is capable of reading and writing to.
++     * @param loader The {@link SlimeLoader} that is going to be registered.
++     */
++    void registerLoader(String dataSource, SlimeLoader loader);
++
++    /**
++     * Imports a world into the SRF and saves it in a data source.
++     *
++     * @param worldDir The directory where the world is.
++     * @param worldName The name of the world.
++     * @param loader The {@link SlimeLoader} that will be used to store the world.
++     *
++     * @throws WorldAlreadyExistsException if the data source already contains a world with the same name.
++     * @throws InvalidWorldException if the provided directory does not contain a valid world.
++     * @throws WorldLoadedException if the world is loaded on the server.
++     * @throws WorldTooBigException if the world is too big to be imported into the SRF.
++     * @throws IOException if the world could not be read or stored.
++     */
++    void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException,
++            InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException;
++
++    CompletableFuture<Optional<SlimeWorld>> asyncLoadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap);
++
++    CompletableFuture<Optional<SlimeWorld>> asyncGetWorld(String worldName);
++
++    CompletableFuture<Optional<SlimeWorld>> asyncCreateEmptyWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap);
++
++    CompletableFuture<Void> asyncMigrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader);
++
++    CompletableFuture<Void> asyncImportWorld(File worldDir, String worldName, SlimeLoader loader);
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPostCreateEmptyWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostCreateEmptyWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9406a15050d10c6f861d3614fd2e99273955f1e4
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostCreateEmptyWorldEvent.java
+@@ -0,0 +1,32 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPostCreateEmptyWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final SlimeWorld slimeWorld;
++
++  public AsyncPostCreateEmptyWorldEvent(SlimeWorld slimeWorld) {
++    super(true);
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public SlimeWorld getSlimeWorld() {
++    return slimeWorld;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPostGetWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostGetWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5cd636175876b0b4d89571a2d0d47a1dec4b85c7
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostGetWorldEvent.java
+@@ -0,0 +1,32 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPostGetWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final SlimeWorld slimeWorld;
++
++  public AsyncPostGetWorldEvent(SlimeWorld slimeWorld) {
++    super(true);
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public SlimeWorld getSlimeWorld() {
++    return slimeWorld;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPostImportWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostImportWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..be57e0915c61295561f7ecdc9b6e504ceb28dc82
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostImportWorldEvent.java
+@@ -0,0 +1,45 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.io.File;
++import java.util.Objects;
++
++public class AsyncPostImportWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final File worldDir;
++  private final String worldName;
++  private final SlimeLoader slimeLoader;
++
++  public AsyncPostImportWorldEvent(File worldDir, String worldName, SlimeLoader slimeLoader) {
++    super(true);
++    this.worldDir = Objects.requireNonNull(worldDir, "worldDir cannot be null");
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public File getWorldDir() {
++    return this.worldDir;
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public SlimeLoader getSlimeLoader() {
++    return this.slimeLoader;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPostLoadWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostLoadWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e35414f17dd85ef1a577ee93fa6fc8cf3a3dd8c
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostLoadWorldEvent.java
+@@ -0,0 +1,32 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPostLoadWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final SlimeWorld slimeWorld;
++
++  public AsyncPostLoadWorldEvent(SlimeWorld slimeWorld) {
++    super(true);
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public SlimeWorld getSlimeWorld() {
++    return this.slimeWorld;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPostMigrateWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostMigrateWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..09c4caaa7e71270cafaab178b02a7700e70f883a
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPostMigrateWorldEvent.java
+@@ -0,0 +1,44 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPostMigrateWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final String worldName;
++  private final SlimeLoader currentLoader;
++  private final SlimeLoader newLoader;
++
++  public AsyncPostMigrateWorldEvent(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) {
++    super(true);
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.currentLoader = Objects.requireNonNull(currentLoader, "currentLoader cannot be null");
++    this.newLoader = Objects.requireNonNull(newLoader, "newLoader cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public SlimeLoader getCurrentLoader() {
++    return this.currentLoader;
++  }
++
++  public SlimeLoader getNewLoader() {
++    return this.newLoader;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPreCreateEmptyWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreCreateEmptyWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..75d0d7a3fb816db67e2aff005e651614e83d4527
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreCreateEmptyWorldEvent.java
+@@ -0,0 +1,79 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPreCreateEmptyWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private SlimeLoader slimeLoader;
++  private String worldName;
++  private boolean readOnly;
++  private SlimePropertyMap slimePropertyMap;
++
++  public AsyncPreCreateEmptyWorldEvent(SlimeLoader slimeLoader, String worldName, boolean readOnly, SlimePropertyMap slimePropertyMap) {
++    super(true);
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.readOnly = readOnly;
++    this.slimePropertyMap = Objects.requireNonNull(slimePropertyMap, "slimePropertyMap cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public SlimeLoader getSlimeLoader() {
++    return this.slimeLoader;
++  }
++
++  public void setSlimeLoader(SlimeLoader slimeLoader) {
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public void setWorldName(String worldName) {
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++
++  public boolean isReadOnly() {
++    return this.readOnly;
++  }
++
++  public void setReadOnly(boolean readOnly) {
++    this.readOnly = readOnly;
++  }
++
++  public SlimePropertyMap getSlimePropertyMap() {
++    return this.slimePropertyMap;
++  }
++
++  public void setSlimePropertyMap(SlimePropertyMap slimePropertyMap) {
++    this.slimePropertyMap = Objects.requireNonNull(slimePropertyMap, "slimePropertyMap cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPreGetWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreGetWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f35fd7bb6c5aa1e1c4319a530f2fdec21d40ca89
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreGetWorldEvent.java
+@@ -0,0 +1,47 @@
++package com.grinderwolf.swm.api.events;
++
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPreGetWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private String worldName;
++
++  public AsyncPreGetWorldEvent(String worldName) {
++    super(true);
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public void setWorldName(String worldName) {
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPreImportWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreImportWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b6722ec8b3be6fd84fa14917d27f26532b1d0c0d
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreImportWorldEvent.java
+@@ -0,0 +1,69 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.io.File;
++import java.util.Objects;
++
++public class AsyncPreImportWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private File worldDir;
++  private String worldName;
++  private SlimeLoader slimeLoader;
++
++  public AsyncPreImportWorldEvent(File worldDir, String worldName, SlimeLoader slimeLoader) {
++    super(true);
++    this.worldDir = Objects.requireNonNull(worldDir, "worldDir cannot be null");
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public File getWorldDir() {
++    return this.worldDir;
++  }
++
++  public void setWorldDir(File worldDir) {
++    this.worldDir = Objects.requireNonNull(worldDir, "worldDir cannot be null");
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public void setWorldName(String worldName) {
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++
++  public SlimeLoader getSlimeLoader() {
++    return this.slimeLoader;
++  }
++
++  public void setSlimeLoader(SlimeLoader slimeLoader) {
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPreLoadWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreLoadWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a34dfead6f7d4ff4368684b442b4d78aecc29a3e
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreLoadWorldEvent.java
+@@ -0,0 +1,79 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPreLoadWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private SlimeLoader slimeLoader;
++  private String worldName;
++  private boolean readOnly;
++  private SlimePropertyMap slimePropertyMap;
++
++  public AsyncPreLoadWorldEvent(SlimeLoader slimeLoader, String worldName, boolean readOnly, SlimePropertyMap slimePropertyMap) {
++    super(true);
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "slimeLoader cannot be null");
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.readOnly = readOnly;
++    this.slimePropertyMap = Objects.requireNonNull(slimePropertyMap, "slimePropertyMap cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public SlimeLoader getSlimeLoader() {
++    return this.slimeLoader;
++  }
++
++  public void setSlimeLoader(SlimeLoader slimeLoader) {
++    this.slimeLoader = Objects.requireNonNull(slimeLoader, "Loader cannot be null");
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public void setWorldName(String worldName) {
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++
++  public boolean isReadOnly() {
++    return this.readOnly;
++  }
++
++  public void setReadOnly(boolean readOnly) {
++    this.readOnly = readOnly;
++  }
++
++  public SlimePropertyMap getSlimePropertyMap() {
++    return this.slimePropertyMap;
++  }
++
++  public void setSlimePropertyMap(SlimePropertyMap slimePropertyMap) {
++    this.slimePropertyMap = Objects.requireNonNull(slimePropertyMap, "slimePropertyMap cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/AsyncPreMigrateWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreMigrateWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b91b8a06872ad20c44b1720402bd429e9d96d52a
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/AsyncPreMigrateWorldEvent.java
+@@ -0,0 +1,67 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class AsyncPreMigrateWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private String worldName;
++  private SlimeLoader currentLoader;
++  private SlimeLoader newLoader;
++
++  public AsyncPreMigrateWorldEvent(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) {
++    super(true);
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++    this.currentLoader = Objects.requireNonNull(currentLoader, "currentLoader cannot be null");
++    this.newLoader = Objects.requireNonNull(newLoader, "newLoader cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public String getWorldName() {
++    return this.worldName;
++  }
++
++  public void setWorldName(String worldName) {
++    this.worldName = Objects.requireNonNull(worldName, "worldName cannot be null");
++  }
++
++  public SlimeLoader getCurrentLoader() {
++    return this.currentLoader;
++  }
++
++  public void setCurrentLoader(SlimeLoader currentLoader) {
++    this.currentLoader = Objects.requireNonNull(currentLoader, "currentLoader cannot be null");
++  }
++
++  public SlimeLoader getNewLoader() {
++    return this.newLoader;
++  }
++
++  public void setNewLoader(SlimeLoader newLoader) {
++    this.newLoader = Objects.requireNonNull(newLoader, "newLoader cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/PostGenerateWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/PostGenerateWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5ad292cfb3c4f19339acbe0be28838eae73f114a
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/PostGenerateWorldEvent.java
+@@ -0,0 +1,32 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class PostGenerateWorldEvent extends Event {
++
++  private static final HandlerList handlers = new HandlerList();
++  private final SlimeWorld slimeWorld;
++
++  public PostGenerateWorldEvent(SlimeWorld slimeWorld) {
++    super(false);
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  public SlimeWorld getSlimeWorld() {
++    return slimeWorld;
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/events/PreGenerateWorldEvent.java b/src/main/java/com/grinderwolf/swm/api/events/PreGenerateWorldEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..3d56fb0d072969150718b8f0f1d58a7e9f6cf69f
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/events/PreGenerateWorldEvent.java
+@@ -0,0 +1,48 @@
++package com.grinderwolf.swm.api.events;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Objects;
++
++public class PreGenerateWorldEvent extends Event implements Cancellable {
++
++  private static final HandlerList handlers = new HandlerList();
++  private boolean isCancelled;
++  private SlimeWorld slimeWorld;
++
++  public PreGenerateWorldEvent(SlimeWorld slimeWorld) {
++    super(false);
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++
++  public static HandlerList getHandlerList() {
++    return handlers;
++  }
++
++  @Override
++  public @NotNull HandlerList getHandlers() {
++    return handlers;
++  }
++
++  @Override
++  public boolean isCancelled() {
++    return this.isCancelled;
++  }
++
++  @Override
++  public void setCancelled(boolean cancelled) {
++    this.isCancelled = cancelled;
++  }
++
++  public SlimeWorld getSlimeWorld() {
++    return this.slimeWorld;
++  }
++
++  public void setSlimeWorld(SlimeWorld slimeWorld) {
++    this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
++  }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/CorruptedWorldException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/CorruptedWorldException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..fa4b214ef343f2887d968bf336f643301c49b07b
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/CorruptedWorldException.java
+@@ -0,0 +1,16 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a world could not
++ * be read from its data file.
++ */
++public class CorruptedWorldException extends SlimeException {
++
++    public CorruptedWorldException(String world) {
++        this(world, null);
++    }
++
++    public CorruptedWorldException(String world, Exception ex) {
++        super("World " + world + " seems to be corrupted", ex);
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidVersionException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidVersionException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4a402c0a3b7b473bce53ef824da7101ef199a00
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidVersionException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when SWM is loaded
++ * on a non-supported Spigot version.
++ */
++public class InvalidVersionException extends SlimeException {
++
++    public InvalidVersionException(String version) {
++        super("SlimeWorldManager does not support Spigot " + version + "!");
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidWorldException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidWorldException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..35a6948ccec2b552f57df5579ba5c56fcc7979f7
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/InvalidWorldException.java
+@@ -0,0 +1,18 @@
++package com.grinderwolf.swm.api.exceptions;
++
++import java.io.File;
++
++/**
++ * Exception thrown when a folder does
++ * not contain a valid Minecraft world.
++ */
++public class InvalidWorldException extends SlimeException {
++
++    public InvalidWorldException(File worldDir, String reason) {
++        super("Directory " + worldDir.getPath() + " does not contain a valid MC world! " + reason);
++    }
++
++    public InvalidWorldException(File worldDir) {
++        super("Directory " + worldDir.getPath() + " does not contain a valid MC world!");
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/NewerFormatException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/NewerFormatException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e8a3469a67f5c7b1e2163b8f7dec80bf1d76897c
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/NewerFormatException.java
+@@ -0,0 +1,13 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a world is encoded
++ * using a newer SRF format than the one that
++ * SWM supports.
++ */
++public class NewerFormatException extends SlimeException {
++
++    public NewerFormatException(byte version) {
++        super("v" + version);
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/SlimeException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/SlimeException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca1edfa5aa7b642de05a0e19db9767da29e75c96
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/SlimeException.java
+@@ -0,0 +1,15 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Generic SWM exception.
++ */
++public class SlimeException extends Exception {
++
++    public SlimeException(String message) {
++        super(message);
++    }
++
++    public SlimeException(String message, Exception ex) {
++        super(message, ex);
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/UnknownWorldException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/UnknownWorldException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..25009349eea39cef9b4a860298152acd331c541a
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/UnknownWorldException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a
++ * world could not be found.
++ */
++public class UnknownWorldException extends SlimeException {
++
++    public UnknownWorldException(String world) {
++        super("Unknown world " + world);
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/WorldAlreadyExistsException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldAlreadyExistsException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9ed3557a7ee885ff2e5f27d66db719c4fc4b476d
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldAlreadyExistsException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a world
++ * already exists inside a data source.
++ */
++public class WorldAlreadyExistsException extends SlimeException {
++
++    public WorldAlreadyExistsException(String world) {
++        super("World " + world + " already exists!");
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/WorldInUseException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldInUseException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6c060e318f8edd142316196ebe6836211d38b9e4
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldInUseException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a world is locked
++ * and is being accessed on write-mode.
++ */
++public class WorldInUseException extends SlimeException {
++
++    public WorldInUseException(String world) {
++        super(world);
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/WorldLoadedException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldLoadedException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a38ce76199ab4753543965e536e54f9ab411bbfd
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldLoadedException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a world is loaded
++ * when trying to import it.
++ */
++public class WorldLoadedException extends SlimeException {
++
++    public WorldLoadedException(String worldName) {
++        super("World " + worldName + " is loaded! Unload it before importing it.");
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/exceptions/WorldTooBigException.java b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldTooBigException.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f78d8a72dfe817f3048ecbf3e60d3d9e6b40261c
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/exceptions/WorldTooBigException.java
+@@ -0,0 +1,12 @@
++package com.grinderwolf.swm.api.exceptions;
++
++/**
++ * Exception thrown when a MC world is
++ * too big to be converted into the SRF.
++ */
++public class WorldTooBigException extends SlimeException {
++
++    public WorldTooBigException(String worldName) {
++        super("World " + worldName + " is too big to be converted into the SRF!");
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/loaders/SlimeLoader.java b/src/main/java/com/grinderwolf/swm/api/loaders/SlimeLoader.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..aebf44a957847a7922f21286203ca384c4ffd1ed
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/loaders/SlimeLoader.java
+@@ -0,0 +1,87 @@
++package com.grinderwolf.swm.api.loaders;
++
++import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
++import com.grinderwolf.swm.api.exceptions.WorldInUseException;
++
++import java.io.IOException;
++import java.util.List;
++
++/**
++ * SlimeLoaders are in charge of loading worlds
++ * from a data source, and also locking and
++ * deleting them.
++ */
++public interface SlimeLoader {
++
++    /**
++     * Load a world's data file. In case {@code readOnly} is false,
++     * the world automatically gets locked so no other server
++     * can access it in write-mode.
++     *
++     * @param worldName The name of the world.
++     * @param readOnly  If false, a {@link WorldInUseException} should be thrown when the world is locked.
++     * @return The world's data file, contained inside a byte array.
++     * @throws UnknownWorldException if the world cannot be found.
++     * @throws WorldInUseException   if the world is locked
++     * @throws IOException           if the world could not be obtained.
++     */
++    byte[] loadWorld(String worldName, boolean readOnly) throws UnknownWorldException, WorldInUseException, IOException;
++
++    /**
++     * Checks whether or not a world exists
++     * inside the data source.
++     *
++     * @param worldName The name of the world.
++     * @return <code>true</code> if the world exists inside the data source, <code>false</code> otherwhise.
++     * @throws IOException if the world could not be obtained.
++     */
++    boolean worldExists(String worldName) throws IOException;
++
++    /**
++     * Returns the current saved world names.
++     *
++     * @return a list containing all the world names
++     * @throws IOException if the list could not be obtained
++     */
++    List<String> listWorlds() throws IOException;
++
++    /**
++     * Saves the world's data file. This method will also
++     * lock the world, in case it's not locked already.
++     *
++     * @param worldName       The name of the world.
++     * @param serializedWorld The world's data file, contained inside a byte array.
++     * @param lock            Whether or not the world should be relocked.
++     * @throws IOException if the world could not be saved.
++     */
++    void saveWorld(String worldName, byte[] serializedWorld, boolean lock) throws IOException;
++
++    /**
++     * Unlocks a world.
++     *
++     * @param worldName The name of the world.
++     * @throws UnknownWorldException if the world could not be found.
++     * @throws IOException           if the world could not be locked/unlocked.
++     */
++    void unlockWorld(String worldName) throws UnknownWorldException, IOException;
++
++    /**
++     * Checks whether or not a world is locked.
++     *
++     * @param worldName The name of the world.
++     * @return <code>true</code> if the world is locked, <code>false</code> otherwhise.
++     * @throws UnknownWorldException if the world could not be found.
++     * @throws IOException           if the world could not be obtained.
++     */
++    boolean isWorldLocked(String worldName) throws UnknownWorldException, IOException;
++
++    /**
++     * Deletes a world from the data source.
++     *
++     * @param worldName name of the world
++     * @throws UnknownWorldException if the world could not be found.
++     * @throws IOException           if the world could not be deleted.
++     */
++    void deleteWorld(String worldName) throws UnknownWorldException, IOException;
++
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f743a3a764c787a0630644037eaa0e0e3038f721
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
+@@ -0,0 +1,37 @@
++package com.grinderwolf.swm.api.utils;
++
++/**
++ * Credits to Minikloon for this class.
++ *
++ * Source: https://github.com/Minikloon/CraftyWorld/blob/master/crafty-common/src/main/kotlin/world/crafty/common/utils/NibbleArray.kt
++ */
++public class NibbleArray {
++
++    private final byte[] backing;
++
++    public NibbleArray(int size) {
++        this(new byte[size / 2]);
++    }
++
++    public NibbleArray(byte[] backing) {
++        this.backing = backing;
++    }
++
++    public int get(int index) {
++        int value = this.backing[index / 2];
++
++        return index % 2 == 0 ? value & 0xF : (value & 0xF0) >> 4;
++    }
++
++    public void set(int index, int value) {
++        int nibble = value & 0xF;
++        int halfIndex = index / 2;
++        int previous = this.backing[halfIndex];
++
++        if (index % 2 == 0) {
++            this.backing[halfIndex] = (byte) (previous & 0xF0 | nibble);
++        } else {
++            this.backing[halfIndex] = (byte) (previous & 0xF | nibble << 4);
++        }
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java b/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..18e08b4a2b43d94597d40a5dced33fc0fc7f5ada
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java
+@@ -0,0 +1,13 @@
++package com.grinderwolf.swm.api.utils;
++
++/**
++ * Class containing some standards of the SRF.
++ */
++public class SlimeFormat {
++
++    /** First bytes of every SRF file **/
++    public static final byte[] SLIME_HEADER = new byte[] { -79, 11 };
++
++    /** Latest version of the SRF that SWM supports **/
++    public static final byte SLIME_VERSION = 9;
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9e54ba8d9d936b360b63ecbfb095ec2993cc2a34
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
+@@ -0,0 +1,76 @@
++package com.grinderwolf.swm.api.world;
++
++import com.flowpowered.nbt.CompoundTag;
++
++import java.util.List;
++
++/**
++ * In-memory representation of a SRF chunk.
++ */
++public interface SlimeChunk {
++
++    /**
++     * Returns the name of the world this chunk belongs to.
++     *
++     * @return The name of the world of this chunk.
++     */
++    String getWorldName();
++
++    /**
++     * Returns the X coordinate of the chunk.
++     *
++     * @return X coordinate of the chunk.
++     */
++    int getX();
++
++    /**
++     * Returns the Z coordinate of the chunk.
++     *
++     * @return Z coordinate of the chunk.
++     */
++    int getZ();
++
++    /**
++     * Returns all the sections of the chunk.
++     *
++     * @return A {@link SlimeChunkSection} array.
++     */
++    SlimeChunkSection[] getSections();
++
++    int getMinSection();
++
++    int getMaxSection();
++
++    /**
++     * Returns the height maps of the chunk. If it's a pre 1.13 world,
++     * a {@link com.flowpowered.nbt.IntArrayTag} containing the height
++     * map will be stored inside here by the name of 'heightMap'.
++     *
++     * @return A {@link CompoundTag} containing all the height maps of the chunk.
++     */
++    CompoundTag getHeightMaps();
++
++    /**
++     * Returns all the biomes of the chunk. In case it's a pre 1.13 world,
++     * every <code>int</code> inside the array will contain two biomes,
++     * and should be converted into a <code>byte[]</code>.
++     *
++     * @return A <code>int[]</code> containing all the biomes of the chunk.
++     */
++    int[] getBiomes();
++
++    /**
++     * Returns all the tile entities of the chunk.
++     *
++     * @return A {@link CompoundTag} containing all the tile entities of the chunk.
++     */
++    List<CompoundTag> getTileEntities();
++
++    /**
++     * Returns all the entities of the chunk.
++     *
++     * @return A {@link CompoundTag} containing all the entities of the chunk.
++     */
++    @Deprecated
++    List<CompoundTag> getEntities();
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4f31bd081707e01f57c17ae7afefcf910bf8de56
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java
+@@ -0,0 +1,63 @@
++package com.grinderwolf.swm.api.world;
++
++import com.grinderwolf.swm.api.utils.NibbleArray;
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.ListTag;
++
++/**
++ * In-memory representation of a SRF chunk section.
++ */
++public interface SlimeChunkSection {
++
++    /**
++     * Returns all the blocks of the chunk section, or <code>null</code>
++     * in case it's a post 1.13 world.
++     *
++     * @return A <code>byte[]</code> with all the blocks of a chunk section.
++     */
++    @Deprecated(forRemoval = true)
++    byte[] getBlocks();
++
++    /**
++     * Returns the data of all the blocks of the chunk section, or
++     * <code>null</code> if it's a post 1.13 world.
++     *
++     * @return A {@link NibbleArray} containing all the blocks of a chunk section.
++     */
++    @Deprecated(forRemoval = true)
++    NibbleArray getData();
++
++    /**
++     * Returns the block palette of the chunk section, or
++     * <code>null</code> if it's a pre 1.13 world, or post 1.17.
++     *
++     * @return The block palette, contained inside a {@link ListTag}
++     */
++    ListTag<CompoundTag> getPalette();
++
++    /**
++     * Returns all the states of the blocks of the chunk section, or
++     * <code>null</code> in case it's a pre 1.13 world or post 1.17.
++     *
++     * @return A <code>long[]</code> with every block state.
++     */
++    long[] getBlockStates();
++
++    CompoundTag getBlockStatesTag();
++
++    CompoundTag getBiomeTag();
++
++    /**
++     * Returns the block light data.
++     *
++     * @return A {@link NibbleArray} with the block light data.
++     */
++    NibbleArray getBlockLight();
++
++    /**
++     * Returns the sky light data.
++     *
++     * @return A {@link NibbleArray} containing the sky light data.
++     */
++    NibbleArray getSkyLight();
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf76f47a65
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
+@@ -0,0 +1,133 @@
++package com.grinderwolf.swm.api.world;
++
++import com.grinderwolf.swm.api.SlimePlugin;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++
++import java.io.IOException;
++import java.util.Collection;
++import java.util.Map;
++
++/**
++ * In-memory representation of a SRF world.
++ */
++public interface SlimeWorld {
++
++    /**
++     * Returns the name of the world.
++     *
++     * @return The name of the world.
++     */
++    String getName();
++
++    /**
++     * Returns the {@link SlimeLoader} used
++     * to load and store the world.
++     *
++     * @return The {@link SlimeLoader} used to load and store the world.
++     */
++    SlimeLoader getLoader();
++
++    /**
++     * Returns the chunk that belongs to the coordinates specified.
++     *
++     * @param x X coordinate.
++     * @param z Z coordinate.
++     *
++     * @return The {@link SlimeChunk} that belongs to those coordinates.
++     */
++     SlimeChunk getChunk(int x, int z);
++
++    /**
++     * Returns a {@link Map} with every {@link SlimeChunk} that is
++     * currently loaded in this slime world.
++     *
++     * @return A {@link Map} containing every loaded chunk.
++     */
++     Map<Long, SlimeChunk> getChunks();
++
++    /**
++     * Returns the extra data of the world. Inside this {@link CompoundTag}
++     * can be stored any information to then be retrieved later, as it's
++     * saved alongside the world data.
++     *
++     * @return A {@link CompoundTag} containing the extra data of the world.
++     */
++    CompoundTag getExtraData();
++
++    /**
++     * Returns a {@link Collection} with every world map, serialized
++     * in a {@link CompoundTag} object.
++     *
++     * @return A {@link Collection} containing every world map.
++     */
++    Collection<CompoundTag> getWorldMaps();
++
++    /**
++     * Returns the property map.
++     *
++     * @return A {@link SlimePropertyMap} object containing all the properties of the world.
++     */
++    SlimePropertyMap getPropertyMap();
++
++    /**
++     * Returns whether or not read-only is enabled.
++     *
++     * @return true if read-only is enabled, false otherwise.
++     */
++    boolean isReadOnly();
++
++    /**
++     * Returns a clone of the world with the given name. This world will never be
++     * stored, as the <code>readOnly</code> property will be set to true.
++     *
++     * @param worldName The name of the cloned world.
++     *
++     * @return The clone of the world.
++     *
++     * @throws IllegalArgumentException if the name of the world is the same as the current one or is <code>null</code>.
++     */
++    SlimeWorld clone(String worldName);
++
++    /**
++     * Returns a clone of the world with the given name. The world will be
++     * automatically stored inside the provided data source.
++     *
++     * @param worldName The name of the cloned world.
++     * @param loader The {@link SlimeLoader} used to store the world or <code>null</code> if the world is temporary.
++     *
++     * @return The clone of the world.
++     *
++     * @throws IllegalArgumentException if the name of the world is the same as the current one or is <code>null</code>.
++     * @throws WorldAlreadyExistsException if there's already a world with the same name inside the provided data source.
++     * @throws IOException if the world could not be stored.
++     */
++    SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException;
++
++    /**
++     * Returns a clone of the world with the given name. The world will be
++     * automatically stored inside the provided data source.
++     *
++     * @param worldName The name of the cloned world.
++     * @param loader The {@link SlimeLoader} used to store the world or <code>null</code> if the world is temporary.
++     * @param lock whether or not SWM should lock the world. If false, SWM will not let you load this world for security reasons.
++     *
++     * @return The clone of the world.
++     *
++     * @throws IllegalArgumentException if the name of the world is the same as the current one or is <code>null</code>.
++     * @throws WorldAlreadyExistsException if there's already a world with the same name inside the provided data source.
++     * @throws IOException if the world could not be stored.
++     */
++    SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException;
++
++    /**
++     * Returns whether or not this world is locked and, therefore, can be loaded on the server by
++     * using the {@link SlimePlugin#generateWorld(SlimeWorld)} method.
++     *
++     * @return true if the world is locked, false otherwise
++     */
++    boolean isLocked();
++
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..8c642ddca609080073c045d273b75033fcbc86dd
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
+@@ -0,0 +1,91 @@
++package com.grinderwolf.swm.api.world.properties;
++
++import com.grinderwolf.swm.api.world.properties.type.SlimePropertyBoolean;
++import com.grinderwolf.swm.api.world.properties.type.SlimePropertyInt;
++import com.grinderwolf.swm.api.world.properties.type.SlimePropertyString;
++import org.jetbrains.annotations.ApiStatus;
++
++/**
++ * Class with all existing slime world properties.
++ */
++public class SlimeProperties {
++
++    /**
++     * The X coordinate of the world spawn
++     */
++    public static final SlimeProperty<Integer> SPAWN_X = new SlimePropertyInt("spawnX", 0);
++
++    /**
++     * The Y coordinate of the world spawn
++     */
++    public static final SlimeProperty<Integer> SPAWN_Y = new SlimePropertyInt("spawnY", 255);
++
++    /**
++     * The Z coordinate of the world spawn
++     */
++    public static final SlimeProperty<Integer> SPAWN_Z = new SlimePropertyInt("spawnZ", 0);
++
++    /**
++     * The difficulty set for the world
++     */
++    public static final SlimeProperty<String> DIFFICULTY = new SlimePropertyString("difficulty", "peaceful", (value) ->
++        value.equalsIgnoreCase("peaceful") || value.equalsIgnoreCase("easy")
++            || value.equalsIgnoreCase("normal") || value.equalsIgnoreCase("hard")
++    );
++
++    /**
++     * Whether monsters are allowed to spawn at night or in the dark
++     */
++    public static final SlimeProperty<Boolean> ALLOW_MONSTERS = new SlimePropertyBoolean("allowMonsters", true);
++
++    /**
++     * Whether peaceful animals are allowed to spawn
++     */
++    public static final SlimeProperty<Boolean> ALLOW_ANIMALS = new SlimePropertyBoolean("allowAnimals", true);
++
++    /**
++     * Whether the dragon battle should be enabled in end worlds
++     */
++    public static final SlimeProperty<Boolean> DRAGON_BATTLE = new SlimePropertyBoolean("dragonBattle", false);
++
++    /**
++     * Whether PVP combat is allowed
++     */
++    public static final SlimeProperty<Boolean> PVP = new SlimePropertyBoolean("pvp", true);
++
++    /**
++     * The environment of the world
++     */
++    public static final SlimeProperty<String> ENVIRONMENT = new SlimePropertyString("environment", "normal", (value) ->
++        value.equalsIgnoreCase("normal") || value.equalsIgnoreCase("nether") || value.equalsIgnoreCase("the_end")
++    );
++
++    /**
++     * The type of world
++     */
++    public static final SlimeProperty<String> WORLD_TYPE = new SlimePropertyString("worldtype", "default", (value) ->
++        value.equalsIgnoreCase("default") || value.equalsIgnoreCase("flat") || value.equalsIgnoreCase("large_biomes")
++            || value.equalsIgnoreCase("amplified") || value.equalsIgnoreCase("customized")
++            || value.equalsIgnoreCase("debug_all_block_states") || value.equalsIgnoreCase("default_1_1")
++    );
++
++    /**
++     * The default biome generated in empty chunks
++     */
++    public static final SlimeProperty<String> DEFAULT_BIOME = new SlimePropertyString("defaultBiome", "minecraft:plains");
++
++    @ApiStatus.Experimental
++    public static final SlimeProperty<Boolean> SHOULD_LIMIT_SAVE = new SlimePropertyBoolean("hasSaveBounds", false);
++
++    @ApiStatus.Experimental
++    public static final SlimeProperty<Integer> SAVE_MIN_X = new SlimePropertyInt("saveMinX", 0);
++    @ApiStatus.Experimental
++    public static final SlimeProperty<Integer> SAVE_MIN_Z = new SlimePropertyInt("saveMinZ", 0);
++
++    @ApiStatus.Experimental
++    public static final SlimeProperty<Integer> SAVE_MAX_X = new SlimePropertyInt("saveMaxX", 0);
++    @ApiStatus.Experimental
++    public static final SlimeProperty<Integer> SAVE_MAX_Z = new SlimePropertyInt("saveMaxZ", 0);
++
++
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperty.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperty.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..7d66de1c9077ffafb81020b3ed333c22ca8e6c8b
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperty.java
+@@ -0,0 +1,55 @@
++package com.grinderwolf.swm.api.world.properties;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.Tag;
++
++import java.util.function.Function;
++
++/**
++ * A property describing behavior of a slime world.
++ */
++public abstract class SlimeProperty<T> {
++
++    private final String nbtName;
++    private final T defaultValue;
++    private final Function<T, Boolean> validator;
++
++    protected SlimeProperty(String nbtName, T defaultValue) {
++        this(nbtName, defaultValue, null);
++    }
++
++    protected SlimeProperty(String nbtName, T defaultValue, Function<T, Boolean> validator) {
++        this.nbtName = nbtName;
++
++        if (defaultValue != null && validator != null && !validator.apply(defaultValue)) {
++            throw new IllegalArgumentException("Invalid default value for property " + nbtName + "! " + defaultValue);
++        }
++
++        this.defaultValue = defaultValue;
++        this.validator = validator;
++    }
++
++    protected abstract void writeValue(CompoundMap compound, T value);
++
++    protected abstract T readValue(Tag<?> compoundTag);
++
++    public String getNbtName() {
++        return nbtName;
++    }
++
++    public T getDefaultValue() {
++        return defaultValue;
++    }
++
++    public Function<T, Boolean> getValidator() {
++        return validator;
++    }
++
++    @Override
++    public String toString() {
++        return "SlimeProperty{" +
++            "nbtName='" + nbtName + '\'' +
++            ", defaultValue=" + defaultValue +
++            '}';
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..617c94f7afff2f7b7548c18f68cde3a66ba56a76
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java
+@@ -0,0 +1,102 @@
++package com.grinderwolf.swm.api.world.properties;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++
++/**
++ * A Property Map object.
++ */
++public class SlimePropertyMap {
++
++    private final CompoundMap properties;
++
++    public SlimePropertyMap(CompoundMap compoundMap) {
++        this.properties = compoundMap;
++    }
++
++    public SlimePropertyMap() {
++        this(new CompoundMap());
++    }
++
++    /**
++     * Return the current value of the given property
++     *
++     * @param property The slime property
++     * @return The current value
++     */
++    public <T> T getValue(SlimeProperty<T> property) {
++        if (properties.containsKey(property.getNbtName())) {
++            return property.readValue(properties.get(property.getNbtName()));
++        } else {
++            return property.getDefaultValue();
++        }
++    }
++
++    /**
++     * Update the value of the given property
++     *
++     * @param property The slime property
++     * @param value    The new value
++     * @throws IllegalArgumentException if the value fails validation.
++     */
++    public <T> void setValue(SlimeProperty<T> property, T value) {
++        if (property.getValidator() != null && !property.getValidator().apply(value)) {
++            throw new IllegalArgumentException("'" + value + "' is not a valid property value.");
++        }
++
++        property.writeValue(properties, value);
++    }
++
++    /**
++     * @deprecated Use setValue()
++     */
++    @Deprecated
++    public void setInt(SlimeProperty<Integer> property, int value) {
++        setValue(property, value);
++    }
++
++    /**
++     * @deprecated Use setValue()
++     */
++    @Deprecated
++    public void setBoolean(SlimeProperty<Boolean> property, boolean value) {
++        setValue(property, value);
++    }
++
++    /**
++     * @deprecated Use setValue()
++     */
++    @Deprecated
++    public void setString(SlimeProperty<String> property, String value) {
++        setValue(property, value);
++    }
++
++    /**
++     * Copies all values from the specified {@link SlimePropertyMap}.
++     * If the same property has different values on both maps, the one
++     * on the providen map will be used.
++     *
++     * @param propertyMap A {@link SlimePropertyMap}.
++     */
++    public void merge(SlimePropertyMap propertyMap) {
++        properties.putAll(propertyMap.properties);
++    }
++
++    /**
++     * Returns a {@link CompoundTag} containing every property set in this map.
++     *
++     * @return A {@link CompoundTag} with all the properties stored in this map.
++     */
++    public CompoundTag toCompound() {
++        return new CompoundTag("properties", properties);
++    }
++
++    public static SlimePropertyMap fromCompound(CompoundTag compound) {
++        return new SlimePropertyMap(compound.getValue());
++    }
++
++    @Override
++    public String toString() {
++        return "SlimePropertyMap" + properties;
++    }
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyBoolean.java b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyBoolean.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..929866887a447d41c8c84a303a6c14900604cb26
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyBoolean.java
+@@ -0,0 +1,34 @@
++package com.grinderwolf.swm.api.world.properties.type;
++
++import com.grinderwolf.swm.api.world.properties.SlimeProperty;
++import com.flowpowered.nbt.ByteTag;
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.Tag;
++
++import java.util.function.Function;
++
++/**
++ * A slime property of type boolean
++ */
++public class SlimePropertyBoolean extends SlimeProperty<Boolean> {
++
++	public SlimePropertyBoolean(String nbtName, Boolean defaultValue) {
++		super(nbtName, defaultValue);
++	}
++
++	public SlimePropertyBoolean(String nbtName, Boolean defaultValue, Function<Boolean, Boolean> validator) {
++		super(nbtName, defaultValue, validator);
++	}
++
++	@Override
++	protected void writeValue(CompoundMap compound, Boolean value) {
++		compound.put(getNbtName(), new ByteTag(getNbtName(), (byte) (value ? 1 : 0)));
++	}
++
++	@Override
++	protected Boolean readValue(Tag<?> compoundTag) {
++		return compoundTag.getAsByteTag()
++			.map((value) -> value.getValue() == 1)
++			.orElse(getDefaultValue());
++	}
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyInt.java b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyInt.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..db1222cf16673b4d1ee7517b117762c19ad5bc6c
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyInt.java
+@@ -0,0 +1,34 @@
++package com.grinderwolf.swm.api.world.properties.type;
++
++import com.grinderwolf.swm.api.world.properties.SlimeProperty;
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.IntTag;
++import com.flowpowered.nbt.Tag;
++
++import java.util.function.Function;
++
++/**
++ * A slime property of type integer
++ */
++public class SlimePropertyInt extends SlimeProperty<Integer> {
++
++	public SlimePropertyInt(String nbtName, Integer defaultValue) {
++		super(nbtName, defaultValue);
++	}
++
++	public SlimePropertyInt(String nbtName, Integer defaultValue, Function<Integer, Boolean> validator) {
++		super(nbtName, defaultValue, validator);
++	}
++
++	@Override
++	protected void writeValue(CompoundMap compound, Integer value) {
++		compound.put(getNbtName(), new IntTag(getNbtName(), value));
++	}
++
++	@Override
++	protected Integer readValue(Tag<?> compoundTag) {
++		return compoundTag.getAsIntTag()
++			.map(Tag::getValue)
++			.orElse(getDefaultValue());
++	}
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyString.java b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyString.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d5d908b0131ebbf1a300007b912c65cc84780d5c
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/properties/type/SlimePropertyString.java
+@@ -0,0 +1,34 @@
++package com.grinderwolf.swm.api.world.properties.type;
++
++import com.grinderwolf.swm.api.world.properties.SlimeProperty;
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.StringTag;
++import com.flowpowered.nbt.Tag;
++
++import java.util.function.Function;
++
++/**
++ * A slime property of type integer
++ */
++public class SlimePropertyString extends SlimeProperty<String> {
++
++	public SlimePropertyString(String nbtName, String defaultValue) {
++		super(nbtName, defaultValue);
++	}
++
++	public SlimePropertyString(String nbtName, String defaultValue, Function<String, Boolean> validator) {
++		super(nbtName, defaultValue, validator);
++	}
++
++	@Override
++	protected void writeValue(CompoundMap compound, String value) {
++		compound.put(getNbtName(), new StringTag(getNbtName(), value));
++	}
++
++	@Override
++	protected String readValue(Tag<?> compoundTag) {
++		return compoundTag.getAsStringTag()
++			.map(Tag::getValue)
++			.orElse(getDefaultValue());
++	}
++}

@@ -1,5 +1,0 @@
-{
-    if (com.grinderwolf.swm.clsm.ClassModifier.flushEntities($0)) {
-        return;
-    }
-}

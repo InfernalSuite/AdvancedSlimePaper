@@ -1,1 +1,0 @@
-description = "slimeworldmanager-classmodifierapi"
