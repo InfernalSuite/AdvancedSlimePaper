@@ -3,16 +3,18 @@ package com.grinderwolf.swm.plugin;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.google.common.collect.ImmutableList;
+import com.infernalsuite.aswm.SlimeNMSBridge;
 import com.grinderwolf.swm.api.SlimePlugin;
+import com.grinderwolf.swm.api.events.PostGenerateWorldEvent;
+import com.grinderwolf.swm.api.events.PreGenerateWorldEvent;
+import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
+import com.grinderwolf.swm.api.exceptions.NewerFormatException;
+import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
+import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
+import com.grinderwolf.swm.api.exceptions.WorldInUseException;
 import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-import com.grinderwolf.swm.nms.SlimeNMS;
-import com.grinderwolf.swm.nms.v1182.v1182SlimeNMS;
-import com.grinderwolf.swm.nms.v119.v119SlimeNMS;
-import com.grinderwolf.swm.nms.v1191.v1191SlimeNMS;
-import com.grinderwolf.swm.nms.v1192.v1192SlimeNMS;
-import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
@@ -25,9 +27,9 @@ import com.grinderwolf.swm.plugin.world.WorldUnlocker;
 import com.grinderwolf.swm.plugin.world.importer.WorldImporter;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
+import net.kyori.adventure.util.Services;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.EventHandler;
@@ -44,12 +46,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
-    @Getter
-    private SlimeNMS nms;
+    private SlimeNMSBridge bridge = Services.service(SlimeNMSBridge.class).orElseThrow();
 
     private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
-
-    private v1182SlimeNMS v1182SlimeNMS;
 
     private static boolean isPaperMC = false;
 
@@ -77,13 +76,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         LoaderUtils.registerLoaders();
 
-        try {
-            nms = getNMSBridge();
-        } catch (InvalidVersionException ex) {
-            Logging.error(ex.getMessage());
-            return;
-        }
-
         List<String> erroredWorlds = loadWorlds();
 
         // Default world override
@@ -108,7 +100,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             SlimeWorld netherWorld = getServer().getAllowNether() ? loadedWorlds.get(defaultWorldName + "_nether") : null;
             SlimeWorld endWorld = getServer().getAllowEnd() ? loadedWorlds.get(defaultWorldName + "_the_end") : null;
 
-            nms.setDefaultWorlds(defaultWorld, netherWorld, endWorld);
+            bridge.setDefaultWorlds(defaultWorld, netherWorld, endWorld);
         } catch (IOException ex) {
             Logging.error("Failed to retrieve default world name:");
             ex.printStackTrace();
@@ -117,7 +109,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void onEnable() {
-        if (nms == null) {
+        if (bridge == null) {
             this.setEnabled(false);
             return;
         }
@@ -148,7 +140,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     @Override
     public void onDisable() {
         Bukkit.getWorlds().stream()
-                .map(world -> getNms().getSlimeWorld(world))
+                .map(world -> bridge.getSlimeWorld(world))
                 .filter(Objects::nonNull)
                 .filter((slimeWorld -> !slimeWorld.isReadOnly()))
                 .map(w -> (SlimeLoadedWorld) w)
@@ -238,14 +230,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public SlimeWorld loadWorld(SlimeLoader loader, String worldName, SlimeWorld.SlimeProperties properties) throws UnknownWorldException,
-            IOException, CorruptedWorldException, NewerFormatException, WorldInUseException {
-        Objects.requireNonNull(properties, "Properties cannot be null");
-
-        return loadWorld(loader, worldName, properties.isReadOnly(), propertiesToMap(properties));
-    }
-
-    @Override
     public SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException,
             CorruptedWorldException, NewerFormatException, WorldInUseException {
         Objects.requireNonNull(loader, "Loader cannot be null");
@@ -289,13 +273,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public SlimeWorld createEmptyWorld(SlimeLoader loader, String worldName, SlimeWorld.SlimeProperties properties) throws WorldAlreadyExistsException, IOException {
-        Objects.requireNonNull(properties, "Properties cannot be null");
-
-        return createEmptyWorld(loader, worldName, properties.isReadOnly(), propertiesToMap(properties));
-    }
-
-    @Override
     public SlimeWorld createEmptyWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws WorldAlreadyExistsException, IOException {
         Objects.requireNonNull(loader, "Loader cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
@@ -314,21 +291,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         registerWorld(world);
         return world;
-    }
-
-    private SlimePropertyMap propertiesToMap(SlimeWorld.SlimeProperties properties) {
-        SlimePropertyMap propertyMap = new SlimePropertyMap();
-
-        propertyMap.setValue(SPAWN_X, (int) properties.getSpawnX());
-        propertyMap.setValue(SPAWN_Y, (int) properties.getSpawnY());
-        propertyMap.setValue(SPAWN_Z, (int) properties.getSpawnZ());
-        propertyMap.setValue(DIFFICULTY, Difficulty.getByValue(properties.getDifficulty()).name());
-        propertyMap.setValue(ALLOW_MONSTERS, properties.allowMonsters());
-        propertyMap.setValue(ALLOW_ANIMALS, properties.allowAnimals());
-        propertyMap.setValue(PVP, properties.isPvp());
-        propertyMap.setValue(ENVIRONMENT, properties.getEnvironment());
-
-        return propertyMap;
     }
 
     /**

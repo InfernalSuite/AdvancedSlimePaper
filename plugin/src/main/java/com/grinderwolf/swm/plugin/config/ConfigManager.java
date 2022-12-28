@@ -18,12 +18,9 @@ public class ConfigManager {
     private static final File WORLDS_FILE = new File(PLUGIN_DIR, "worlds.yml");
     private static final File SOURCES_FILE = new File(PLUGIN_DIR, "sources.yml");
 
-    @Getter
     private static WorldsConfig worldConfig;
-    @Getter(value = AccessLevel.PACKAGE)
     private static YamlConfigurationLoader worldConfigLoader;
 
-    @Getter
     private static DatasourcesConfig datasourcesConfig;
 
     public static void initialize() throws IOException {
@@ -51,5 +48,17 @@ public class ConfigManager {
         if (!SOURCES_FILE.exists()) {
             Files.copy(SWMPlugin.getInstance().getResource("worlds.yml"), SOURCES_FILE.toPath());
         }
+    }
+
+    public static DatasourcesConfig getDatasourcesConfig() {
+        return datasourcesConfig;
+    }
+
+    public static WorldsConfig getWorldConfig() {
+        return worldConfig;
+    }
+
+    static YamlConfigurationLoader getWorldConfigLoader() {
+        return worldConfigLoader;
     }
 }

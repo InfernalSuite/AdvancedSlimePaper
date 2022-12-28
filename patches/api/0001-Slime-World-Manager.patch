@@ -5,17 +5,17 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 3c4dd6ebc2289c44c2f5723e7920aadffdc51884..7d2432af1c72cd1ba422f2777786bb1ea00568d5 100644
+index 3c4dd6ebc2289c44c2f5723e7920aadffdc51884..9b34ed43fdc53c4177a01cc7b8b195b5d9dfbb68 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -22,6 +22,7 @@ configurations.api {
- }
+@@ -23,6 +23,7 @@ configurations.api {
  
  dependencies {
-+    implementation(project(":api")) // ASWM
      // api dependencies are listed transitively to API consumers
++    api("com.flowpowered:flow-nbt:2.0.2") // ASWM
      api("com.google.guava:guava:31.1-jre")
      api("com.google.code.gson:gson:2.10")
+     api("net.md-5:bungeecord-chat:1.16-R0.4-deprecated+build.6") // Paper
 diff --git a/src/main/java/com/grinderwolf/swm/api/SlimePlugin.java b/src/main/java/com/grinderwolf/swm/api/SlimePlugin.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..45ff5b434df07d30a9a8ae1c77203dd315507641
@@ -1138,10 +1138,10 @@ index 0000000000000000000000000000000000000000..aebf44a957847a7922f21286203ca384
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f743a3a764c787a0630644037eaa0e0e3038f721
+index 0000000000000000000000000000000000000000..03fab8e4e13d072c2b6d0dc4cb9e7f86bb93a2e5
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,41 @@
 +package com.grinderwolf.swm.api.utils;
 +
 +/**
@@ -1177,6 +1177,10 @@ index 0000000000000000000000000000000000000000..f743a3a764c787a0630644037eaa0e0e
 +        } else {
 +            this.backing[halfIndex] = (byte) (previous & 0xF | nibble << 4);
 +        }
++    }
++
++    public byte[] getBacking() {
++        return backing;
 +    }
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java b/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java
@@ -1486,6 +1490,37 @@ index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf
 +     * @return true if the world is locked, false otherwise
 +     */
 +    boolean isLocked();
++
++}
+diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..458ed677c0f8cc171b491ad1b2c1093ba82633ea
+--- /dev/null
++++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java
+@@ -0,0 +1,25 @@
++package com.grinderwolf.swm.api.world;
++
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import org.bukkit.World;
++
++import java.util.concurrent.CompletableFuture;
++
++public interface SlimeWorldInstance {
++
++    String getName();
++
++    World getBukkitWorld();
++
++    SlimeWorld getLegacyLazyMirror();
++
++    SlimePropertyMap getPropertyMap();
++
++    boolean isReadOnly();
++
++    SlimeLoader getSaveStrategy();
++
++    CompletableFuture<byte[]> serialize();
 +
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
@@ -1873,4 +1908,48 @@ index 0000000000000000000000000000000000000000..d5d908b0131ebbf1a300007b912c65cc
 +			.map(Tag::getValue)
 +			.orElse(getDefaultValue());
 +	}
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridge.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridge.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2cdfd12882ad9ba52f7efb2dc4b12e1881ec658c
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridge.java
+@@ -0,0 +1,38 @@
++package com.infernalsuite.aswm;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.SlimeWorldInstance;
++import net.kyori.adventure.util.Services;
++import org.bukkit.World;
++import org.jetbrains.annotations.ApiStatus;
++
++import java.io.IOException;
++
++@ApiStatus.Internal
++public interface SlimeNMSBridge {
++
++    // Overriding
++    boolean loadOverworldOverride();
++
++    boolean loadNetherOverride();
++
++    boolean loadEndOverride();
++
++    void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld) throws IOException;
++
++    SlimeWorldInstance loadInstance(SlimeWorld slimeWorld);
++
++    SlimeWorldInstance getInstance(World world);
++
++    static SlimeNMSBridge instance() {
++        return Holder.INSTANCE;
++    }
++
++    @ApiStatus.Internal
++    static class Holder {
++
++        private static final SlimeNMSBridge INSTANCE = Services.service(SlimeNMSBridge.class).orElseThrow();
++
++    }
++
 +}

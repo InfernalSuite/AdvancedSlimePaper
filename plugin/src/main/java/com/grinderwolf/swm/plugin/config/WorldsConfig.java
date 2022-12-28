@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Getter
 @ConfigSerializable
 public class WorldsConfig {
 
@@ -24,5 +23,9 @@ public class WorldsConfig {
             Logging.error("Failed to save worlds config file:");
             ex.printStackTrace();
         }
+    }
+
+    public Map<String, WorldData> getWorlds() {
+        return worlds;
     }
 }

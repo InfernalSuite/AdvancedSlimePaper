@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(project(":slimeworldmanager-api"))
 
+
     implementation("com.flowpowered:flow-nbt:2.0.2")
     implementation("com.github.luben:zstd-jni:1.5.2-2")
     implementation("com.zaxxer:HikariCP:5.0.1")

@@ -1,13 +1,13 @@
 package com.grinderwolf.swm.plugin.config;
 
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-import lombok.Data;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-@Data
+import static com.grinderwolf.swm.api.world.properties.SlimeProperties.*;
+
 @ConfigSerializable
 public class WorldData {
 
@@ -97,4 +97,18 @@ public class WorldData {
 
         return propertyMap;
     }
+
+    public boolean isLoadOnStartup() {
+        return this.loadOnStartup;
+    }
+
+    public String getDataSource() {
+        return this.dataSource;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+
 }
