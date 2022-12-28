@@ -11,3 +11,5 @@ release.properties
 libs/
 .gradle/
 build/
+slimeworldmanager-api
+slimeworldmanager-server

@@ -1138,10 +1138,10 @@ index 0000000000000000000000000000000000000000..aebf44a957847a7922f21286203ca384
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..03fab8e4e13d072c2b6d0dc4cb9e7f86bb93a2e5
+index 0000000000000000000000000000000000000000..9037f7a6220f8f362e1f62942c9c236deb3568eb
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/utils/NibbleArray.java
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,45 @@
 +package com.grinderwolf.swm.api.utils;
 +
 +/**
@@ -1182,6 +1182,10 @@ index 0000000000000000000000000000000000000000..03fab8e4e13d072c2b6d0dc4cb9e7f86
 +    public byte[] getBacking() {
 +        return backing;
 +    }
++
++    public NibbleArray clone() {
++        return new NibbleArray(this.backing.clone());
++    }
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java b/src/main/java/com/grinderwolf/swm/api/utils/SlimeFormat.java
 new file mode 100644
@@ -1204,10 +1208,10 @@ index 0000000000000000000000000000000000000000..18e08b4a2b43d94597d40a5dced33fc0
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9e54ba8d9d936b360b63ecbfb095ec2993cc2a34
+index 0000000000000000000000000000000000000000..b829e75e0dee41fff439d5d0b092bcba543041a2
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,66 @@
 +package com.grinderwolf.swm.api.world;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1261,15 +1265,6 @@ index 0000000000000000000000000000000000000000..9e54ba8d9d936b360b63ecbfb095ec29
 +    CompoundTag getHeightMaps();
 +
 +    /**
-+     * Returns all the biomes of the chunk. In case it's a pre 1.13 world,
-+     * every <code>int</code> inside the array will contain two biomes,
-+     * and should be converted into a <code>byte[]</code>.
-+     *
-+     * @return A <code>int[]</code> containing all the biomes of the chunk.
-+     */
-+    int[] getBiomes();
-+
-+    /**
 +     * Returns all the tile entities of the chunk.
 +     *
 +     * @return A {@link CompoundTag} containing all the tile entities of the chunk.
@@ -1281,15 +1276,14 @@ index 0000000000000000000000000000000000000000..9e54ba8d9d936b360b63ecbfb095ec29
 +     *
 +     * @return A {@link CompoundTag} containing all the entities of the chunk.
 +     */
-+    @Deprecated
 +    List<CompoundTag> getEntities();
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4f31bd081707e01f57c17ae7afefcf910bf8de56
+index 0000000000000000000000000000000000000000..1917262f82844eb6c4c2e934da44c2a737b0fbe6
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,29 @@
 +package com.grinderwolf.swm.api.world;
 +
 +import com.grinderwolf.swm.api.utils.NibbleArray;
@@ -1300,40 +1294,6 @@ index 0000000000000000000000000000000000000000..4f31bd081707e01f57c17ae7afefcf91
 + * In-memory representation of a SRF chunk section.
 + */
 +public interface SlimeChunkSection {
-+
-+    /**
-+     * Returns all the blocks of the chunk section, or <code>null</code>
-+     * in case it's a post 1.13 world.
-+     *
-+     * @return A <code>byte[]</code> with all the blocks of a chunk section.
-+     */
-+    @Deprecated(forRemoval = true)
-+    byte[] getBlocks();
-+
-+    /**
-+     * Returns the data of all the blocks of the chunk section, or
-+     * <code>null</code> if it's a post 1.13 world.
-+     *
-+     * @return A {@link NibbleArray} containing all the blocks of a chunk section.
-+     */
-+    @Deprecated(forRemoval = true)
-+    NibbleArray getData();
-+
-+    /**
-+     * Returns the block palette of the chunk section, or
-+     * <code>null</code> if it's a pre 1.13 world, or post 1.17.
-+     *
-+     * @return The block palette, contained inside a {@link ListTag}
-+     */
-+    ListTag<CompoundTag> getPalette();
-+
-+    /**
-+     * Returns all the states of the blocks of the chunk section, or
-+     * <code>null</code> in case it's a pre 1.13 world or post 1.17.
-+     *
-+     * @return A <code>long[]</code> with every block state.
-+     */
-+    long[] getBlockStates();
 +
 +    CompoundTag getBlockStatesTag();
 +
@@ -1355,10 +1315,10 @@ index 0000000000000000000000000000000000000000..4f31bd081707e01f57c17ae7afefcf91
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf76f47a65
+index 0000000000000000000000000000000000000000..7ecab157a57678e8ccc134fff3baa71e90575155
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,127 @@
 +package com.grinderwolf.swm.api.world;
 +
 +import com.grinderwolf.swm.api.SlimePlugin;
@@ -1401,13 +1361,12 @@ index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf
 +     */
 +     SlimeChunk getChunk(int x, int z);
 +
-+    /**
-+     * Returns a {@link Map} with every {@link SlimeChunk} that is
-+     * currently loaded in this slime world.
-+     *
-+     * @return A {@link Map} containing every loaded chunk.
-+     */
-+     Map<Long, SlimeChunk> getChunks();
++     Collection<SlimeChunk> getChunkStorage();
++
++    @Deprecated(forRemoval = true)
++    default Map<Long, SlimeChunk> getChunks() {
++         throw new UnsupportedOperationException();
++     }
 +
 +    /**
 +     * Returns the extra data of the world. Inside this {@link CompoundTag}
@@ -1467,21 +1426,12 @@ index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf
 +     */
 +    SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException;
 +
-+    /**
-+     * Returns a clone of the world with the given name. The world will be
-+     * automatically stored inside the provided data source.
-+     *
-+     * @param worldName The name of the cloned world.
-+     * @param loader The {@link SlimeLoader} used to store the world or <code>null</code> if the world is temporary.
-+     * @param lock whether or not SWM should lock the world. If false, SWM will not let you load this world for security reasons.
-+     *
-+     * @return The clone of the world.
-+     *
-+     * @throws IllegalArgumentException if the name of the world is the same as the current one or is <code>null</code>.
-+     * @throws WorldAlreadyExistsException if there's already a world with the same name inside the provided data source.
-+     * @throws IOException if the world could not be stored.
-+     */
-+    SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException;
++    @Deprecated(forRemoval = true)
++    default SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException {
++         return clone(worldName, loader);
++    }
++
++    int getDataVersion();
 +
 +    /**
 +     * Returns whether or not this world is locked and, therefore, can be loaded on the server by
@@ -1489,7 +1439,11 @@ index 0000000000000000000000000000000000000000..ca69f7de2d5ce26016867fd081825cdf
 +     *
 +     * @return true if the world is locked, false otherwise
 +     */
-+    boolean isLocked();
++    // Locking mechanism has been retired
++    @Deprecated(forRemoval = true)
++    default boolean isLocked() {
++        return false;
++    }
 +
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java
@@ -1683,10 +1637,10 @@ index 0000000000000000000000000000000000000000..7d66de1c9077ffafb81020b3ed333c22
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..617c94f7afff2f7b7548c18f68cde3a66ba56a76
+index 0000000000000000000000000000000000000000..19ccc80e2ce75f710550a4d49b12bbbe7e7ea22f
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,106 @@
 +package com.grinderwolf.swm.api.world.properties;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -1782,6 +1736,10 @@ index 0000000000000000000000000000000000000000..617c94f7afff2f7b7548c18f68cde3a6
 +
 +    public static SlimePropertyMap fromCompound(CompoundTag compound) {
 +        return new SlimePropertyMap(compound.getValue());
++    }
++
++    public SlimePropertyMap clone() {
++        return new SlimePropertyMap(new CompoundMap(this.properties));
 +    }
 +
 +    @Override

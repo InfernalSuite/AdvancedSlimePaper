@@ -4,12 +4,491 @@ Date: Mon, 26 Dec 2022 12:08:05 -0500
 Subject: [PATCH] Slime World Manager
 
 
+diff --git a/build.gradle.kts b/build.gradle.kts
+index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..b778631648dcedd482417889e849cdd53bc30df3 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -9,6 +9,7 @@ plugins {
+ dependencies {
+ 
+     // ASWM start
++    implementation("com.github.luben:zstd-jni:1.5.2-2")
+     implementation(project(":slimeworldmanager-api"))
+     implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
+         exclude("io.papermc.paper", "paper-api")
+diff --git a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1466.java b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1466.java
+index c4fa8e36fb68a610106cee8bae1af243e51fae2e..e34d636f8e085c6fcb025a2d8ecebe775cdbfe6c 100644
+--- a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1466.java
++++ b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1466.java
+@@ -35,7 +35,7 @@ public final class V1466 {
+         // So "carved" is the correct stage to use, not empty. Setting it to empty would clobber chunk data, when we don't
+         // need to. If it is populated, at least set it to decorated. If it is lit and populated, set it to mobs_spawned. Else,
+         // it is carved.
+-        // This change also fixes the random light check "bug" (really this is Mojang's fault for fucking up the status conversion here)
++        // This change also fixes the random sky check "bug" (really this is Mojang's fault for fucking up the status conversion here)
+         // caused by spigot, which would not set the lit value for some chunks. Now those chunks will not be regenerated.
+ 
+         MCTypeRegistry.CHUNK.addStructureConverter(new DataConverter<>(VERSION) {
+diff --git a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1911.java b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1911.java
+index b9cc2e4a2ae42e12ccf4e0b634fd74d3aad317ab..f2936a06090427a57537363ac7234eb8c6eccc42 100644
+--- a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1911.java
++++ b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V1911.java
+@@ -18,7 +18,7 @@ public final class V1911 {
+             .put("carved", "carvers")
+             .put("liquid_carved", "liquid_carvers")
+             .put("decorated", "features")
+-            .put("lighted", "light")
++            .put("lighted", "sky")
+             .put("mobs_spawned", "spawn")
+             .put("finalized", "heightmaps")
+             .put("fullchunk", "full")
+diff --git a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V2832.java b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V2832.java
+index 95a306d6cc5b4ac8161d5bed80b6a7073b3e914e..df4bc7abbc2a7fc0074a5ab31ce31266198dccd3 100644
+--- a/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V2832.java
++++ b/src/main/java/ca/spottedleaf/dataconverter/minecraft/versions/V2832.java
+@@ -132,7 +132,7 @@ public final class V2832 {
+             "carvers",
+             "liquid_carvers",
+             "features",
+-            "light",
++            "sky",
+             "spawn",
+             "heightmaps",
+             "full"
+@@ -143,7 +143,7 @@ public final class V2832 {
+             "carvers",
+             "liquid_carvers",
+             "features",
+-            "light",
++            "sky",
+             "spawn",
+             "heightmaps",
+             "full"
+@@ -413,7 +413,7 @@ public final class V2832 {
+ 
+                     // add in relevant biome section
+                     if (sectionIndex >= 0 && sectionIndex < newBiomes.length) {
+-                        // exclude out of bounds sections (i.e the light sections above and below the world)
++                        // exclude out of bounds sections (i.e the sky sections above and below the world)
+                         section.setMap("biomes", newBiomes[sectionIndex]);
+                     }
+ 
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/light/BlockStarLightEngine.java b/src/main/java/ca/spottedleaf/starlight/common/light/BlockStarLightEngine.java
+index 4a04eb6449d33d3f15c354b2ac98198f4ac12758..2923630685b18f19a70f4d1b566006e12f9e2033 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/light/BlockStarLightEngine.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/light/BlockStarLightEngine.java
+@@ -53,9 +53,9 @@ public final class BlockStarLightEngine extends StarLightEngine {
+     protected void setNibbleNull(final int chunkX, final int chunkY, final int chunkZ) {
+         final SWMRNibbleArray nibble = this.getNibbleFromCache(chunkX, chunkY, chunkZ);
+         if (nibble != null) {
+-            // de-initialisation is not as straightforward as with sky data, since deinit of block light is typically
+-            // because a block was removed - which can decrease light. with sky data, block breaking can only result
+-            // in increases, and thus the existing sky block check will actually correctly propagate light through
++            // de-initialisation is not as straightforward as with sky data, since deinit of block sky is typically
++            // because a block was removed - which can decrease sky. with sky data, block breaking can only result
++            // in increases, and thus the existing sky block check will actually correctly propagate sky through
+             // a null section. so in order to propagate decreases correctly, we can do a couple of things: not remove
+             // the data section, or do edge checks on ALL axis (x, y, z). however I do not want edge checks running
+             // for clients at all, as they are expensive. so we don't remove the section, but to maintain the appearence
+@@ -85,7 +85,7 @@ public final class BlockStarLightEngine extends StarLightEngine {
+     @Override
+     protected final void checkBlock(final LightChunkGetter lightAccess, final int worldX, final int worldY, final int worldZ) {
+         // blocks can change opacity
+-        // blocks can change emitted light
++        // blocks can change emitted sky
+         // blocks can change direction of propagation
+ 
+         final int encodeOffset = this.coordinateOffset;
+@@ -96,7 +96,7 @@ public final class BlockStarLightEngine extends StarLightEngine {
+         final int emittedLevel = blockState.getLightEmission() & emittedMask;
+ 
+         this.setLightLevel(worldX, worldY, worldZ, emittedLevel);
+-        // this accounts for change in emitted light that would cause an increase
++        // this accounts for change in emitted sky that would cause an increase
+         if (emittedLevel != 0) {
+             this.appendToIncreaseQueue(
+                     ((worldX + (worldZ << 6) + (worldY << (6 + 6)) + encodeOffset) & ((1L << (6 + 6 + 16)) - 1))
+@@ -105,7 +105,7 @@ public final class BlockStarLightEngine extends StarLightEngine {
+                             | (blockState.isConditionallyFullOpaque() ? FLAG_HAS_SIDED_TRANSPARENT_BLOCKS : 0)
+             );
+         }
+-        // this also accounts for a change in emitted light that would cause a decrease
++        // this also accounts for a change in emitted sky that would cause a decrease
+         // this also accounts for the change of direction of propagation (i.e old block was full transparent, new block is full opaque or vice versa)
+         // as it checks all neighbours (even if current level is 0)
+         this.appendToDecreaseQueue(
+@@ -168,7 +168,7 @@ public final class BlockStarLightEngine extends StarLightEngine {
+ 
+             final BlockState neighbourState = this.getBlockState(offX, offY, offZ);
+             if (neighbourState.isConditionallyFullOpaque()) {
+-                // here the block can be conditionally opaque (i.e light cannot propagate from it), so we need to test that
++                // here the block can be conditionally opaque (i.e sky cannot propagate from it), so we need to test that
+                 // we don't read the blockstate because most of the time this is false, so using the faster
+                 // known transparency lookup results in a net win
+                 this.recalcNeighbourPos.set(offX, offY, offZ);
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/light/SWMRNibbleArray.java b/src/main/java/ca/spottedleaf/starlight/common/light/SWMRNibbleArray.java
+index 4ffb4ffe01c4628d52742c5c0bbd35220eea6294..2d3cde437a19d54b8ced940428025f3dca2d2ba3 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/light/SWMRNibbleArray.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/light/SWMRNibbleArray.java
+@@ -14,7 +14,7 @@ public final class SWMRNibbleArray {
+      *
+      * Uninitialised nibble - They are all 0, but the backing array isn't initialised.
+      *
+-     * Initialised nibble - Has light data.
++     * Initialised nibble - Has sky data.
+      */
+ 
+     protected static final int INIT_STATE_NULL   = 0; // null
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/light/SkyStarLightEngine.java b/src/main/java/ca/spottedleaf/starlight/common/light/SkyStarLightEngine.java
+index 5f771962afb44175d446f138c8e7453230f48c6c..95c850630b2d34fcbd9cdff9b59060e094c9b965 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/light/SkyStarLightEngine.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/light/SkyStarLightEngine.java
+@@ -32,7 +32,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+ 
+       Each chunk will store the last known "emptiness" of sections for each of their 1 radius neighbour chunk sections.
+       If the chunk does not have full data, then its nibbles are NOT de-initialised. This is because obviously the
+-      chunk did not go through the light stage yet - or its neighbours are not lit. In either case, once the last
++      chunk did not go through the sky stage yet - or its neighbours are not lit. In either case, once the last
+       known "emptiness" of neighbouring sections is filled with data, the chunk will run a full check of the data
+       to see if any of its nibbles need to be de-initialised.
+ 
+@@ -335,7 +335,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+             final BlockState neighbourState = this.getBlockState(offX, offY, offZ);
+ 
+             if (neighbourState.isConditionallyFullOpaque()) {
+-                // here the block can be conditionally opaque (i.e light cannot propagate from it), so we need to test that
++                // here the block can be conditionally opaque (i.e sky cannot propagate from it), so we need to test that
+                 // we don't read the blockstate because most of the time this is false, so using the faster
+                 // known transparency lookup results in a net win
+                 this.recalcNeighbourPos.set(offX, offY, offZ);
+@@ -376,7 +376,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+             }
+         }
+ 
+-        // note: light sets are delayed while processing skylight source changes due to how
++        // note: sky sets are delayed while processing skylight source changes due to how
+         // nibbles are initialised, as we want to avoid clobbering nibble values so what when
+         // below nibbles are initialised they aren't reading from partially modified nibbles
+ 
+@@ -393,7 +393,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+             final int columnZ = (index >>> 4) | (chunkZ << 4);
+ 
+             // try and propagate from the above y
+-            // delay light set until after processing all sources to setup
++            // delay sky set until after processing all sources to setup
+             final int maxPropagationY = this.tryPropagateSkylight(world, columnX, maxY, columnZ, true, true);
+ 
+             // maxPropagationY is now the highest block that could not be propagated to
+@@ -426,7 +426,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+                         break;
+                     }
+ 
+-                    // delay light set until after processing all sources to setup
++                    // delay sky set until after processing all sources to setup
+                     this.appendToDecreaseQueue(
+                             ((columnX + (columnZ << 6) + (currY << (6 + 6)) + encodeOffset) & ((1L << (6 + 6 + 16)) - 1))
+                                     | (15L << (6 + 6 + 16))
+@@ -437,8 +437,8 @@ public final class SkyStarLightEngine extends StarLightEngine {
+             }
+         }
+ 
+-        // delayed light sets are processed here, and must be processed before checkBlock as checkBlock reads
+-        // immediate light value
++        // delayed sky sets are processed here, and must be processed before checkBlock as checkBlock reads
++        // immediate sky value
+         this.processDelayedIncreases();
+         this.processDelayedDecreases();
+ 
+@@ -603,9 +603,9 @@ public final class SkyStarLightEngine extends StarLightEngine {
+         }
+     }
+ 
+-    // delaying the light set is useful for block changes since they need to worry about initialising nibblearrays
+-    // while also queueing light at the same time (initialising nibblearrays might depend on nibbles above, so
+-    // clobbering the light values will result in broken propagation)
++    // delaying the sky set is useful for block changes since they need to worry about initialising nibblearrays
++    // while also queueing sky at the same time (initialising nibblearrays might depend on nibbles above, so
++    // clobbering the sky values will result in broken propagation)
+     protected final int tryPropagateSkylight(final BlockGetter world, final int worldX, int startY, final int worldZ,
+                                              final boolean extrudeInitialised, final boolean delayLightSet) {
+         final BlockPos.MutableBlockPos mutablePos = this.mutablePos3;
+@@ -641,7 +641,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+             }
+ 
+             final int opacityIfCached = current.getOpacityIfCached();
+-            // does light propagate from the top down?
++            // does sky propagate from the top down?
+             if (opacityIfCached != -1) {
+                 if (opacityIfCached != 0) {
+                     // we cannot propagate 15 through this
+@@ -649,7 +649,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+                 }
+                 // most of the time it falls here.
+                 // add to propagate
+-                // light set delayed until we determine if this nibble section is null
++                // sky set delayed until we determine if this nibble section is null
+                 this.appendToIncreaseQueue(
+                         ((worldX + (worldZ << 6) + (startY << (6 + 6)) + encodeOffset) & ((1L << (6 + 6 + 16)) - 1))
+                                 | (15L << (6 + 6 + 16)) // we know we're at full lit here
+@@ -674,7 +674,7 @@ public final class SkyStarLightEngine extends StarLightEngine {
+                     break;
+                 }
+ 
+-                // light set delayed until we determine if this nibble section is null
++                // sky set delayed until we determine if this nibble section is null
+                 this.appendToIncreaseQueue(
+                         ((worldX + (worldZ << 6) + (startY << (6 + 6)) + encodeOffset) & ((1L << (6 + 6 + 16)) - 1))
+                                 | (15L << (6 + 6 + 16)) // we know we're at full lit here
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/light/StarLightEngine.java b/src/main/java/ca/spottedleaf/starlight/common/light/StarLightEngine.java
+index 1b0d92c68407cdb09ed8aac271b625d92db87017..ddd393dfcb5bc40eb4cdf8ae358be05453d5dbfe 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/light/StarLightEngine.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/light/StarLightEngine.java
+@@ -77,10 +77,10 @@ public abstract class StarLightEngine {
+     }
+ 
+     // I'd like to thank https://www.seedofandromeda.com/blogs/29-fast-flood-fill-lighting-in-a-blocky-voxel-game-pt-1
+-    // for explaining how light propagates via breadth-first search
++    // for explaining how sky propagates via breadth-first search
+ 
+     // While the above is a good start to understanding the general idea of what the general principles are, it's not
+-    // exactly how the vanilla light engine should behave for minecraft.
++    // exactly how the vanilla sky engine should behave for minecraft.
+ 
+     // similar to the above, except the chunk section indices vary from [-1, 1], or [0, 2]
+     // for the y chunk section it's from [minLightSection, maxLightSection] or [0, maxLightSection - minLightSection]
+@@ -189,7 +189,7 @@ public abstract class StarLightEngine {
+                     if (relaxed | isTwoRadius) {
+                         continue;
+                     }
+-                    throw new IllegalArgumentException("Trying to propagate light update before 1 radius neighbours ready");
++                    throw new IllegalArgumentException("Trying to propagate sky update before 1 radius neighbours ready");
+                 }
+ 
+                 if (!this.canUseChunk(chunk)) {
+@@ -439,8 +439,8 @@ public abstract class StarLightEngine {
+     protected abstract void checkBlock(final LightChunkGetter lightAccess, final int worldX, final int worldY, final int worldZ);
+ 
+     // if ret > expect, then the real value is at least ret (early returns if ret > expect, rather than calculating actual)
+-    // if ret == expect, then expect is the correct light value for pos
+-    // if ret < expect, then ret is the real light value
++    // if ret == expect, then expect is the correct sky value for pos
++    // if ret < expect, then ret is the real sky value
+     protected abstract int calculateLightValue(final LightChunkGetter lightAccess, final int worldX, final int worldY, final int worldZ,
+                                                final int expect);
+ 
+@@ -520,8 +520,8 @@ public abstract class StarLightEngine {
+                             ((currY & 15) << 8);
+                     final int neighbourLevel = neighbourNibble.getUpdating(neighbourIndex);
+ 
+-                    // the checks are delayed because the checkBlock method clobbers light values - which then
+-                    // affect later calculate light value operations. While they don't affect it in a behaviourly significant
++                    // the checks are delayed because the checkBlock method clobbers sky values - which then
++                    // affect later calculate sky value operations. While they don't affect it in a behaviourly significant
+                     // way, they do have a negative performance impact due to simply queueing more values
+ 
+                     if (this.calculateLightValue(lightAccess, currX, currY, currZ, currentLevel) != currentLevel) {
+@@ -572,7 +572,7 @@ public abstract class StarLightEngine {
+ 
+     // subclasses should not initialise caches, as this will always be done by the super call
+     // subclasses should not invoke updateVisible, as this will always be done by the super call
+-    // verifies that light levels on this chunks edges are consistent with this chunk's neighbours
++    // verifies that sky levels on this chunks edges are consistent with this chunk's neighbours
+     // edges. if they are not, they are decreased (effectively performing the logic in checkBlock).
+     // This does not resolve skylight source problems.
+     protected void checkChunkEdges(final LightChunkGetter lightAccess, final ChunkAccess chunk, final int fromSection, final int toSection) {
+@@ -587,7 +587,7 @@ public abstract class StarLightEngine {
+         this.performLightDecrease(lightAccess);
+     }
+ 
+-    // pulls light from neighbours, and adds them into the increase queue. does not actually propagate.
++    // pulls sky from neighbours, and adds them into the increase queue. does not actually propagate.
+     protected final void propagateNeighbourLevels(final LightChunkGetter lightAccess, final ChunkAccess chunk, final int fromSection, final int toSection) {
+         final ChunkPos chunkPos = chunk.getPos();
+         final int chunkX = chunkPos.x;
+@@ -776,7 +776,7 @@ public abstract class StarLightEngine {
+             for (int dz = -1; dz <= 1; ++dz) {
+                 for (int dx = -1; dx <= 1; ++dx) {
+                     // if we're not empty, we also need to initialise nibbles
+-                    // note: if we're unlit, we absolutely do not want to extrude, as light data isn't set up
++                    // note: if we're unlit, we absolutely do not want to extrude, as sky data isn't set up
+                     final boolean extrude = (dx | dz) != 0 || !unlit;
+                     for (int dy = 1; dy >= -1; --dy) {
+                         this.initNibble(dx + chunkX, dy + sectionY, dz + chunkZ, extrude, false);
+@@ -881,7 +881,7 @@ public abstract class StarLightEngine {
+     // subclasses should not initialise caches, as this will always be done by the super call
+     // subclasses should not invoke updateVisible, as this will always be done by the super call
+     // needsEdgeChecks applies when possibly loading vanilla data, which means we need to validate the current
+-    // chunks light values with respect to neighbours
++    // chunks sky values with respect to neighbours
+     // subclasses should note that the emptiness changes are propagated BEFORE this is called, so this function
+     // does not need to detect empty chunks itself (and it should do no handling for them either!)
+     protected abstract void lightChunk(final LightChunkGetter lightAccess, final ChunkAccess chunk, final boolean needsEdgeChecks);
+@@ -956,11 +956,11 @@ public abstract class StarLightEngine {
+                 }
+ 
+                 if (nibblesByChunk.get(CoordinateUtils.getChunkKey(neighbourX, neighbourZ)) != null) {
+-                    // lit already called for neighbour, no need to light it now
++                    // lit already called for neighbour, no need to sky it now
+                     continue;
+                 }
+ 
+-                // light neighbour chunk
++                // sky neighbour chunk
+                 this.setupEncodeOffset(neighbourX * 16 + 7, 128, neighbourZ * 16 + 7);
+                 try {
+                     // insert all neighbouring chunks for this neighbour that we have data for
+@@ -989,7 +989,7 @@ public abstract class StarLightEngine {
+ 
+                     final long key = CoordinateUtils.getChunkKey(neighbourX, neighbourZ);
+ 
+-                    // now insert the neighbour chunk and light it
++                    // now insert the neighbour chunk and sky it
+                     final SWMRNibbleArray[] nibbles = getFilledEmptyLight(this.world);
+                     nibblesByChunk.put(key, nibbles);
+ 
+@@ -1037,12 +1037,12 @@ public abstract class StarLightEngine {
+ 
+     // contains:
+     // lower (6 + 6 + 16) = 28 bits: encoded coordinate position (x | (z << 6) | (y << (6 + 6))))
+-    // next 4 bits: propagated light level (0, 15]
++    // next 4 bits: propagated sky level (0, 15]
+     // next 6 bits: propagation direction bitset
+     // next 24 bits: unused
+     // last 3 bits: state flags
+     // state flags:
+-    // whether the increase propagator needs to write the propagated level to the position, used to avoid cascading light
++    // whether the increase propagator needs to write the propagated level to the position, used to avoid cascading sky
+     // updates for block sources
+     protected static final long FLAG_WRITE_LEVEL = Long.MIN_VALUE >>> 2;
+     // whether the propagation needs to check if its current level is equal to the expected level
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/light/StarLightInterface.java b/src/main/java/ca/spottedleaf/starlight/common/light/StarLightInterface.java
+index 0f7d36933e34e1d1b9dd27d8b0c35ff883818526..a6156a83bf0663ebcd29c113cb242b75312ac0c2 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/light/StarLightInterface.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/light/StarLightInterface.java
+@@ -33,7 +33,7 @@ public final class StarLightInterface {
+     public static final TicketType<ChunkPos> CHUNK_WORK_TICKET = TicketType.create("starlight_chunk_work_ticket", (p1, p2) -> Long.compare(p1.toLong(), p2.toLong()));
+ 
+     /**
+-     * Can be {@code null}, indicating the light is all empty.
++     * Can be {@code null}, indicating the sky is all empty.
+      */
+     protected final Level world;
+     protected final LightChunkGetter lightAccess;
+@@ -41,7 +41,7 @@ public final class StarLightInterface {
+     protected final ArrayDeque<SkyStarLightEngine> cachedSkyPropagators;
+     protected final ArrayDeque<BlockStarLightEngine> cachedBlockPropagators;
+ 
+-    public final io.papermc.paper.chunk.system.light.LightQueue lightQueue; // Paper - replace light queue
++    public final io.papermc.paper.chunk.system.light.LightQueue lightQueue; // Paper - replace sky queue
+ 
+     protected final LayerLightEventListener skyReader;
+     protected final LayerLightEventListener blockReader;
+@@ -182,7 +182,7 @@ public final class StarLightInterface {
+                 StarLightInterface.this.sectionChange(pos, notReady);
+             }
+         };
+-        this.lightQueue = new io.papermc.paper.chunk.system.light.LightQueue(this); // Paper - replace light queue
++        this.lightQueue = new io.papermc.paper.chunk.system.light.LightQueue(this); // Paper - replace sky queue
+     }
+ 
+     protected int getSkyLightValue(final BlockPos blockPos, final ChunkAccess chunk) {
+@@ -281,7 +281,7 @@ public final class StarLightInterface {
+         final ChunkAccess chunk = this.getAnyChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+ 
+         final int sky = this.getSkyLightValue(pos, chunk) - ambientDarkness;
+-        // Don't fetch the block light level if the skylight level is 15, since the value will never be higher.
++        // Don't fetch the block sky level if the skylight level is 15, since the value will never be higher.
+         if (sky == 15) return 15;
+         final int block = this.getBlockLightValue(pos, chunk);
+         return Math.max(sky, block);
+@@ -512,15 +512,15 @@ public final class StarLightInterface {
+     }
+ 
+     public void scheduleChunkLight(final ChunkPos pos, final Runnable run) {
+-        throw new UnsupportedOperationException("No longer implemented, use the new lightQueue field to queue tasks"); // Paper - replace light queue
++        throw new UnsupportedOperationException("No longer implemented, use the new lightQueue field to queue tasks"); // Paper - replace sky queue
+     }
+ 
+     public void removeChunkTasks(final ChunkPos pos) {
+-        throw new UnsupportedOperationException("No longer implemented, use the new lightQueue field to queue tasks"); // Paper - replace light queue
++        throw new UnsupportedOperationException("No longer implemented, use the new lightQueue field to queue tasks"); // Paper - replace sky queue
+     }
+ 
+     public void propagateChanges() {
+-        throw new UnsupportedOperationException("No longer implemented, task draining is now performed by the light thread"); // Paper - replace light queue
++        throw new UnsupportedOperationException("No longer implemented, task draining is now performed by the sky thread"); // Paper - replace sky queue
+     }
+ 
+     protected static final class LightQueue {
+diff --git a/src/main/java/ca/spottedleaf/starlight/common/util/SaveUtil.java b/src/main/java/ca/spottedleaf/starlight/common/util/SaveUtil.java
+index 6df9e01731d7fcbe279736b8fc18396595b95574..147404506aa9500cc57e41f6f38f852f98a0d42a 100644
+--- a/src/main/java/ca/spottedleaf/starlight/common/util/SaveUtil.java
++++ b/src/main/java/ca/spottedleaf/starlight/common/util/SaveUtil.java
+@@ -35,7 +35,7 @@ public final class SaveUtil {
+             if (ex instanceof ThreadDeath) {
+                 throw (ThreadDeath)ex;
+             }
+-            LOGGER.warn("Failed to inject light data into save data for chunk " + chunk.getPos() + ", chunk light will be recalculated on its next load", ex);
++            LOGGER.warn("Failed to inject sky data into save data for chunk " + chunk.getPos() + ", chunk sky will be recalculated on its next load", ex);
+         }
+     }
+ 
+@@ -51,11 +51,11 @@ public final class SaveUtil {
+         SWMRNibbleArray[] skyNibbles = chunk.getSkyNibbles();
+ 
+         boolean lit = chunk.isLightCorrect() || !(world instanceof ServerLevel);
+-        // diff start - store our tag for whether light data is init'd
++        // diff start - store our tag for whether sky data is init'd
+         if (lit) {
+             tag.putBoolean("isLightOn", false);
+         }
+-        // diff end - store our tag for whether light data is init'd
++        // diff end - store our tag for whether sky data is init'd
+         ChunkStatus status = ChunkStatus.byName(tag.getString("Status"));
+ 
+         CompoundTag[] sections = new CompoundTag[maxSection - minSection + 1];
+@@ -66,7 +66,7 @@ public final class SaveUtil {
+             CompoundTag sectionStored = sectionsStored.getCompound(i);
+             int k = sectionStored.getByte("Y");
+ 
+-            // strip light data
++            // strip sky data
+             sectionStored.remove("BlockLight");
+             sectionStored.remove("SkyLight");
+ 
+@@ -90,7 +90,7 @@ public final class SaveUtil {
+                     // we store under the same key so mod programs editing nbt
+                     // can still read the data, hopefully.
+                     // however, for compatibility we store chunks as unlit so vanilla
+-                    // is forced to re-light them if it encounters our data. It's too much of a burden
++                    // is forced to re-sky them if it encounters our data. It's too much of a burden
+                     // to try and maintain compatibility with a broken and inferior skylight management system.
+ 
+                     if (blockNibble != null) {
+@@ -132,7 +132,7 @@ public final class SaveUtil {
+             if (ex instanceof ThreadDeath) {
+                 throw (ThreadDeath)ex;
+             }
+-            LOGGER.warn("Failed to load light for chunk " + pos + ", light will be recalculated", ex);
++            LOGGER.warn("Failed to load sky for chunk " + pos + ", sky will be recalculated", ex);
+         }
+     }
+ 
+@@ -172,7 +172,7 @@ public final class SaveUtil {
+                         // we store under the same key so mod programs editing nbt
+                         // can still read the data, hopefully.
+                         // however, for compatibility we store chunks as unlit so vanilla
+-                        // is forced to re-light them if it encounters our data. It's too much of a burden
++                        // is forced to re-sky them if it encounters our data. It's too much of a burden
+                         // to try and maintain compatibility with a broken and inferior skylight management system.
+                         skyNibbles[y - minSection] = new SWMRNibbleArray(sectionData.getByteArray("SkyLight").clone(), sectionData.getInt(SKYLIGHT_STATE_TAG)); // clone for data safety
+                     } else {
 diff --git a/src/main/java/com/infernalsuite/aswm/AbstractSlimeLoadedWorld.java b/src/main/java/com/infernalsuite/aswm/AbstractSlimeLoadedWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3621d6445f3046d1b946fdcb1f4298322ff376cc
+index 0000000000000000000000000000000000000000..11c81eacb34ae38b03874bfcbe8dadabd768030f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/AbstractSlimeLoadedWorld.java
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,161 @@
 +package com.infernalsuite.aswm;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -17,6 +496,7 @@ index 0000000000000000000000000000000000000000..3621d6445f3046d1b946fdcb1f429832
 +import com.grinderwolf.swm.api.loaders.SlimeLoader;
 +import com.grinderwolf.swm.api.world.SlimeChunk;
 +import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.SlimeWorldInstance;
 +import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 +import com.grinderwolf.swm.nms.NmsUtil;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -27,7 +507,7 @@ index 0000000000000000000000000000000000000000..3621d6445f3046d1b946fdcb1f429832
 +import java.util.List;
 +import java.util.Map;
 +
-+public abstract class AbstractSlimeLoadedWorld implements SlimeLoadedWorld {
++public abstract class AbstractSlimeLoadedWorld implements SlimeWorldInstance {
 +
 +    protected SlimeLoader loader;
 +    protected byte version;
@@ -73,19 +553,7 @@ index 0000000000000000000000000000000000000000..3621d6445f3046d1b946fdcb1f429832
 +
 +    @Override
 +    public SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException {
-+        if (name.equals(worldName)) {
-+            throw new IllegalArgumentException("The clone world cannot have the same name as the original world!");
-+        }
 +
-+        if (worldName == null) {
-+            throw new IllegalArgumentException("The world name cannot be null!");
-+        }
-+
-+        if (loader != null) {
-+            if (loader.worldExists(worldName)) {
-+                throw new WorldAlreadyExistsException(worldName);
-+            }
-+        }
 +
 +        SlimeLoadedWorld world = createSlimeWorld(worldName, loader, lock);
 +
@@ -790,6 +1258,20 @@ index 0000000000000000000000000000000000000000..fac432f7201c815641ee76274a587628
 +    }
 +
 +}
+diff --git a/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java b/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..352e386417ad7c4f9feca42f583cfb9abe1701da
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java
+@@ -0,0 +1,8 @@
++package com.infernalsuite.aswm;
++
++import com.flowpowered.nbt.CompoundTag;
++
++import java.util.List;
++
++public record ChunkSerialization(byte[] chunks, List<CompoundTag> tileEntities, List<CompoundTag> entities) {
++}
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..94210d25ab78c198df339bee398975f625ee8ad6
@@ -916,110 +1398,6 @@ index 0000000000000000000000000000000000000000..94210d25ab78c198df339bee398975f6
 +
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/CraftCLSMBridge.java b/src/main/java/com/infernalsuite/aswm/CraftCLSMBridge.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..c4b41dc82e5ea7ae6794c30bd5c8d7eea8c71aba
---- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/CraftCLSMBridge.java
-@@ -0,0 +1,98 @@
-+package com.infernalsuite.aswm;
-+
-+import com.grinderwolf.swm.clsm.CLSMBridge;
-+import com.grinderwolf.swm.clsm.ClassModifier;
-+import com.infernalsuite.aswm.level.SlimeLevelInstance;
-+import com.mojang.datafixers.util.Either;
-+import io.papermc.paper.chunk.system.scheduling.NewChunkHolder;
-+import io.papermc.paper.world.ChunkEntitySlices;
-+import lombok.AccessLevel;
-+import lombok.NonNull;
-+import lombok.RequiredArgsConstructor;
-+import net.minecraft.world.level.Level;
-+import net.minecraft.world.level.chunk.ChunkAccess;
-+import net.minecraft.world.level.chunk.ImposterProtoChunk;
-+import net.minecraft.world.level.chunk.LevelChunk;
-+
-+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-+public class CraftCLSMBridge implements CLSMBridge {
-+
-+    private final SlimeNMSBridgeImpl nmsInstance;
-+
-+    @Override
-+    public Object getChunk(Object worldObject, int x, int z) {
-+        SlimeLevelInstance world = (SlimeLevelInstance) worldObject;
-+        return Either.left(world.getImposterChunk(x, z));
-+    }
-+
-+    @Override
-+    public boolean saveChunk(Object world, Object chunkAccess) {
-+        if (!(world instanceof SlimeLevelInstance)) {
-+            return false; // Returning false will just run the original saveChunk method
-+        }
-+
-+        if (!(chunkAccess instanceof ImposterProtoChunk || chunkAccess instanceof LevelChunk) || !((ChunkAccess) chunkAccess).isUnsaved()) {
-+            // We're only storing fully-loaded chunks that need to be saved
-+            return true;
-+        }
-+
-+        LevelChunk chunk;
-+
-+        if (chunkAccess instanceof ImposterProtoChunk) {
-+            chunk = ((ImposterProtoChunk) chunkAccess).getWrapped();
-+        } else {
-+            chunk = (LevelChunk) chunkAccess;
-+        }
-+
-+        ((SlimeLevelInstance) world).saveChunk(chunk);
-+        chunk.setUnsaved(false);
-+
-+        return true;
-+    }
-+
-+    @Override
-+    public Object loadEntities(Object storage, Object chunkCoords) {
-+        throw new UnsupportedOperationException();
-+    }
-+
-+    @Override
-+    public boolean storeEntities(Object storage, Object entityList) {
-+        NewChunkHolder holder = (NewChunkHolder) storage;
-+        if (!isCustomWorld(holder.world)) {
-+            return false;
-+        }
-+
-+        ((SlimeLevelInstance) holder.world).handleEntityUnLoad((NewChunkHolder) storage, (ChunkEntitySlices) entityList);
-+        return true;
-+    }
-+
-+    @Override
-+    public boolean flushEntities(Object storage) {
-+        throw new UnsupportedOperationException();
-+    }
-+
-+    @Override
-+    public boolean isCustomWorld(Object world) {
-+        if (world instanceof SlimeLevelInstance) {
-+            return true;
-+        } else if (world instanceof Level) {
-+            return false;
-+        } else {
-+            throw new IllegalStateException("World is probably not a world, was given %s. Check the classmodifier to ensure the correct level field is passed (check for field name changes)".formatted(world));
-+        }
-+    }
-+
-+    @Override
-+    public Object injectCustomWorlds() {
-+        return nmsInstance.injectDefaultWorlds();
-+    }
-+
-+    static void initialize(SlimeNMSBridgeImpl instance) {
-+        ClassModifier.setLoader(new CraftCLSMBridge(instance));
-+    }
-+
-+    @Override
-+    public @NonNull Object getChunkTask(Object scheduler, Object world, int chunkX, int chunkZ, Object chunkHolder, Object priority, Object status) {
-+        return AswmChunkProgressionTask.create(scheduler, world, chunkX, chunkZ, chunkHolder, priority, status);
-+    }
-+}
 diff --git a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b6542a885
@@ -1056,10 +1434,10 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a047969a5b2ba5c2e7dfe7dd79b21f79f51bebfa
+index 0000000000000000000000000000000000000000..75938c1645c6b1e8c9a97b0a649c4558804b9dc5
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/NMSSlimeChunk.java
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,190 @@
 +package com.infernalsuite.aswm;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -1068,11 +1446,12 @@ index 0000000000000000000000000000000000000000..a047969a5b2ba5c2e7dfe7dd79b21f79
 +import com.grinderwolf.swm.api.utils.NibbleArray;
 +import com.grinderwolf.swm.api.world.SlimeChunk;
 +import com.grinderwolf.swm.api.world.SlimeChunkSection;
-+import com.grinderwolf.swm.nms.CraftSlimeChunkSection;
++import com.infernalsuite.aswm.slime.SlimeChunkSectionSkeleton;
 +import com.mojang.serialization.Codec;
 +import net.minecraft.core.Holder;
 +import net.minecraft.core.Registry;
 +import net.minecraft.core.SectionPos;
++import net.minecraft.core.registries.Registries;
 +import net.minecraft.nbt.NbtOps;
 +import net.minecraft.nbt.Tag;
 +import net.minecraft.world.entity.Entity;
@@ -1126,7 +1505,7 @@ index 0000000000000000000000000000000000000000..a047969a5b2ba5c2e7dfe7dd79b21f79
 +        SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getMaxSection() - this.chunk.getMinSection() + 1];
 +        LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
 +
-+        Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
++        Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().registryOrThrow(Registries.BIOME);
 +
 +        // Ignore deprecation, spigot only method
 +        Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
@@ -1138,7 +1517,7 @@ index 0000000000000000000000000000000000000000..a047969a5b2ba5c2e7dfe7dd79b21f79
 +            // Block Light Nibble Array
 +            NibbleArray blockLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.BLOCK).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
 +
-+            // Sky light Nibble Array
++            // Sky sky Nibble Array
 +            NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
 +
 +            // Tile/Entity Data
@@ -1150,7 +1529,7 @@ index 0000000000000000000000000000000000000000..a047969a5b2ba5c2e7dfe7dd79b21f79
 +            CompoundTag blockStateTag = (CompoundTag) Converter.convertTag("", blockStateData);
 +            CompoundTag biomeTag = (CompoundTag) Converter.convertTag("", biomeData);
 +
-+            sections[sectionId] = new CraftSlimeChunkSection(null, null, blockStateTag, biomeTag, blockLightArray, skyLightArray);
++            sections[sectionId] = new SlimeChunkSectionSkeleton(blockStateTag, biomeTag, blockLightArray, skyLightArray);
 +        }
 +
 +        return sections;
@@ -1489,7 +1868,7 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b8c2663bebcbd448ffa4f9f26dd5feaa72236c1d
+index 0000000000000000000000000000000000000000..e3bc3cf4c2676bb1c15765c5660802d6a1fb7671
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 @@ -0,0 +1,341 @@
@@ -1759,7 +2138,7 @@ index 0000000000000000000000000000000000000000..b8c2663bebcbd448ffa4f9f26dd5feaa
 +            }
 +        }
 +
-+        // Keep the chunk loaded at level 33 to avoid light glitches
++        // Keep the chunk loaded at level 33 to avoid sky glitches
 +        // Such a high level will let the server not tick the chunk,
 +        // but at the same time it won't be completely unloaded from memory
 +//        getChunkProvider().addTicket(SWM_TICKET, pos, 33, Unit.INSTANCE);
@@ -1835,12 +2214,2121 @@ index 0000000000000000000000000000000000000000..b8c2663bebcbd448ffa4f9f26dd5feaa
 +    }
 +}
 \ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/SlimeSerializer.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/SlimeSerializer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b7c222f871536c84867389b10fa713f8ccc4c823
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/SlimeSerializer.java
+@@ -0,0 +1,277 @@
++package com.infernalsuite.aswm.slime.serialization;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.ListTag;
++import com.flowpowered.nbt.TagType;
++import com.flowpowered.nbt.stream.NBTInputStream;
++import com.flowpowered.nbt.stream.NBTOutputStream;
++import com.github.luben.zstd.Zstd;
++import com.grinderwolf.swm.api.utils.SlimeFormat;
++import com.grinderwolf.swm.api.world.SlimeChunk;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.aswm.ChunkSerialization;
++import com.infernalsuite.aswm.util.NmsUtil;
++import com.infernalsuite.aswm.util.SlimeLogger;
++
++import java.io.ByteArrayOutputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
++import java.nio.ByteOrder;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.BitSet;
++import java.util.Collections;
++import java.util.Comparator;
++import java.util.List;
++import java.util.Objects;
++
++import static com.grinderwolf.swm.api.world.properties.SlimeProperties.*;
++
++public class SlimeSerializer {
++
++    public static byte[] serialize(SlimeWorld world) {
++        CompoundTag extraData = world.getExtraData();
++        SlimePropertyMap propertyMap = world.getPropertyMap();
++
++        List<SlimeChunk> sortedChunks = new ArrayList<>(world.getChunkStorage());
++        sortedChunks.sort(Comparator.comparingLong(chunk -> NmsUtil.asLong(chunk.getX(), chunk.getZ())));
++
++        sortedChunks.removeIf(Objects::isNull); // Remove empty chunks to save space
++        if (propertyMap.getValue(SHOULD_LIMIT_SAVE)) {
++            int minX = propertyMap.getValue(SAVE_MIN_X);
++            int maxX = propertyMap.getValue(SAVE_MAX_X);
++
++            int minZ = propertyMap.getValue(SAVE_MIN_Z);
++            int maxZ = propertyMap.getValue(SAVE_MAX_Z);
++
++            sortedChunks.removeIf((chunk) -> {
++                int chunkX = chunk.getX();
++                int chunkZ = chunk.getZ();
++
++                if (chunkX < minX || chunkX > maxX) {
++                    return true;
++                }
++
++                if (chunkZ < minZ || chunkZ > maxZ) {
++                    return true;
++                }
++
++                return false;
++            });
++        }
++
++        // Store world properties
++        if (!extraData.getValue().containsKey("properties")) {
++            extraData.getValue().putIfAbsent("properties", propertyMap.toCompound());
++        } else {
++            extraData.getValue().replace("properties", propertyMap.toCompound());
++        }
++
++        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
++        DataOutputStream outStream = new DataOutputStream(outByteStream);
++
++        try {
++            // File Header and Slime version
++            outStream.write(SlimeFormat.SLIME_HEADER);
++            outStream.write(SlimeFormat.SLIME_VERSION);
++
++            // World version
++            outStream.writeByte(version);
++
++            // Lowest chunk coordinates
++            int minX = sortedChunks.stream().mapToInt(SlimeChunk::getX).min().orElse(0);
++            int minZ = sortedChunks.stream().mapToInt(SlimeChunk::getZ).min().orElse(0);
++            int maxX = sortedChunks.stream().mapToInt(SlimeChunk::getX).max().orElse(0);
++            int maxZ = sortedChunks.stream().mapToInt(SlimeChunk::getZ).max().orElse(0);
++
++            outStream.writeShort(minX);
++            outStream.writeShort(minZ);
++
++            // Width and depth
++            int width = maxX - minX + 1;
++            int depth = maxZ - minZ + 1;
++
++            outStream.writeShort(width);
++            outStream.writeShort(depth);
++
++            // Chunk Bitmask
++            BitSet chunkBitset = new BitSet(width * depth);
++
++            for (SlimeChunk chunk : sortedChunks) {
++                int bitsetIndex = (chunk.getZ() - minZ) * width + (chunk.getX() - minX);
++
++                chunkBitset.set(bitsetIndex, true);
++            }
++
++            int chunkMaskSize = (int) Math.ceil((width * depth) / 8.0D);
++            writeBitSetAsBytes(outStream, chunkBitset, chunkMaskSize);
++
++            ChunkSerialization chunkSerialization = serializeChunks(sortedChunks);
++
++            // Chunks
++            byte[] chunkData = chunkSerialization.chunks();
++            byte[] compressedChunkData = Zstd.compress(chunkData);
++
++            outStream.writeInt(compressedChunkData.length);
++            outStream.writeInt(chunkData.length);
++            outStream.write(compressedChunkData);
++
++            // Tile entities
++
++            List<CompoundTag> tileEntitiesList = chunkSerialization.tileEntities();
++            ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tiles", TagType.TAG_COMPOUND, tileEntitiesList);
++            CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
++            byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
++            byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
++
++            outStream.writeInt(compressedTileEntitiesData.length);
++            outStream.writeInt(tileEntitiesData.length);
++            outStream.write(compressedTileEntitiesData);
++
++
++            // Entities
++
++            List<CompoundTag> entitiesList = chunkSerialization.entities();
++            SlimeLogger.debug("entitiesList being serialized: " + entitiesList.size());
++            outStream.writeBoolean(!entitiesList.isEmpty());
++
++            if (!entitiesList.isEmpty()) {
++                ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
++                CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
++                byte[] entitiesData = serializeCompoundTag(entitiesCompound);
++                byte[] compressedEntitiesData = Zstd.compress(entitiesData);
++
++                outStream.writeInt(compressedEntitiesData.length);
++                outStream.writeInt(entitiesData.length);
++                outStream.write(compressedEntitiesData);
++            }
++
++
++            // Extra Tag
++            {
++                byte[] extra = serializeCompoundTag(extraData);
++                byte[] compressedExtra = Zstd.compress(extra);
++
++                outStream.writeInt(compressedExtra.length);
++                outStream.writeInt(extra.length);
++                outStream.write(compressedExtra);
++            }
++
++            // World Maps
++            {
++                CompoundMap map = new CompoundMap();
++                map.put("maps", new ListTag<>("maps", TagType.TAG_COMPOUND, Collections.emptyList()));
++
++                CompoundTag mapsCompound = new CompoundTag("", map);
++
++                byte[] mapArray = serializeCompoundTag(mapsCompound);
++                byte[] compressedMapArray = Zstd.compress(mapArray);
++
++                outStream.writeInt(compressedMapArray.length);
++                outStream.writeInt(mapArray.length);
++                outStream.write(compressedMapArray);
++            }
++
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++
++
++        return outByteStream.toByteArray();
++    }
++
++
++
++    public static ChunkSerialization serializeChunks(List<SlimeChunk> chunks) {
++        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
++        DataOutputStream outStream = new DataOutputStream(outByteStream);
++
++        List<CompoundTag> tileEntities = new ArrayList<>();
++        List<CompoundTag> entities = new ArrayList<>();
++        for (SlimeChunk chunk : chunks) {
++            tileEntities.addAll(chunk.getTileEntities());
++            entities.addAll(chunk.getEntities());
++
++            try {
++                // Height Maps
++                byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
++                outStream.writeInt(heightMaps.length);
++                outStream.write(heightMaps);
++
++
++                // Chunk sections
++                SlimeChunkSection[] sections = chunk.getSections();
++
++                outStream.writeInt(chunk.getMinSection());
++                outStream.writeInt(chunk.getMaxSection());
++                outStream.writeInt(Math.toIntExact(Arrays.stream(sections).filter(Objects::nonNull).count()));
++
++                for (int i = 0; i < sections.length; i++) {
++                    SlimeChunkSection section = sections[i];
++                    if (section == null) { // Some versions can contain null sections, ignore those.
++                        continue;
++                    }
++
++                    outStream.writeInt(i);
++
++                    // Block Light
++                    boolean hasBlockLight = section.getBlockLight() != null;
++                    outStream.writeBoolean(hasBlockLight);
++
++                    if (hasBlockLight) {
++                        outStream.write(section.getBlockLight().getBacking());
++                    }
++
++                    // Block Data
++                    byte[] serializedBlockStates = serializeCompoundTag(section.getBlockStatesTag());
++                    outStream.writeInt(serializedBlockStates.length);
++                    outStream.write(serializedBlockStates);
++
++                    byte[] serializedBiomes = serializeCompoundTag(section.getBiomeTag());
++                    outStream.writeInt(serializedBiomes.length);
++                    outStream.write(serializedBiomes);
++
++                    // Sky Light
++                    boolean hasSkyLight = section.getSkyLight() != null;
++                    outStream.writeBoolean(hasSkyLight);
++
++                    if (hasSkyLight) {
++                        outStream.write(section.getSkyLight().getBacking());
++                    }
++                }
++            } catch (Exception e) {
++                throw new RuntimeException(e);
++            }
++
++        }
++
++        return new ChunkSerialization(outByteStream.toByteArray(), tileEntities, entities);
++    }
++
++
++    protected static void writeBitSetAsBytes(DataOutputStream outStream, BitSet set, int fixedSize) throws IOException {
++        byte[] array = set.toByteArray();
++        outStream.write(array);
++
++        int chunkMaskPadding = fixedSize - array.length;
++
++        for (int i = 0; i < chunkMaskPadding; i++) {
++            outStream.write(0);
++        }
++    }
++
++    protected static byte[] serializeCompoundTag(CompoundTag tag) throws IOException {
++        if (tag == null || tag.getValue().isEmpty()) {
++            return new byte[0];
++        }
++        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
++        NBTOutputStream outStream = new NBTOutputStream(outByteStream, NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
++        outStream.writeTag(tag);
++
++        return outByteStream.toByteArray();
++    }
++
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReader.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReader.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b7c2d15012cd3b612ba58611eefa62f49935555a
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReader.java
+@@ -0,0 +1,16 @@
++package com.infernalsuite.aswm.slime.serialization.reader;
++
++import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
++import com.grinderwolf.swm.api.exceptions.NewerFormatException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
++
++import java.io.DataInputStream;
++import java.io.IOException;
++
++public interface SlimeWorldReader<T> {
++
++    T deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException;
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReaderRegistry.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReaderRegistry.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6d90af4ef9434328365511e60862cdb8dff02472
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/SlimeWorldReaderRegistry.java
+@@ -0,0 +1,53 @@
++package com.infernalsuite.aswm.slime.serialization.reader;
++
++import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
++import com.grinderwolf.swm.api.exceptions.NewerFormatException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.utils.SlimeFormat;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
++import com.grinderwolf.swm.plugin.loaders.slime.impl.v1_9SlimeWorldFormat;
++
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOException;
++import java.util.Arrays;
++import java.util.HashMap;
++import java.util.Map;
++
++public class SlimeWorldReaderRegistry {
++
++    private static final Map<Byte, SlimeWorldReader> FORMATS = new HashMap<>();
++
++    static {
++        register(new v1_9SlimeWorldFormat(), 1, 2, 3, 4, 5, 6, 7, 8, 9);
++    }
++
++
++    private static void register(SlimeWorldReader format, int... bytes) {
++        for (int value : bytes) {
++            FORMATS.put((byte) value, format);
++        }
++    }
++
++    public static SlimeLoadedWorld readWorld(SlimeLoader loader, String worldName, byte[] serializedWorld, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException {
++        DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(serializedWorld));
++        byte[] fileHeader = new byte[SlimeFormat.SLIME_HEADER.length];
++        dataStream.read(fileHeader);
++
++        if (!Arrays.equals(SlimeFormat.SLIME_HEADER, fileHeader)) {
++            throw new CorruptedWorldException(worldName);
++        }
++
++        // File version
++        byte version = dataStream.readByte();
++
++        if (version > SlimeFormat.SLIME_VERSION) {
++            throw new NewerFormatException(version);
++        }
++
++        SlimeWorldReader reader = FORMATS.get(version);
++        return reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap, readOnly);
++    }
++
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/SlimeConverter.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/SlimeConverter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e75bee097dd80ac6fea3c399491c88a23d154e4d
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/SlimeConverter.java
+@@ -0,0 +1,8 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl;
++
++import com.grinderwolf.swm.api.world.SlimeWorld;
++
++public interface SlimeConverter<T> {
++
++    SlimeWorld runConversion(T data);
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v10SlimeWorldFormat.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v10SlimeWorldFormat.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..3780a7a7c268b9975d5644b66f02eac9c029a951
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v10SlimeWorldFormat.java
+@@ -0,0 +1,238 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl;
++
++import com.flowpowered.nbt.*;
++import com.github.luben.zstd.Zstd;
++import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.utils.NibbleArray;
++import com.grinderwolf.swm.api.world.SlimeChunk;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.aswm.slime.serialization.reader.SlimeWorldReader;
++import com.infernalsuite.aswm.slime.serialization.reader.impl.v19.v1_9SlimeWorldFormat;
++import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOException;
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++import java.util.*;
++
++public class v10SlimeWorldFormat implements SlimeWorldReader {
++
++    @Override
++    public SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
++            throws IOException, CorruptedWorldException {
++
++        // World version
++        byte worldVersion = dataStream.readByte();
++        // Chunk Data
++        {
++            Long2ObjectOpenHashMap<SlimeChunk> chunks = readChunks(worldVersion);
++
++        }
++
++        byte[] tileEntities = readCompressed(dataStream);
++        byte[] entities = readCompressed(dataStream);
++        byte[] extra = readCompressed(dataStream);
++
++        // Chunk deserialization
++
++        // Entity deserialization
++        CompoundTag entitiesCompound = readCompoundTag(entities);
++
++        Long2ObjectOpenHashMap<List<CompoundTag>> entityStorage = new Long2ObjectOpenHashMap<>();
++        if (entitiesCompound != null) {
++            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
++
++            for (CompoundTag entityCompound : serializedEntities) {
++                ListTag<DoubleTag> listTag = (ListTag<DoubleTag>) entityCompound.getAsListTag("Pos").get();
++
++                int chunkX = floor(listTag.getValue().get(0).getValue()) >> 4;
++                int chunkZ = floor(listTag.getValue().get(2).getValue()) >> 4;
++                long chunkKey = NmsUtil.asLong(chunkX, chunkZ);
++                SlimeChunk chunk = chunks.get(chunkKey);
++                if (chunk != null) {
++                    chunk.getEntities().add(entityCompound);
++                }
++                if (entityStorage.containsKey(chunkKey)) {
++                    entityStorage.get(chunkKey).add(entityCompound);
++                } else {
++                    List<CompoundTag> entityStorageList = new ArrayList<>();
++                    entityStorageList.add(entityCompound);
++                    entityStorage.put(chunkKey, entityStorageList);
++                }
++            }
++        }
++
++        // Tile Entity deserialization
++        CompoundTag tileEntitiesCompound = readCompoundTag(tileEntities);
++
++        if (tileEntitiesCompound != null) {
++            ListTag<CompoundTag> tileEntitiesList = (ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tiles");
++            for (CompoundTag tileEntityCompound : tileEntitiesList.getValue()) {
++                int chunkX = ((IntTag) tileEntityCompound.getValue().get("x")).getValue() >> 4;
++                int chunkZ = ((IntTag) tileEntityCompound.getValue().get("z")).getValue() >> 4;
++                long chunkKey = NmsUtil.asLong(chunkX, chunkZ);
++                SlimeChunk chunk = chunks.get(chunkKey);
++
++                if (chunk == null) {
++                    throw new CorruptedWorldException(worldName);
++                }
++
++                chunk.getTileEntities().add(tileEntityCompound);
++            }
++        }
++
++        // Extra Data
++        CompoundTag extraCompound = readCompoundTag(extraTag);
++
++        if (extraCompound == null) {
++            extraCompound = new CompoundTag("", new CompoundMap());
++        }
++
++
++        // World properties
++        SlimePropertyMap worldPropertyMap = propertyMap;
++        Optional<CompoundMap> propertiesMap = extraCompound
++                .getAsCompoundTag("properties")
++                .map(CompoundTag::getValue);
++
++        if (propertiesMap.isPresent()) {
++            worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
++            worldPropertyMap.merge(propertyMap); // Override world properties
++        } else if (propertyMap == null) { // Make sure the property map is never null
++            worldPropertyMap = new SlimePropertyMap();
++        }
++
++        return SWMPlugin.getInstance().getNms().createSlimeWorld(loader, worldName, chunks, extraCompound, mapList, worldVersion, worldPropertyMap, readOnly, !readOnly, entityStorage);
++    }
++
++    private static int floor(double num) {
++        final int floor = (int) num;
++        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
++    }
++
++    private static Long2ObjectOpenHashMap<SlimeChunk> readChunks(byte worldVersion, DataInputStream stream) throws IOException {
++        DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(readCompressed(stream)));
++        Long2ObjectOpenHashMap<SlimeChunk> chunkMap = new Long2ObjectOpenHashMap<>();
++
++
++        int minSection = stream.readInt();
++        int maxSection = stream.readInt() + 1;
++
++        for (int z = 0; z < depth; z++) {
++            for (int x = 0; x < width; x++) {
++                int bitsetIndex = z * width + x;
++
++                if (chunkBitset.get(bitsetIndex)) {
++                    // Height Maps
++                    CompoundTag heightMaps;
++
++                    int heightMapsLength = chunkData.readInt();
++                    byte[] heightMapsArray = new byte[heightMapsLength];
++                    chunkData.read(heightMapsArray);
++                    heightMaps = readCompoundTag(heightMapsArray);
++
++                    // Height Maps might be null if empty
++                    if (heightMaps == null) {
++                        heightMaps = new CompoundTag("", new CompoundMap());
++                    }
++
++
++                    if (version == 8 && worldVersion < 0x04) {
++                        // Patch the v8 bug: biome array size is wrong for old worlds
++                        chunkData.readInt();
++                    }
++
++
++                    // Chunk Sections
++                    v1_9SlimeWorldFormat.ChunkSectionData data = worldVersion < 0x08 ? readChunkSections(chunkData, worldVersion, version) : readChunkSectionsNew(chunkData, worldVersion, version);
++
++                    int chunkX = minX + x;
++                    int chunkZ = minZ + z;
++
++                    chunkMap.put(NmsUtil.asLong(chunkX, chunkZ), new CraftSlimeChunk(worldName, chunkX, chunkZ,
++                            data.sections, heightMaps, biomes, new ArrayList<>(), new ArrayList<>(), data.minSectionY, data.maxSectionY));
++                }
++            }
++        }
++
++        return chunkMap;
++    }
++
++    private static int[] toIntArray(byte[] buf) {
++        ByteBuffer buffer = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN);
++        int[] ret = new int[buf.length / 4];
++
++        buffer.asIntBuffer().get(ret);
++
++        return ret;
++    }
++
++
++    private static v1_9SlimeWorldFormat.ChunkSectionData readChunkSectionsNew(DataInputStream dataStream, int worldVersion, int version) throws IOException {
++        int minSectionY = dataStream.readInt();
++        int maxSectionY = dataStream.readInt();
++        int sectionCount = dataStream.readInt();
++        SlimeChunkSection[] chunkSectionArray = new SlimeChunkSection[maxSectionY - minSectionY];
++
++        for (int i = 0; i < sectionCount; i++) {
++            int y = dataStream.readInt();
++
++            // Block Light Nibble Array
++            NibbleArray blockLightArray;
++
++            if (version < 5 || dataStream.readBoolean()) {
++                byte[] blockLightByteArray = new byte[2048];
++                dataStream.read(blockLightByteArray);
++                blockLightArray = new NibbleArray((blockLightByteArray));
++            } else {
++                blockLightArray = null;
++            }
++
++            // Block data
++            byte[] blockStateData = new byte[dataStream.readInt()];
++            dataStream.read(blockStateData);
++            CompoundTag blockStateTag = readCompoundTag(blockStateData);
++
++            byte[] biomeData = new byte[dataStream.readInt()];
++            dataStream.read(biomeData);
++            CompoundTag biomeTag = readCompoundTag(biomeData);
++
++            // Sky Light Nibble Array
++            NibbleArray skyLightArray;
++
++            if (version < 5 || dataStream.readBoolean()) {
++                byte[] skyLightByteArray = new byte[2048];
++                dataStream.read(skyLightByteArray);
++                skyLightArray = new NibbleArray((skyLightByteArray));
++            } else {
++                skyLightArray = null;
++            }
++
++            // HypixelBlocks 3
++            if (version < 4) {
++                short hypixelBlocksLength = dataStream.readShort();
++                dataStream.skip(hypixelBlocksLength);
++            }
++
++            chunkSectionArray[y] = new CraftSlimeChunkSection(null, null, blockStateTag, biomeTag, blockLightArray, skyLightArray);
++        }
++
++        return new v1_9SlimeWorldFormat.ChunkSectionData(chunkSectionArray, minSectionY, maxSectionY);
++    }
++
++
++
++    private static byte[] readCompressed(DataInputStream stream) throws IOException {
++        int compressedLength = stream.readInt();
++        int normalLength = stream.readInt();
++        byte[] compressed = new byte[compressedLength];
++        byte[] normal = new byte[normalLength];
++
++        Zstd.decompress(normal, compressed);
++        return normal;
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/Upgrade.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/Upgrade.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..fa9e3d89b003b47408398bd5c59ba285e3f08a54
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/Upgrade.java
+@@ -0,0 +1,513 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.IntTag;
++import com.flowpowered.nbt.ListTag;
++import com.flowpowered.nbt.LongArrayTag;
++import com.flowpowered.nbt.StringTag;
++import com.flowpowered.nbt.Tag;
++import com.flowpowered.nbt.TagType;
++import com.google.common.collect.ImmutableMap;
++import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
++import it.unimi.dsi.fastutil.ints.IntIterator;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Optional;
++
++public interface Upgrade {
++
++    void upgrade(v1_9SlimeWorld world);
++
++}
++
++class v1_16WorldUpgrade implements Upgrade {
++
++    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{
++            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
++    };
++
++    @Override
++    public void upgrade(v1_9SlimeWorld world) {
++        for (v1_9SlimeChunk chunk : world.chunks.values()) {
++            // Add padding to height maps and block states
++            CompoundTag heightMaps = chunk.heightMap;
++
++            for (Tag<?> map : heightMaps.getValue().values()) {
++                if (map instanceof LongArrayTag) {
++                    LongArrayTag arrayTag = (LongArrayTag) map;
++                    arrayTag.setValue(addPadding(256, 9, arrayTag.getValue()));
++                }
++            }
++
++            for (int sectionIndex = 0; sectionIndex < chunk.sections.length; sectionIndex++) {
++                v1_9SlimeChunkSection section = chunk.sections[sectionIndex];
++
++                if (section != null) {
++                    int bitsPerBlock = Math.max(4, ceillog2(section.palette.getValue().size()));
++
++                    if (!isPowerOfTwo(bitsPerBlock)) {
++                        section = new v1_9SlimeChunkSection(section.palette,
++                                addPadding(4096, bitsPerBlock, section.blockStates), null, null,
++                                section.blockLight, section.skyLight);
++                        chunk.sections[sectionIndex] = section;
++                    }
++                }
++            }
++
++            // Update biome array size
++            int[] newBiomes = new int[1024];
++            Arrays.fill(newBiomes, -1);
++            int[] biomes = chunk.biomes;
++            System.arraycopy(biomes, 0, newBiomes, 0, biomes.length);
++
++            chunk.biomes = newBiomes;
++        }
++    }
++
++    private static int ceillog2(int input) {
++        input = isPowerOfTwo(input) ? input : smallestEncompassingPowerOfTwo(input);
++        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) ((long) input * 125613361L >> 27) & 31];
++    }
++
++    private static int smallestEncompassingPowerOfTwo(int input) {
++        int result = input - 1;
++        result |= result >> 1;
++        result |= result >> 2;
++        result |= result >> 4;
++        result |= result >> 8;
++        result |= result >> 16;
++        return result + 1;
++    }
++
++    private static boolean isPowerOfTwo(int input) {
++        return input != 0 && (input & input - 1) == 0;
++    }
++
++    // Taken from DataConverterBitStorageAlign.java
++    private static long[] addPadding(int indices, int bitsPerIndex, long[] originalArray) {
++        int k = originalArray.length;
++
++        if (k == 0) {
++            return originalArray;
++        }
++
++        long l = (1L << bitsPerIndex) - 1L;
++        int i1 = 64 / bitsPerIndex;
++        int j1 = (indices + i1 - 1) / i1;
++        long[] along1 = new long[j1];
++        int k1 = 0;
++        int l1 = 0;
++        long i2 = 0L;
++        int j2 = 0;
++        long k2 = originalArray[0];
++        long l2 = k > 1 ? originalArray[1] : 0L;
++
++        for (int i3 = 0; i3 < indices; ++i3) {
++            int j3 = i3 * bitsPerIndex;
++            int k3 = j3 >> 6;
++            int l3 = (i3 + 1) * bitsPerIndex - 1 >> 6;
++            int i4 = j3 ^ k3 << 6;
++
++            if (k3 != j2) {
++                k2 = l2;
++                l2 = k3 + 1 < k ? originalArray[k3 + 1] : 0L;
++                j2 = k3;
++            }
++
++            long j4;
++            int k4;
++
++            if (k3 == l3) {
++                j4 = k2 >>> i4 & l;
++            } else {
++                k4 = 64 - i4;
++                j4 = (k2 >>> i4 | l2 << k4) & l;
++            }
++
++            k4 = l1 + bitsPerIndex;
++            if (k4 >= 64) {
++                along1[k1++] = i2;
++                i2 = j4;
++                l1 = bitsPerIndex;
++            } else {
++                i2 |= j4 << l1;
++                l1 = k4;
++            }
++        }
++
++        if (i2 != 0L) {
++            along1[k1] = i2;
++        }
++
++        return along1;
++    }
++}
++
++class v117WorldUpgrade implements Upgrade {
++
++    @Override
++    public void upgrade(v1_9SlimeWorld world) {
++        for (v1_9SlimeChunk chunk : world.chunks.values()) {
++            for (v1_9SlimeChunkSection section : chunk.sections) {
++                if (section == null) {
++                    continue;
++                }
++
++                List<CompoundTag> palette = section.palette.getValue();
++
++                for (CompoundTag blockTag : palette) {
++                    Optional<String> name = blockTag.getStringValue("Name");
++                    CompoundMap map = blockTag.getValue();
++
++                    // CauldronRenameFix
++                    if (name.equals(Optional.of("minecraft:cauldron"))) {
++                        Optional<CompoundTag> properties = blockTag.getAsCompoundTag("Properties");
++                        if (properties.isPresent()) {
++                            String waterLevel = blockTag.getStringValue("level").orElse("0");
++                            if (waterLevel.equals("0")) {
++                                map.remove("Properties");
++                            } else {
++                                map.put("Name", new StringTag("Name", "minecraft:water_cauldron"));
++                            }
++                        }
++                    }
++
++                    // Renamed grass path item to dirt path
++                    if (name.equals(Optional.of("minecraft:grass_path"))) {
++                        map.put("Name", new StringTag("Name", "minecraft:dirt_path"));
++                    }
++                }
++            }
++        }
++    }
++
++}
++
++class v118WorldUpgrade implements Upgrade {
++
++    private static final String[] BIOMES_BY_ID = new String[256]; // rip datapacks
++
++    static {
++        BIOMES_BY_ID[0] = "minecraft:ocean";
++        BIOMES_BY_ID[1] = "minecraft:plains";
++        BIOMES_BY_ID[2] = "minecraft:desert";
++        BIOMES_BY_ID[3] = "minecraft:mountains";
++        BIOMES_BY_ID[4] = "minecraft:forest";
++        BIOMES_BY_ID[5] = "minecraft:taiga";
++        BIOMES_BY_ID[6] = "minecraft:swamp";
++        BIOMES_BY_ID[7] = "minecraft:river";
++        BIOMES_BY_ID[8] = "minecraft:nether_wastes";
++        BIOMES_BY_ID[9] = "minecraft:the_end";
++        BIOMES_BY_ID[10] = "minecraft:frozen_ocean";
++        BIOMES_BY_ID[11] = "minecraft:frozen_river";
++        BIOMES_BY_ID[12] = "minecraft:snowy_tundra";
++        BIOMES_BY_ID[13] = "minecraft:snowy_mountains";
++        BIOMES_BY_ID[14] = "minecraft:mushroom_fields";
++        BIOMES_BY_ID[15] = "minecraft:mushroom_field_shore";
++        BIOMES_BY_ID[16] = "minecraft:beach";
++        BIOMES_BY_ID[17] = "minecraft:desert_hills";
++        BIOMES_BY_ID[18] = "minecraft:wooded_hills";
++        BIOMES_BY_ID[19] = "minecraft:taiga_hills";
++        BIOMES_BY_ID[20] = "minecraft:mountain_edge";
++        BIOMES_BY_ID[21] = "minecraft:jungle";
++        BIOMES_BY_ID[22] = "minecraft:jungle_hills";
++        BIOMES_BY_ID[23] = "minecraft:jungle_edge";
++        BIOMES_BY_ID[24] = "minecraft:deep_ocean";
++        BIOMES_BY_ID[25] = "minecraft:stone_shore";
++        BIOMES_BY_ID[26] = "minecraft:snowy_beach";
++        BIOMES_BY_ID[27] = "minecraft:birch_forest";
++        BIOMES_BY_ID[28] = "minecraft:birch_forest_hills";
++        BIOMES_BY_ID[29] = "minecraft:dark_forest";
++        BIOMES_BY_ID[30] = "minecraft:snowy_taiga";
++        BIOMES_BY_ID[31] = "minecraft:snowy_taiga_hills";
++        BIOMES_BY_ID[32] = "minecraft:giant_tree_taiga";
++        BIOMES_BY_ID[33] = "minecraft:giant_tree_taiga_hills";
++        BIOMES_BY_ID[34] = "minecraft:wooded_mountains";
++        BIOMES_BY_ID[35] = "minecraft:savanna";
++        BIOMES_BY_ID[36] = "minecraft:savanna_plateau";
++        BIOMES_BY_ID[37] = "minecraft:badlands";
++        BIOMES_BY_ID[38] = "minecraft:wooded_badlands_plateau";
++        BIOMES_BY_ID[39] = "minecraft:badlands_plateau";
++        BIOMES_BY_ID[40] = "minecraft:small_end_islands";
++        BIOMES_BY_ID[41] = "minecraft:end_midlands";
++        BIOMES_BY_ID[42] = "minecraft:end_highlands";
++        BIOMES_BY_ID[43] = "minecraft:end_barrens";
++        BIOMES_BY_ID[44] = "minecraft:warm_ocean";
++        BIOMES_BY_ID[45] = "minecraft:lukewarm_ocean";
++        BIOMES_BY_ID[46] = "minecraft:cold_ocean";
++        BIOMES_BY_ID[47] = "minecraft:deep_warm_ocean";
++        BIOMES_BY_ID[48] = "minecraft:deep_lukewarm_ocean";
++        BIOMES_BY_ID[49] = "minecraft:deep_cold_ocean";
++        BIOMES_BY_ID[50] = "minecraft:deep_frozen_ocean";
++        BIOMES_BY_ID[127] = "minecraft:the_void";
++        BIOMES_BY_ID[129] = "minecraft:sunflower_plains";
++        BIOMES_BY_ID[130] = "minecraft:desert_lakes";
++        BIOMES_BY_ID[131] = "minecraft:gravelly_mountains";
++        BIOMES_BY_ID[132] = "minecraft:flower_forest";
++        BIOMES_BY_ID[133] = "minecraft:taiga_mountains";
++        BIOMES_BY_ID[134] = "minecraft:swamp_hills";
++        BIOMES_BY_ID[140] = "minecraft:ice_spikes";
++        BIOMES_BY_ID[149] = "minecraft:modified_jungle";
++        BIOMES_BY_ID[151] = "minecraft:modified_jungle_edge";
++        BIOMES_BY_ID[155] = "minecraft:tall_birch_forest";
++        BIOMES_BY_ID[156] = "minecraft:tall_birch_hills";
++        BIOMES_BY_ID[157] = "minecraft:dark_forest_hills";
++        BIOMES_BY_ID[158] = "minecraft:snowy_taiga_mountains";
++        BIOMES_BY_ID[160] = "minecraft:giant_spruce_taiga";
++        BIOMES_BY_ID[161] = "minecraft:giant_spruce_taiga_hills";
++        BIOMES_BY_ID[162] = "minecraft:modified_gravelly_mountains";
++        BIOMES_BY_ID[163] = "minecraft:shattered_savanna";
++        BIOMES_BY_ID[164] = "minecraft:shattered_savanna_plateau";
++        BIOMES_BY_ID[165] = "minecraft:eroded_badlands";
++        BIOMES_BY_ID[166] = "minecraft:modified_wooded_badlands_plateau";
++        BIOMES_BY_ID[167] = "minecraft:modified_badlands_plateau";
++        BIOMES_BY_ID[168] = "minecraft:bamboo_jungle";
++        BIOMES_BY_ID[169] = "minecraft:bamboo_jungle_hills";
++        BIOMES_BY_ID[170] = "minecraft:soul_sand_valley";
++        BIOMES_BY_ID[171] = "minecraft:crimson_forest";
++        BIOMES_BY_ID[172] = "minecraft:warped_forest";
++        BIOMES_BY_ID[173] = "minecraft:basalt_deltas";
++        BIOMES_BY_ID[174] = "minecraft:dripstone_caves";
++        BIOMES_BY_ID[175] = "minecraft:lush_caves";
++        BIOMES_BY_ID[177] = "minecraft:meadow";
++        BIOMES_BY_ID[178] = "minecraft:grove";
++        BIOMES_BY_ID[179] = "minecraft:snowy_slopes";
++        BIOMES_BY_ID[180] = "minecraft:snowcapped_peaks";
++        BIOMES_BY_ID[181] = "minecraft:lofty_peaks";
++        BIOMES_BY_ID[182] = "minecraft:stony_peaks";
++    }
++
++    public static final ImmutableMap<String, String> BIOME_UPDATE = ImmutableMap.<String, String>builder()
++            .put("minecraft:badlands_plateau", "minecraft:badlands")
++            .put("minecraft:bamboo_jungle_hills", "minecraft:bamboo_jungle")
++            .put("minecraft:birch_forest_hills", "minecraft:birch_forest")
++            .put("minecraft:dark_forest_hills", "minecraft:dark_forest")
++            .put("minecraft:desert_hills", "minecraft:desert")
++            .put("minecraft:desert_lakes", "minecraft:desert")
++            .put("minecraft:giant_spruce_taiga_hills", "minecraft:old_growth_spruce_taiga")
++            .put("minecraft:giant_spruce_taiga", "minecraft:old_growth_spruce_taiga")
++            .put("minecraft:giant_tree_taiga_hills", "minecraft:old_growth_pine_taiga")
++            .put("minecraft:giant_tree_taiga", "minecraft:old_growth_pine_taiga")
++            .put("minecraft:gravelly_mountains", "minecraft:windswept_gravelly_hills")
++            .put("minecraft:jungle_edge", "minecraft:sparse_jungle")
++            .put("minecraft:jungle_hills", "minecraft:jungle")
++            .put("minecraft:modified_badlands_plateau", "minecraft:badlands")
++            .put("minecraft:modified_gravelly_mountains", "minecraft:windswept_gravelly_hills")
++            .put("minecraft:modified_jungle_edge", "minecraft:sparse_jungle")
++            .put("minecraft:modified_jungle", "minecraft:jungle")
++            .put("minecraft:modified_wooded_badlands_plateau", "minecraft:wooded_badlands")
++            .put("minecraft:mountain_edge", "minecraft:windswept_hills")
++            .put("minecraft:mountains", "minecraft:windswept_hills")
++            .put("minecraft:mushroom_field_shore", "minecraft:mushroom_fields")
++            .put("minecraft:shattered_savanna", "minecraft:windswept_savanna")
++            .put("minecraft:shattered_savanna_plateau", "minecraft:windswept_savanna")
++            .put("minecraft:snowy_mountains", "minecraft:snowy_plains")
++            .put("minecraft:snowy_taiga_hills", "minecraft:snowy_taiga")
++            .put("minecraft:snowy_taiga_mountains", "minecraft:snowy_taiga")
++            .put("minecraft:snowy_tundra", "minecraft:snowy_plains")
++            .put("minecraft:stone_shore", "minecraft:stony_shore")
++            .put("minecraft:swamp_hills", "minecraft:swamp")
++            .put("minecraft:taiga_hills", "minecraft:taiga")
++            .put("minecraft:taiga_mountains", "minecraft:taiga")
++            .put("minecraft:tall_birch_forest", "minecraft:old_growth_birch_forest")
++            .put("minecraft:tall_birch_hills", "minecraft:old_growth_birch_forest")
++            .put("minecraft:wooded_badlands_plateau", "minecraft:wooded_badlands")
++            .put("minecraft:wooded_hills", "minecraft:forest")
++            .put("minecraft:wooded_mountains", "minecraft:windswept_forest")
++            .put("minecraft:lofty_peaks", "minecraft:jagged_peaks")
++            .put("minecraft:snowcapped_peaks", "minecraft:frozen_peaks")
++            .build();
++
++    @Override
++    public void upgrade(v1_9SlimeWorld world) {
++        for (v1_9SlimeChunk chunk : world.chunks.values()) {
++
++            // SpawnerSpawnDataFix
++            for (CompoundTag tileEntity : chunk.tileEntities) {
++                CompoundMap value = tileEntity.getValue();
++                Optional<String> id = tileEntity.getStringValue("id");
++                if (id.equals(Optional.of("minecraft:mob_spawner"))) {
++                    Optional<ListTag<?>> spawnPotentials = tileEntity.getAsListTag("SpawnPotentials");
++                    Optional<CompoundTag> spawnData = tileEntity.getAsCompoundTag("SpawnData");
++                    if (spawnPotentials.isPresent()) {
++                        ListTag<CompoundTag> spawnPotentialsList = (ListTag<CompoundTag>) spawnPotentials.get();
++                        List<CompoundTag> spawnPotentialsListValue = spawnPotentialsList.getValue();
++                        for (CompoundTag spawnPotentialsTag : spawnPotentialsListValue) {
++                            CompoundMap spawnPotentialsValue = spawnPotentialsTag.getValue();
++                            Optional<Integer> weight = spawnPotentialsTag.getIntValue("Weight");
++                            if (weight.isPresent()) {
++                                int weightVal = weight.get();
++                                spawnPotentialsValue.remove("Weight");
++                                spawnPotentialsValue.put("weight", new IntTag("weight", weightVal));
++                            }
++                            Optional<CompoundTag> entity = spawnPotentialsTag.getAsCompoundTag("Entity");
++                            if (entity.isPresent()) {
++                                CompoundTag entityTag = entity.get();
++                                spawnPotentialsValue.remove("Entity");
++                                entityTag.getValue();
++                                CompoundMap dataMap = new CompoundMap();
++                                dataMap.put(new CompoundTag("entity", entityTag.getValue()));
++                                spawnPotentialsValue.put("data", new CompoundTag("data", dataMap));
++                            }
++                        }
++                        value.put("SpawnPotentials", spawnPotentialsList);
++                        if (!spawnPotentialsListValue.isEmpty()) {
++                            CompoundTag compoundTag = spawnPotentialsListValue.get(0);
++                            CompoundTag entityTag = compoundTag.getAsCompoundTag("data").
++                                    get().getAsCompoundTag("entity").get();
++                            CompoundMap spawnDataMap = new CompoundMap();
++                            spawnDataMap.put(entityTag.clone());
++                            value.put("SpawnData", new CompoundTag("SpawnData", spawnDataMap));
++                        }
++                    } else if (spawnData.isPresent()) {
++                        CompoundTag spawnDataTag = spawnData.get();
++                        CompoundMap spawnDataValue = spawnDataTag.getValue();
++                        Optional<CompoundTag> entityTag = spawnDataTag.getAsCompoundTag("entity");
++                        Optional<StringTag> idTag = spawnDataTag.getAsStringTag("id");
++                        if (entityTag.isEmpty() && idTag.isPresent()) {
++                            StringTag entityTypeTag = idTag.get();
++                            spawnDataValue.remove("id");
++                            CompoundMap entityMap = new CompoundMap();
++                            entityMap.put(entityTypeTag);
++                            spawnDataValue.put("entity", new CompoundTag("entity", entityMap));
++                            value.put("SpawnData", spawnDataTag);
++                        }
++                    }
++                }
++            }
++
++            CompoundTag[] tags = createBiomeSections(chunk.biomes, false, 0);
++
++            v1_9SlimeChunkSection[] sections = chunk.sections;
++            for (int i = 0; i < sections.length; i++) {
++                v1_9SlimeChunkSection section = sections[i];
++                if (section == null) {
++                    continue;
++                }
++
++
++                section.blockStatesTag = wrapPalette(section.palette, section.blockStates);
++                section.biomeTag = tags[i];
++            }
++
++            v1_9SlimeChunkSection[] shiftedSections = new v1_9SlimeChunkSection[sections.length + 4];
++            System.arraycopy(sections, 0, shiftedSections, 4, sections.length);
++
++            chunk.sections = shiftedSections; // Shift all sections up 4
++        }
++    }
++
++    private static CompoundTag[] createBiomeSections(int[] biomes, final boolean wantExtendedHeight, final int minSection) {
++        final CompoundTag[] ret = new CompoundTag[wantExtendedHeight ? 24 : 16];
++
++        if (biomes != null && biomes.length == 1536) { // magic value for 24 sections of biomes (24 * 4^3)
++            //isAlreadyExtended.setValue(true);
++            for (int sectionIndex = 0; sectionIndex < 24; ++sectionIndex) {
++                ret[sectionIndex] = createBiomeSection(biomes, sectionIndex * 64, -1); // -1 is all 1s
++            }
++        } else if (biomes != null && biomes.length == 1024) { // magic value for 24 sections of biomes (16 * 4^3)
++            for (int sectionY = 0; sectionY < 16; ++sectionY) {
++                ret[sectionY - minSection] = createBiomeSection(biomes, sectionY * 64, -1); // -1 is all 1s
++            }
++
++//            if (wantExtendedHeight) {
++//                // must set the new sections at top and bottom
++//                final MapType<String> bottomCopy = createBiomeSection(biomes, 0, 15); // just want the biomes at y = 0
++//                final MapType<String> topCopy = createBiomeSection(biomes, 1008, 15); // just want the biomes at y = 252
++//
++//                for (int sectionIndex = 0; sectionIndex < 4; ++sectionIndex) {
++//                    ret[sectionIndex] = bottomCopy.copy(); // copy palette so that later possible modifications don't trash all sections
++//                }
++//
++//                for (int sectionIndex = 20; sectionIndex < 24; ++sectionIndex) {
++//                    ret[sectionIndex] = topCopy.copy(); // copy palette so that later possible modifications don't trash all sections
++//                }
++//            }
++        } else {
++            ArrayList<StringTag> palette = new ArrayList<>();
++            palette.add(new StringTag("", "minecraft:plains"));
++
++            for (int i = 0; i < ret.length; ++i) {
++                ret[i] = wrapPalette(new ListTag<>("", TagType.TAG_STRING, palette).clone(), null); // copy palette so that later possible modifications don't trash all sections
++            }
++        }
++
++        return ret;
++    }
++
++    public static int ceilLog2(final int value) {
++        return value == 0 ? 0 : Integer.SIZE - Integer.numberOfLeadingZeros(value - 1); // see doc of numberOfLeadingZeros
++    }
++
++    private static CompoundTag createBiomeSection(final int[] biomes, final int offset, final int mask) {
++        final Int2IntLinkedOpenHashMap paletteId = new Int2IntLinkedOpenHashMap();
++
++        for (int idx = 0; idx < 64; ++idx) {
++            final int biome = biomes[offset + (idx & mask)];
++            paletteId.putIfAbsent(biome, paletteId.size());
++        }
++
++        List<StringTag> paletteString = new ArrayList<>();
++        for (final IntIterator iterator = paletteId.keySet().iterator(); iterator.hasNext(); ) {
++            final int biomeId = iterator.nextInt();
++            String biome = biomeId >= 0 && biomeId < BIOMES_BY_ID.length ? BIOMES_BY_ID[biomeId] : null;
++            String update = BIOME_UPDATE.get(biome);
++            if (update != null) {
++                biome = update;
++            }
++
++            paletteString.add(new StringTag("", biome == null ? "minecraft:plains" : biome));
++        }
++
++        final int bitsPerObject = ceilLog2(paletteString.size());
++        if (bitsPerObject == 0) {
++            return wrapPalette(new ListTag<>("", TagType.TAG_STRING, paletteString), null);
++        }
++
++        // manually create packed integer data
++        final int objectsPerValue = 64 / bitsPerObject;
++        final long[] packed = new long[(64 + objectsPerValue - 1) / objectsPerValue];
++
++        int shift = 0;
++        int idx = 0;
++        long curr = 0;
++
++        for (int biome_idx = 0; biome_idx < 64; ++biome_idx) {
++            final int biome = biomes[offset + (biome_idx & mask)];
++
++            curr |= ((long) paletteId.get(biome)) << shift;
++
++            shift += bitsPerObject;
++
++            if (shift + bitsPerObject > 64) { // will next write overflow?
++                // must move to next idx
++                packed[idx++] = curr;
++                shift = 0;
++                curr = 0L;
++            }
++        }
++
++        // don't forget to write the last one
++        if (shift != 0) {
++            packed[idx] = curr;
++        }
++
++        return wrapPalette(new ListTag<>("", TagType.TAG_STRING, paletteString), packed);
++    }
++
++    private static CompoundTag wrapPalette(ListTag<?> palette, final long[] blockStates) {
++        CompoundMap map = new CompoundMap();
++        CompoundTag tag = new CompoundTag("", map);
++
++        map.put(new ListTag<>("palette", palette.getElementType(), palette.getValue()));
++        if (blockStates != null) {
++            map.put(new LongArrayTag("data", blockStates));
++        }
++
++        return tag;
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunk.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunk.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..529592faee60328d8953426fdc4f7dec47630bc9
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunk.java
+@@ -0,0 +1,43 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.flowpowered.nbt.CompoundTag;
++
++import java.util.List;
++
++final class v1_9SlimeChunk {
++    final String worldName;
++    final int x;
++    final int z;
++    v1_9SlimeChunkSection[] sections;
++    final int minY;
++    final int maxY;
++    final CompoundTag heightMap;
++    int[] biomes;
++    final List<CompoundTag> tileEntities;
++    final List<CompoundTag> entities;
++
++    v1_9SlimeChunk(String worldName,
++                   int x,
++                   int z,
++                   v1_9SlimeChunkSection[] sections,
++                   int minY,
++                   int maxY,
++                   CompoundTag heightMap,
++                   int[] biomes,
++                   List<CompoundTag> tileEntities,
++                   List<CompoundTag> entities) {
++        this.worldName = worldName;
++        this.x = x;
++        this.z = z;
++        this.sections = sections;
++        this.minY = minY;
++        this.maxY = maxY;
++        this.heightMap = heightMap;
++        this.biomes = biomes;
++        this.tileEntities = tileEntities;
++        this.entities = entities;
++    }
++
++}
++
++
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunkSection.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunkSection.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..704765b77d948cb655a8aa97c418505d6ec4521d
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeChunkSection.java
+@@ -0,0 +1,30 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.ListTag;
++import com.grinderwolf.swm.api.utils.NibbleArray;
++
++class v1_9SlimeChunkSection {
++
++    // Post 1.13 block data
++    final ListTag<CompoundTag> palette;
++    final long[] blockStates;
++
++    // Post 1.17 block data
++    CompoundTag blockStatesTag;
++    CompoundTag biomeTag;
++
++    final NibbleArray blockLight;
++    final NibbleArray skyLight;
++
++
++    public v1_9SlimeChunkSection(ListTag<CompoundTag> palette, long[] blockStates, CompoundTag blockStatesTag, CompoundTag biomeTag, NibbleArray blockLight, NibbleArray skyLight) {
++        this.palette = palette;
++        this.blockStates = blockStates;
++        this.blockStatesTag = blockStatesTag;
++        this.biomeTag = biomeTag;
++        this.blockLight = blockLight;
++        this.skyLight = skyLight;
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeConverter.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeConverter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..c74d8addf751d007fad7371baf51f9a7ba3ef736
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeConverter.java
+@@ -0,0 +1,75 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.grinderwolf.swm.api.world.SlimeChunk;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.infernalsuite.aswm.slime.serialization.reader.impl.SlimeConverter;
++import com.infernalsuite.aswm.slime.skeleton.SlimeChunkSectionSkeleton;
++import com.infernalsuite.aswm.slime.skeleton.SlimeChunkSkeleton;
++import net.minecraft.world.level.ChunkPos;
++
++import java.util.HashMap;
++import java.util.Map;
++import java.util.logging.Logger;
++
++public class v1_9SlimeConverter implements SlimeConverter<v1_9SlimeWorld> {
++
++    private static final Map<Byte, Upgrade> upgrades = new HashMap<>();
++
++    static {
++        upgrades.put((byte) 0x06, new v1_16WorldUpgrade());
++        upgrades.put((byte) 0x07, new v117WorldUpgrade());
++        upgrades.put((byte) 0x08, new v118WorldUpgrade());
++    }
++
++    @Override
++    public SlimeWorld runConversion(v1_9SlimeWorld data) {
++        upgradeWorld(data);
++
++        Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
++        for (Map.Entry<ChunkPos, v1_9SlimeChunk> entry : data.chunks.entrySet()) {
++            v1_9SlimeChunk slimeChunk = entry.getValue();
++
++            SlimeChunkSection[] sections = new SlimeChunkSection[slimeChunk.sections.length];
++            for (int i = 0; i < sections.length; i++) {
++                v1_9SlimeChunkSection dataSection = 
++                sections[i] = new SlimeChunkSectionSkeleton(
++
++                )
++            }
++
++            chunks.put(entry.getKey(), new SlimeChunkSkeleton(
++                    slimeChunk.worldName,
++                    slimeChunk.x,
++                    slimeChunk.z,
++                    slimeChunk.sections,
++                    slimeChunk.minY,
++                    slimeChunk.maxY,
++                    slimeChunk.heightMap,
++                    slimeChunk.tileEntities,
++                    slimeChunk.entities
++            ));
++        }
++
++
++        return null;
++    }
++
++
++    public static void upgradeWorld(v1_9SlimeWorld world) {
++        byte serverVersion = 0x09; // Last version
++
++        for (byte ver = (byte) (world.version + 1); ver <= serverVersion; ver++) {
++            Upgrade upgrade = upgrades.get(ver);
++
++            if (upgrade == null) {
++                Logger.getLogger("v1_9WorldUpgrader").warning("Missing world upgrader for version " + ver + ". World will not be upgraded.");
++                continue;
++            }
++
++            upgrade.upgrade(world);
++        }
++
++        world.version = serverVersion;
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorld.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorld.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f678b6a81912733facb502abf61826a5e4b2af5a
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorld.java
+@@ -0,0 +1,37 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import net.minecraft.world.level.ChunkPos;
++
++import java.util.Map;
++
++class v1_9SlimeWorld {
++
++    byte version;
++    final String worldName;
++    final SlimeLoader loader;
++    final Map<ChunkPos, v1_9SlimeChunk> chunks;
++    final CompoundTag extraCompound;
++    final SlimePropertyMap propertyMap;
++    final boolean readOnly;
++
++    v1_9SlimeWorld(byte version,
++                   String worldName,
++                   SlimeLoader loader,
++                   Map<ChunkPos, v1_9SlimeChunk> chunks,
++                   CompoundTag extraCompound,
++                   SlimePropertyMap propertyMap,
++                   boolean readOnly) {
++        this.version = version;
++        this.worldName = worldName;
++        this.loader = loader;
++        this.chunks = chunks;
++        this.extraCompound = extraCompound;
++        this.propertyMap = propertyMap;
++        this.readOnly = readOnly;
++    }
++
++
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorldFormat.java b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorldFormat.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d4477242a08e9adb4a5137fc17f287ed7233be4e
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/serialization/reader/impl/v19/v1_9SlimeWorldFormat.java
+@@ -0,0 +1,462 @@
++package com.infernalsuite.aswm.slime.serialization.reader.impl.v19;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.DoubleTag;
++import com.flowpowered.nbt.IntArrayTag;
++import com.flowpowered.nbt.IntTag;
++import com.flowpowered.nbt.ListTag;
++import com.flowpowered.nbt.TagType;
++import com.flowpowered.nbt.stream.NBTInputStream;
++import com.github.luben.zstd.Zstd;
++import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.utils.NibbleArray;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.aswm.slime.serialization.reader.SlimeWorldReader;
++import com.infernalsuite.aswm.util.NmsUtil;
++import com.infernalsuite.aswm.util.SlimeLogger;
++import net.minecraft.world.level.ChunkPos;
++
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.EOFException;
++import java.io.IOException;
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++import java.util.ArrayList;
++import java.util.BitSet;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++
++public class v1_9SlimeWorldFormat implements SlimeWorldReader<v1_9SlimeWorld> {
++
++    @Override
++    public v1_9SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
++            throws IOException, CorruptedWorldException {
++
++        try {
++
++            // World version
++            byte worldVersion;
++
++            if (version >= 6) {
++                worldVersion = dataStream.readByte();
++            } else if (version >= 4) { // In v4 there's just a boolean indicating whether the world is pre-1.13 or post-1.13
++                worldVersion = (byte) (dataStream.readBoolean() ? 0x04 : 0x01);
++            } else {
++                worldVersion = 0; // We'll try to automatically detect it later
++            }
++
++            // Chunk
++            short minX = dataStream.readShort();
++            short minZ = dataStream.readShort();
++            int width = dataStream.readShort();
++            int depth = dataStream.readShort();
++
++            if (width <= 0 || depth <= 0) {
++                throw new CorruptedWorldException(worldName);
++            }
++
++            int bitmaskSize = (int) Math.ceil((width * depth) / 8.0D);
++            byte[] chunkBitmask = new byte[bitmaskSize];
++            dataStream.read(chunkBitmask);
++            BitSet chunkBitset = BitSet.valueOf(chunkBitmask);
++
++            int compressedChunkDataLength = dataStream.readInt();
++            int chunkDataLength = dataStream.readInt();
++            byte[] compressedChunkData = new byte[compressedChunkDataLength];
++            byte[] chunkData = new byte[chunkDataLength];
++
++            dataStream.read(compressedChunkData);
++
++            // Tile Entities
++            int compressedTileEntitiesLength = dataStream.readInt();
++            int tileEntitiesLength = dataStream.readInt();
++            byte[] compressedTileEntities = new byte[compressedTileEntitiesLength];
++            byte[] tileEntities = new byte[tileEntitiesLength];
++
++            dataStream.read(compressedTileEntities);
++
++            // Entities
++            byte[] compressedEntities = new byte[0];
++            byte[] entities = new byte[0];
++
++            if (version >= 3) {
++                boolean hasEntities = dataStream.readBoolean();
++
++                if (hasEntities) {
++                    int compressedEntitiesLength = dataStream.readInt();
++                    int entitiesLength = dataStream.readInt();
++                    compressedEntities = new byte[compressedEntitiesLength];
++                    entities = new byte[entitiesLength];
++
++                    dataStream.read(compressedEntities);
++                }
++            }
++
++            // Extra NBT tag
++            byte[] compressedExtraTag = new byte[0];
++            byte[] extraTag = new byte[0];
++
++            if (version >= 2) {
++                int compressedExtraTagLength = dataStream.readInt();
++                int extraTagLength = dataStream.readInt();
++                compressedExtraTag = new byte[compressedExtraTagLength];
++                extraTag = new byte[extraTagLength];
++
++                dataStream.read(compressedExtraTag);
++            }
++
++            // World Map NBT tag
++            byte[] compressedMapsTag = new byte[0];
++            byte[] mapsTag = new byte[0];
++
++            if (version >= 7) {
++                int compressedMapsTagLength = dataStream.readInt();
++                int mapsTagLength = dataStream.readInt();
++                compressedMapsTag = new byte[compressedMapsTagLength];
++                mapsTag = new byte[mapsTagLength];
++
++                dataStream.read(compressedMapsTag);
++            }
++
++            if (dataStream.read() != -1) {
++                throw new CorruptedWorldException(worldName);
++            }
++
++            // Data decompression
++            Zstd.decompress(chunkData, compressedChunkData);
++            Zstd.decompress(tileEntities, compressedTileEntities);
++            Zstd.decompress(entities, compressedEntities);
++            Zstd.decompress(extraTag, compressedExtraTag);
++            Zstd.decompress(mapsTag, compressedMapsTag);
++
++            // Chunk deserialization
++            Map<ChunkPos, v1_9SlimeChunk> chunks = readChunks(worldVersion, version, worldName, minX, minZ, width, depth, chunkBitset, chunkData);
++
++            // Entity deserialization
++            CompoundTag entitiesCompound = readCompoundTag(entities);
++
++            Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
++            if (entitiesCompound != null) {
++                List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
++
++                SlimeLogger.debug("Serialized entities: " + serializedEntities);
++                for (CompoundTag entityCompound : serializedEntities) {
++                    ListTag<DoubleTag> listTag = (ListTag<DoubleTag>) entityCompound.getAsListTag("Pos").get();
++
++                    int chunkX = floor(listTag.getValue().get(0).getValue()) >> 4;
++                    int chunkZ = floor(listTag.getValue().get(2).getValue()) >> 4;
++                    ChunkPos chunkKey = new ChunkPos(chunkX, chunkZ);
++                    v1_9SlimeChunk chunk = chunks.get(chunkKey);
++                    if (chunk != null) {
++                        chunk.entities.add(entityCompound);
++                    }
++                    if (entityStorage.containsKey(chunkKey)) {
++                        entityStorage.get(chunkKey).add(entityCompound);
++                    } else {
++                        List<CompoundTag> entityStorageList = new ArrayList<>();
++                        entityStorageList.add(entityCompound);
++                        entityStorage.put(chunkKey, entityStorageList);
++                    }
++                }
++            }
++
++            // Tile Entity deserialization
++            CompoundTag tileEntitiesCompound = readCompoundTag(tileEntities);
++
++            if (tileEntitiesCompound != null) {
++                ListTag<CompoundTag> tileEntitiesList = (ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tiles");
++                for (CompoundTag tileEntityCompound : tileEntitiesList.getValue()) {
++                    int chunkX = ((IntTag) tileEntityCompound.getValue().get("x")).getValue() >> 4;
++                    int chunkZ = ((IntTag) tileEntityCompound.getValue().get("z")).getValue() >> 4;
++                    long chunkKey = NmsUtil.asLong(chunkX, chunkZ);
++                    v1_9SlimeChunk chunk = chunks.get(chunkKey);
++
++                    if (chunk == null) {
++                        throw new CorruptedWorldException(worldName);
++                    }
++
++                    chunk.tileEntities.add(tileEntityCompound);
++                }
++            }
++
++            // Extra Data
++            CompoundTag extraCompound = readCompoundTag(extraTag);
++
++            if (extraCompound == null) {
++                extraCompound = new CompoundTag("", new CompoundMap());
++            }
++
++            // World Maps
++//            CompoundTag mapsCompound = readCompoundTag(mapsTag);
++//            List<CompoundTag> mapList;
++//
++//            if (mapsCompound != null) {
++//                mapList = (List<CompoundTag>) mapsCompound.getAsListTag("maps").map(ListTag::getValue).orElse(new ArrayList<>());
++//            } else {
++//                mapList = new ArrayList<>();
++//            }
++
++
++            // World properties
++            SlimePropertyMap worldPropertyMap = propertyMap;
++            Optional<CompoundMap> propertiesMap = extraCompound
++                    .getAsCompoundTag("properties")
++                    .map(CompoundTag::getValue);
++
++            if (propertiesMap.isPresent()) {
++                worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
++                worldPropertyMap.merge(propertyMap); // Override world properties
++            } else if (propertyMap == null) { // Make sure the property map is never null
++                worldPropertyMap = new SlimePropertyMap();
++            }
++
++            return new v1_9SlimeWorld(
++                    worldVersion,
++                    worldName,
++                    loader,
++                    chunks,
++                    extraCompound,
++                    propertyMap,
++                    readOnly
++            );
++        } catch (EOFException ex) {
++            throw new CorruptedWorldException(worldName, ex);
++        }
++    }
++
++    private static int floor(double num) {
++        final int floor = (int) num;
++        return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
++    }
++
++    private static Map<ChunkPos, v1_9SlimeChunk> readChunks(byte worldVersion, int version, String worldName, int minX, int minZ, int width, int depth, BitSet chunkBitset, byte[] chunkData) throws IOException {
++        DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(chunkData));
++        Map<ChunkPos, v1_9SlimeChunk> chunkMap = new HashMap<>();
++
++        for (int z = 0; z < depth; z++) {
++            for (int x = 0; x < width; x++) {
++                int bitsetIndex = z * width + x;
++
++                if (chunkBitset.get(bitsetIndex)) {
++                    // Height Maps
++                    CompoundTag heightMaps;
++
++                    if (worldVersion >= 0x04) {
++                        int heightMapsLength = dataStream.readInt();
++                        byte[] heightMapsArray = new byte[heightMapsLength];
++                        dataStream.read(heightMapsArray);
++                        heightMaps = readCompoundTag(heightMapsArray);
++
++                        // Height Maps might be null if empty
++                        if (heightMaps == null) {
++                            heightMaps = new CompoundTag("", new CompoundMap());
++                        }
++                    } else {
++                        int[] heightMap = new int[256];
++
++                        for (int i = 0; i < 256; i++) {
++                            heightMap[i] = dataStream.readInt();
++                        }
++
++                        CompoundMap map = new CompoundMap();
++                        map.put("heightMap", new IntArrayTag("heightMap", heightMap));
++
++                        heightMaps = new CompoundTag("", map);
++                    }
++
++                    // Biome array
++                    int[] biomes = null;
++
++                    if (version == 8 && worldVersion < 0x04) {
++                        // Patch the v8 bug: biome array size is wrong for old worlds
++                        dataStream.readInt();
++                    }
++
++                    if (worldVersion < 0x04) {
++                        byte[] byteBiomes = new byte[256];
++                        dataStream.read(byteBiomes);
++                        biomes = toIntArray(byteBiomes);
++                    } else if (worldVersion < 0x08) {
++                        int biomesArrayLength = version >= 8 ? dataStream.readInt() : 256;
++                        biomes = new int[biomesArrayLength];
++
++                        for (int i = 0; i < biomes.length; i++) {
++                            biomes[i] = dataStream.readInt();
++                        }
++                    }
++
++                    // Chunk Sections
++                    ChunkSectionData data = worldVersion < 0x08 ? readChunkSections(dataStream, worldVersion, version) : readChunkSectionsNew(dataStream, worldVersion, version);
++
++                    int chunkX = minX + x;
++                    int chunkZ = minZ + z;
++
++
++                    chunkMap.put(new ChunkPos(chunkX, chunkZ), new v1_9SlimeChunk(
++                            worldName,
++                            chunkX,
++                            chunkZ,
++                            data.sections,
++                            data.minSectionY,
++                            data.maxSectionY,
++                            heightMaps,
++                            biomes,
++                            new ArrayList<>(),
++                            new ArrayList<>()
++                    ));
++                }
++            }
++        }
++
++        return chunkMap;
++    }
++
++    private static int[] toIntArray(byte[] buf) {
++        ByteBuffer buffer = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN);
++        int[] ret = new int[buf.length / 4];
++
++        buffer.asIntBuffer().get(ret);
++
++        return ret;
++    }
++
++    private record ChunkSectionData(v1_9SlimeChunkSection[] sections, int minSectionY, int maxSectionY) {
++    }
++
++    private static ChunkSectionData readChunkSectionsNew(DataInputStream dataStream, int worldVersion, int version) throws IOException {
++        int minSectionY = dataStream.readInt();
++        int maxSectionY = dataStream.readInt();
++        int sectionCount = dataStream.readInt();
++        v1_9SlimeChunkSection[] chunkSectionArray = new v1_9SlimeChunkSection[maxSectionY - minSectionY];
++
++        for (int i = 0; i < sectionCount; i++) {
++            int y = dataStream.readInt();
++
++            // Block Light Nibble Array
++            NibbleArray blockLightArray;
++
++            if (version < 5 || dataStream.readBoolean()) {
++                byte[] blockLightByteArray = new byte[2048];
++                dataStream.read(blockLightByteArray);
++                blockLightArray = new NibbleArray((blockLightByteArray));
++            } else {
++                blockLightArray = null;
++            }
++
++            // Block data
++            byte[] blockStateData = new byte[dataStream.readInt()];
++            dataStream.read(blockStateData);
++            CompoundTag blockStateTag = readCompoundTag(blockStateData);
++
++            byte[] biomeData = new byte[dataStream.readInt()];
++            dataStream.read(biomeData);
++            CompoundTag biomeTag = readCompoundTag(biomeData);
++
++            // Sky Light Nibble Array
++            NibbleArray skyLightArray;
++
++            if (version < 5 || dataStream.readBoolean()) {
++                byte[] skyLightByteArray = new byte[2048];
++                dataStream.read(skyLightByteArray);
++                skyLightArray = new NibbleArray((skyLightByteArray));
++            } else {
++                skyLightArray = null;
++            }
++
++            // HypixelBlocks 3
++            if (version < 4) {
++                short hypixelBlocksLength = dataStream.readShort();
++                dataStream.skip(hypixelBlocksLength);
++            }
++
++            chunkSectionArray[y] = new v1_9SlimeChunkSection(null, null, blockStateTag, biomeTag, blockLightArray, skyLightArray);
++        }
++
++        return new ChunkSectionData(chunkSectionArray, minSectionY, maxSectionY);
++    }
++
++    private static ChunkSectionData readChunkSections(DataInputStream dataStream, byte worldVersion, int version) throws IOException {
++        v1_9SlimeChunkSection[] chunkSectionArray = new v1_9SlimeChunkSection[16];
++        byte[] sectionBitmask = new byte[2];
++        dataStream.read(sectionBitmask);
++        BitSet sectionBitset = BitSet.valueOf(sectionBitmask);
++
++        for (int i = 0; i < 16; i++) {
++            if (sectionBitset.get(i)) {
++                // Block Light Nibble Array
++                NibbleArray blockLightArray;
++
++                if (version < 5 || dataStream.readBoolean()) {
++                    byte[] blockLightByteArray = new byte[2048];
++                    dataStream.read(blockLightByteArray);
++                    blockLightArray = new NibbleArray((blockLightByteArray));
++                } else {
++                    blockLightArray = null;
++                }
++
++                // Block data
++                ListTag<CompoundTag> paletteTag = null;
++                long[] blockStatesArray = null;
++
++                // Palette
++                int paletteLength = dataStream.readInt();
++                List<CompoundTag> paletteList = new ArrayList<>(paletteLength);
++                for (int index = 0; index < paletteLength; index++) {
++                    int tagLength = dataStream.readInt();
++                    byte[] serializedTag = new byte[tagLength];
++                    dataStream.read(serializedTag);
++
++                    CompoundTag tag = readCompoundTag(serializedTag);
++                    paletteList.add(tag);
++                }
++
++                paletteTag = new ListTag<>("", TagType.TAG_COMPOUND, paletteList);
++
++                // Block states
++                int blockStatesArrayLength = dataStream.readInt();
++                blockStatesArray = new long[blockStatesArrayLength];
++
++                for (int index = 0; index < blockStatesArrayLength; index++) {
++                    blockStatesArray[index] = dataStream.readLong();
++                }
++
++
++                // Sky Light Nibble Array
++                NibbleArray skyLightArray;
++
++                if (version < 5 || dataStream.readBoolean()) {
++                    byte[] skyLightByteArray = new byte[2048];
++                    dataStream.read(skyLightByteArray);
++                    skyLightArray = new NibbleArray((skyLightByteArray));
++                } else {
++                    skyLightArray = null;
++                }
++
++                // HypixelBlocks 3
++                if (version < 4) {
++                    short hypixelBlocksLength = dataStream.readShort();
++                    dataStream.skip(hypixelBlocksLength);
++                }
++
++                chunkSectionArray[i] = new v1_9SlimeChunkSection(paletteTag, blockStatesArray, null, null, blockLightArray, skyLightArray);
++            }
++        }
++
++        return new ChunkSectionData(chunkSectionArray, 0, 16);
++    }
++
++    private static CompoundTag readCompoundTag(byte[] serializedCompound) throws IOException {
++        if (serializedCompound.length == 0) {
++            return null;
++        }
++
++        NBTInputStream stream = new NBTInputStream(new ByteArrayInputStream(serializedCompound), NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
++
++        return (CompoundTag) stream.readTag();
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/skeleton/SkeletonSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SkeletonSlimeWorld.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2207efeba5b0c7fec8713a5d7fa44444de30458b
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SkeletonSlimeWorld.java
+@@ -0,0 +1,148 @@
++package com.infernalsuite.aswm.slime.skeleton;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
++import com.grinderwolf.swm.api.loaders.SlimeLoader;
++import com.grinderwolf.swm.api.world.SlimeChunk;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++import com.grinderwolf.swm.api.world.SlimeWorld;
++import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
++import net.minecraft.world.level.ChunkPos;
++
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++public record SkeletonSlimeWorld(
++        String name,
++        SlimeLoader loader,
++        Map<ChunkPos, SlimeChunk> chunkStorage,
++        CompoundTag extraSerialized,
++        SlimePropertyMap slimePropertyMap,
++        boolean isReadOnly,
++        int dataVersion
++) implements SlimeWorld {
++    @Override
++    public String getName() {
++        return this.name;
++    }
++
++    @Override
++    public SlimeLoader getLoader() {
++        return this.loader;
++    }
++
++    @Override
++    public SlimeChunk getChunk(int x, int z) {
++        return this.chunkStorage.get(new ChunkPos(x, z));
++    }
++
++    @Override
++    public Collection<SlimeChunk> getChunkStorage() {
++        return this.chunkStorage.values();
++    }
++
++    @Override
++    public CompoundTag getExtraData() {
++        return this.extraSerialized;
++    }
++
++    @Override
++    public Collection<CompoundTag> getWorldMaps() {
++        return List.of();
++    }
++
++    @Override
++    public SlimePropertyMap getPropertyMap() {
++        return this.slimePropertyMap;
++    }
++
++    @Override
++    public boolean isReadOnly() {
++        return this.isReadOnly;
++    }
++
++    @Override
++    public int getDataVersion() {
++        return this.dataVersion;
++    }
++
++    @Override
++    public SlimeWorld clone(String worldName) {
++        try {
++            return clone(worldName, null);
++        } catch (WorldAlreadyExistsException | IOException ignored) {
++            return null; // Never going to happen
++        }
++    }
++
++    @Override
++    public SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
++        if (name.equals(worldName)) {
++            throw new IllegalArgumentException("The clone world cannot have the same name as the original world!");
++        }
++
++        if (worldName == null) {
++            throw new IllegalArgumentException("The world name cannot be null!");
++        }
++
++        if (loader != null) {
++            if (loader.worldExists(worldName)) {
++                throw new WorldAlreadyExistsException(worldName);
++            }
++        }
++
++        Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
++        for (Map.Entry<ChunkPos, SlimeChunk> entry : this.chunkStorage.entrySet()) {
++            SlimeChunk value = entry.getValue();
++
++            SlimeChunkSection[] copied = new SlimeChunkSection[value.getSections().length];
++            for (int i = 0; i < copied.length; i++) {
++                SlimeChunkSection original = value.getSections()[i];
++
++                copied[i] = new SlimeChunkSectionSkeleton(
++                        original.getBlockStatesTag().clone(),
++                        original.getBiomeTag().clone(),
++                        original.getBlockLight().clone(),
++                        original.getSkyLight().clone()
++                );
++            }
++
++            cloned.put(entry.getKey(),
++                    new SlimeChunkSkeleton(
++                            value.getWorldName(),
++                            value.getX(),
++                            value.getZ(),
++                            copied,
++                            value.getMinSection(),
++                            value.getMaxSection(),
++                            value.getHeightMaps().clone(),
++                            this.deepClone(value.getTileEntities()),
++                            this.deepClone(value.getEntities())
++                    ));
++        }
++
++        return new SkeletonSlimeWorld(
++                worldName,
++                loader,
++                cloned,
++                this.extraSerialized.clone(),
++                this.slimePropertyMap.clone(),
++                loader == null,
++                this.dataVersion
++        );
++    }
++
++    private List<CompoundTag> deepClone(List<CompoundTag> tags) {
++        List<CompoundTag> cloned = new ArrayList<>(tags.size());
++        for (CompoundTag tag : tags) {
++            cloned.add(tag.clone());
++        }
++
++        return cloned;
++    }
++
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSectionSkeleton.java b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSectionSkeleton.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2cb9997c52f057d8b0d445806ca8254f9af6fc0b
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSectionSkeleton.java
+@@ -0,0 +1,27 @@
++package com.infernalsuite.aswm.slime.skeleton;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.grinderwolf.swm.api.utils.NibbleArray;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++
++public record SlimeChunkSectionSkeleton(CompoundTag blockStates, CompoundTag biome, NibbleArray block, NibbleArray sky) implements SlimeChunkSection {
++    @Override
++    public CompoundTag getBlockStatesTag() {
++        return this.blockStates;
++    }
++
++    @Override
++    public CompoundTag getBiomeTag() {
++        return this.biome;
++    }
++
++    @Override
++    public NibbleArray getBlockLight() {
++        return this.block;
++    }
++
++    @Override
++    public NibbleArray getSkyLight() {
++        return this.sky;
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSkeleton.java b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSkeleton.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..81c3875d77fe8a0c965861bf5b6d102513f494b0
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/slime/skeleton/SlimeChunkSkeleton.java
+@@ -0,0 +1,56 @@
++package com.infernalsuite.aswm.slime.skeleton;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.grinderwolf.swm.api.utils.NibbleArray;
++import com.grinderwolf.swm.api.world.SlimeChunk;
++import com.grinderwolf.swm.api.world.SlimeChunkSection;
++
++import java.util.List;
++
++public record SlimeChunkSkeleton(String worldName, int x, int z, SlimeChunkSection[] sections, int minY, int maxY, CompoundTag heightMap, List<CompoundTag> tileEntities, List<CompoundTag> entities) implements SlimeChunk {
++
++    @Override
++    public String getWorldName() {
++        return this.worldName;
++    }
++
++    @Override
++    public int getX() {
++        return this.x;
++    }
++
++    @Override
++    public int getZ() {
++        return this.z;
++    }
++
++    @Override
++    public SlimeChunkSection[] getSections() {
++        return this.sections;
++    }
++
++    @Override
++    public int getMinSection() {
++        return this.minY;
++    }
++
++    @Override
++    public int getMaxSection() {
++        return this.maxY;
++    }
++
++    @Override
++    public CompoundTag getHeightMaps() {
++        return this.heightMap;
++    }
++
++    @Override
++    public List<CompoundTag> getTileEntities() {
++        return this.tileEntities;
++    }
++
++    @Override
++    public List<CompoundTag> getEntities() {
++        return this.entities;
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f819200d7
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+@@ -0,0 +1,9 @@
++package com.infernalsuite.aswm.util;
++
++public class NmsUtil {
++
++    public static long asLong(int chunkX, int chunkZ) {
++        return (((long) chunkZ) * Integer.MAX_VALUE + ((long) chunkX));
++        //return (long)chunkX & 4294967295L | ((long)chunkZ & 4294967295L) << 32;
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/util/SlimeLogger.java b/src/main/java/com/infernalsuite/aswm/util/SlimeLogger.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..084d5a9ef50db05690923f98c14438d510ccfcaf
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/util/SlimeLogger.java
+@@ -0,0 +1,17 @@
++package com.infernalsuite.aswm.util;
++
++import java.util.logging.Level;
++import java.util.logging.Logger;
++
++public class SlimeLogger {
++
++    private static final Logger LOGGER = Logger.getLogger("ASWM-INTERNAL");
++
++    public static boolean DEBUG = false;
++
++    public static void debug(String message) {
++        if (DEBUG) {
++            LOGGER.log(Level.WARNING, message);
++        }
++    }
++}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/v1192SlimeWorld.java b/src/main/java/com/infernalsuite/aswm/v1192SlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c1bbc937b44c3256f35bba992f35ea5fa8b33908
+index 0000000000000000000000000000000000000000..460585972d0ce22debada74c22bc76096b381507
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/v1192SlimeWorld.java
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,242 @@
 +package com.infernalsuite.aswm;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1855,6 +4343,8 @@ index 0000000000000000000000000000000000000000..c1bbc937b44c3256f35bba992f35ea5f
 +import com.grinderwolf.swm.nms.world.ChunkSerialization;
 +import com.grinderwolf.swm.nms.world.SlimeLoadedWorld;
 +import com.infernalsuite.aswm.level.SlimeLevelInstance;
++import com.infernalsuite.aswm.util.NmsUtil;
++import com.infernalsuite.aswm.util.SlimeLogger;
 +import io.papermc.paper.chunk.system.scheduling.NewChunkHolder;
 +import io.papermc.paper.world.ChunkEntitySlices;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -2081,8 +4571,87 @@ index 0000000000000000000000000000000000000000..c1bbc937b44c3256f35bba992f35ea5f
 +    }
 +
 +}
+diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLightTask.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLightTask.java
+index 53ddd7e9ac05e6a9eb809f329796e6d4f6bb2ab1..f0350645c2d68a0e6e1531f77e293f32f39f509b 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLightTask.java
++++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLightTask.java
+@@ -139,7 +139,7 @@ public final class ChunkLightTask extends ChunkProgressionTask {
+         @Override
+         public boolean getAsBoolean() {
+             final ChunkLightTask task = this.task;
+-            // executed on light thread
++            // executed on sky thread
+             if (!task.priorityHolder.markExecuting()) {
+                 // cancelled
+                 return false;
+@@ -162,7 +162,7 @@ public final class ChunkLightTask extends ChunkProgressionTask {
+                 }
+             } catch (final Throwable thr) {
+                 if (!(thr instanceof ThreadDeath)) {
+-                    LOGGER.fatal("Failed to light chunk " + task.fromChunk.getPos().toString() + " in world '" + this.lightEngine.getWorld().getWorld().getName() + "'", thr);
++                    LOGGER.fatal("Failed to sky chunk " + task.fromChunk.getPos().toString() + " in world '" + this.lightEngine.getWorld().getWorld().getName() + "'", thr);
+                 }
+ 
+                 task.complete(null, thr);
+diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
+index 8013dd333e27aa5fd0beb431fa32491eec9f5246..8d2361aa3203e2c62fb8e39404702dbbad634618 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
++++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
+@@ -698,7 +698,7 @@ public final class NewChunkHolder {
+             return "chunk_serialization";
+         }
+ 
+-        // Note: light tasks do not need a check, as they add a ticket.
++        // Note: sky tasks do not need a check, as they add a ticket.
+ 
+         // nothing is using this chunk, so it should be unloaded
+         return null;
+diff --git a/src/main/java/io/papermc/paper/configuration/RemovedConfigurations.java b/src/main/java/io/papermc/paper/configuration/RemovedConfigurations.java
+index 1bb16fc7598cd53e822d84b69d6a9727b37f484f..7951d5814a1c989e022cedd25f553f068198988f 100644
+--- a/src/main/java/io/papermc/paper/configuration/RemovedConfigurations.java
++++ b/src/main/java/io/papermc/paper/configuration/RemovedConfigurations.java
+@@ -8,7 +8,7 @@ interface RemovedConfigurations {
+ 
+     NodePath[] REMOVED_WORLD_PATHS = {
+         path("elytra-hit-wall-damage"),
+-        path("queue-light-updates"),
++        path("queue-sky-updates"),
+         path("save-queue-limit-for-auto-save"),
+         path("max-chunk-sends-per-tick"),
+         path("max-chunk-gens-per-tick"),
+@@ -45,7 +45,7 @@ interface RemovedConfigurations {
+     };
+ 
+     NodePath[] REMOVED_GLOBAL_PATHS = {
+-        path("queue-light-updates-max-loss"),
++        path("queue-sky-updates-max-loss"),
+         path("sleep-between-chunk-saves"),
+         path("remove-invalid-statistics"),
+         path("min-chunk-load-threads"),
+diff --git a/src/main/java/io/papermc/paper/configuration/transformation/world/LegacyPaperWorldConfig.java b/src/main/java/io/papermc/paper/configuration/transformation/world/LegacyPaperWorldConfig.java
+index edaa6ef28c1f9a2239439698708897008fea2f7e..dc85d4317265f9f81ba77d6c036a6c42e4ff050c 100644
+--- a/src/main/java/io/papermc/paper/configuration/transformation/world/LegacyPaperWorldConfig.java
++++ b/src/main/java/io/papermc/paper/configuration/transformation/world/LegacyPaperWorldConfig.java
+@@ -196,7 +196,7 @@ public final class LegacyPaperWorldConfig {
+         moveFromRoot(builder, "count-all-mobs-for-spawning", "entities", "spawning");
+         moveFromRoot(builder, "creative-arrow-despawn-rate", "entities", "spawning");
+         moveFromRoot(builder, "non-player-arrow-despawn-rate", "entities", "spawning");
+-        moveFromRoot(builder, "monster-spawn-max-light-level", "entities", "spawning");
++        moveFromRoot(builder, "monster-spawn-max-sky-level", "entities", "spawning");
+ 
+ 
+         moveFromRootAndRename(builder, "duplicate-uuid-saferegen-delete-range", "safe-regen-delete-range", "entities", "spawning", "duplicate-uuid");
+@@ -300,7 +300,7 @@ public final class LegacyPaperWorldConfig {
+             return new Object[]{"misc", "redstone-implementation"};
+         });
+ 
+-        moveToMisc(builder, "light-queue-size");
++        moveToMisc(builder, "sky-queue-size");
+         moveToMisc(builder, "update-pathfinding-on-block-update");
+         moveToMisc(builder, "show-sign-click-command-failure-msgs-to-player");
+         moveToMisc(builder, "max-leash-distance");
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3a6672f0e 100644
+index b66dace70c6f94d9e246c802726751c4ec794420..2dbacae8af57ce58e62a197e0966c710ef0c07ec 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -461,18 +461,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2119,6 +4688,69 @@ index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3
  
              String worldType = (dimension == -999) ? dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath() : org.bukkit.World.Environment.getEnvironment(dimension).toString().toLowerCase();
              String name = (dimensionKey == LevelStem.OVERWORLD) ? s : s + "_" + worldType;
+@@ -809,7 +824,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         this.executeModerately();
+         // CraftBukkit end
+         if (worldserver.getWorld().getKeepSpawnInMemory()) worldloadlistener.stop(); // Paper
+-        chunkproviderserver.getLightEngine().setTaskPerBatch(worldserver.paperConfig().misc.lightQueueSize); // Paper - increase light queue size
++        chunkproviderserver.getLightEngine().setTaskPerBatch(worldserver.paperConfig().misc.lightQueueSize); // Paper - increase sky queue size
+         // CraftBukkit start
+         // this.updateMobSpawningFlags();
+         worldserver.setSpawnSettings(worldserver.serverLevelData.getDifficulty() != Difficulty.PEACEFUL && ((DedicatedServer) this).settings.getProperties().spawnMonsters, this.isSpawningAnimals()); // Paper - per level difficulty (from setDifficulty(ServerLevel, Difficulty, boolean))
+diff --git a/src/main/java/net/minecraft/server/level/ChunkMap.java b/src/main/java/net/minecraft/server/level/ChunkMap.java
+index 2212f9f48636357265d8e44aba415ea4f09f1fe7..72d06e845baad40b2a045b22c766ea776f7431d2 100644
+--- a/src/main/java/net/minecraft/server/level/ChunkMap.java
++++ b/src/main/java/net/minecraft/server/level/ChunkMap.java
+@@ -702,7 +702,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+         this.mainThreadExecutor.tell(Util.name(() -> {
+             this.distanceManager.removeTicket(TicketType.LIGHT, pos, 33 + ChunkStatus.getDistance(ChunkStatus.LIGHT), pos);
+         }, () -> {
+-            return "release light ticket " + pos;
++            return "release sky ticket " + pos;
+         }));
+     }
+ 
+@@ -1365,13 +1365,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+ 
+     // Paper start - Fix MC-162253
+     /**
+-     * Returns the light mask for the given chunk consisting of all non-empty sections that may need sending.
++     * Returns the sky mask for the given chunk consisting of all non-empty sections that may need sending.
+      */
+     private BitSet lightMask(final LevelChunk chunk) {
+         final net.minecraft.world.level.chunk.LevelChunkSection[] sections = chunk.getSections();
+         final BitSet mask = new BitSet(this.lightEngine.getLightSectionCount());
+ 
+-        // There are 2 more light sections than chunk sections so when iterating over
++        // There are 2 more sky sections than chunk sections so when iterating over
+         // sections we have to increment the index by 1
+         for (int i = 0; i < sections.length; i++) {
+             if (!sections[i].hasOnlyAir()) {
+@@ -1386,13 +1386,13 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+     }
+ 
+     /**
+-     * Returns the ceiling light mask of all sections that are equal or lower to the highest non-empty section.
++     * Returns the ceiling sky mask of all sections that are equal or lower to the highest non-empty section.
+      */
+     private BitSet ceilingLightMask(final LevelChunk chunk) {
+         final net.minecraft.world.level.chunk.LevelChunkSection[] sections = chunk.getSections();
+         for (int i = sections.length - 1; i >= 0; i--) {
+             if (!sections[i].hasOnlyAir()) {
+-                // Add one to get the light section, one because blocks in the section above may change, and another because BitSet's toIndex is exclusive
++                // Add one to get the sky section, one because blocks in the section above may change, and another because BitSet's toIndex is exclusive
+                 final int highest = i + 3;
+                 final BitSet mask = new BitSet(highest);
+                 mask.set(0, highest);
+@@ -1416,7 +1416,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+             final int playerChunkX = player.getBlockX() >> 4;
+             final int playerChunkZ = player.getBlockZ() >> 4;
+ 
+-            // For all loaded neighbours, send sky light for empty sections above highest non-empty section (+1) of the center chunk
++            // For all loaded neighbours, send sky sky for empty sections above highest non-empty section (+1) of the center chunk
+             // otherwise the client will try to calculate lighting there on its own
+             final BitSet lightMask = lightMask(chunk);
+             if (!lightMask.isEmpty()) {
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
 index f3a19d00f78e19aa98c57461efb90d79f656a992..d1b13e1a14ffd8a414ee1b489ed5a6fea9bec7bd 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
@@ -2168,6 +4800,717 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..d1b13e1a14ffd8a414ee1b489ed5a6fe
      public void setWeatherParameters(int clearDuration, int rainDuration, boolean raining, boolean thundering) {
          this.serverLevelData.setClearWeatherTime(clearDuration);
          this.serverLevelData.setRainTime(rainDuration);
+diff --git a/src/main/java/net/minecraft/server/level/ThreadedLevelLightEngine.java b/src/main/java/net/minecraft/server/level/ThreadedLevelLightEngine.java
+index 660693c6dc0ef86f4013df980b6d0c11c03e46cd..28484b33d52b31e357d43125552c526c502832c1 100644
+--- a/src/main/java/net/minecraft/server/level/ThreadedLevelLightEngine.java
++++ b/src/main/java/net/minecraft/server/level/ThreadedLevelLightEngine.java
+@@ -42,24 +42,24 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+     private volatile int taskPerBatch = 5;
+     // Paper - rewrite chunk system
+ 
+-    // Paper start - replace light engine impl
++    // Paper start - replace sky engine impl
+     public final ca.spottedleaf.starlight.common.light.StarLightInterface theLightEngine;
+     public final boolean hasBlockLight;
+     public final boolean hasSkyLight;
+-    // Paper end - replace light engine impl
++    // Paper end - replace sky engine impl
+ 
+     public ThreadedLevelLightEngine(LightChunkGetter chunkProvider, ChunkMap chunkStorage, boolean hasBlockLight, ProcessorMailbox<Runnable> processor, ProcessorHandle<ChunkTaskPriorityQueueSorter.Message<Runnable>> executor) {
+-        super(chunkProvider, false, false); // Paper - destroy vanilla light engine state
++        super(chunkProvider, false, false); // Paper - destroy vanilla sky engine state
+         this.chunkMap = chunkStorage;
+         // Paper - rewrite chunk system
+-        // Paper start - replace light engine impl
++        // Paper start - replace sky engine impl
+         this.hasBlockLight = true;
+         this.hasSkyLight = hasBlockLight; // Nice variable name.
+         this.theLightEngine = new ca.spottedleaf.starlight.common.light.StarLightInterface(chunkProvider, this.hasSkyLight, this.hasBlockLight, this);
+-        // Paper end - replace light engine impl
++        // Paper end - replace sky engine impl
+     }
+ 
+-    // Paper start - replace light engine impl
++    // Paper start - replace sky engine impl
+     protected final ChunkAccess getChunk(final int chunkX, final int chunkZ) {
+         return ((ServerLevel)this.theLightEngine.getWorld()).getChunkSource().getChunkAtImmediately(chunkX, chunkZ);
+     }
+@@ -169,7 +169,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public boolean hasLightWork() {
+-        // route to new light engine
++        // route to new sky engine
+         return this.theLightEngine.hasUpdates();
+     }
+ 
+@@ -180,14 +180,14 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public int getRawBrightness(final BlockPos pos, final int ambientDarkness) {
+-        // need to use new light hooks for this
++        // need to use new sky hooks for this
+         final int sky = this.theLightEngine.getSkyReader().getLightValue(pos) - ambientDarkness;
+-        // Don't fetch the block light level if the skylight level is 15, since the value will never be higher.
++        // Don't fetch the block sky level if the skylight level is 15, since the value will never be higher.
+         if (sky == 15) return 15;
+         final int block = this.theLightEngine.getBlockReader().getLightValue(pos);
+         return Math.max(sky, block);
+     }
+-    // Paper end - replace light engine imp
++    // Paper end - replace sky engine imp
+ 
+     @Override
+     public void close() {
+@@ -205,16 +205,16 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public void checkBlock(BlockPos pos) {
+-        // Paper start - replace light engine impl
++        // Paper start - replace sky engine impl
+         final BlockPos posCopy = pos.immutable();
+         this.queueTaskForSection(posCopy.getX() >> 4, posCopy.getY() >> 4, posCopy.getZ() >> 4, () -> {
+             return this.theLightEngine.blockChange(posCopy);
+         });
+-        // Paper end - replace light engine impl
++        // Paper end - replace sky engine impl
+     }
+ 
+     protected void updateChunkStatus(ChunkPos pos) {
+-        if (true) return; // Paper - replace light engine impl
++        if (true) return; // Paper - replace sky engine impl
+         this.addTask(pos.x, pos.z, () -> {
+             return 0;
+         }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> {
+@@ -237,16 +237,16 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public void updateSectionStatus(SectionPos pos, boolean notReady) {
+-        // Paper start - replace light engine impl
++        // Paper start - replace sky engine impl
+         this.queueTaskForSection(pos.getX(), pos.getY(), pos.getZ(), () -> {
+             return this.theLightEngine.sectionChange(pos, notReady);
+         });
+-        // Paper end - replace light engine impl
++        // Paper end - replace sky engine impl
+     }
+ 
+     @Override
+     public void enableLightSources(ChunkPos pos, boolean retainData) {
+-        if (true) return; // Paper - replace light engine impl
++        if (true) return; // Paper - replace sky engine impl
+         this.addTask(pos.x, pos.z, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> {
+             super.enableLightSources(pos, retainData);
+         }, () -> {
+@@ -256,7 +256,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public void queueSectionData(LightLayer lightType, SectionPos pos, @Nullable DataLayer nibbles, boolean nonEdge) {
+-        if (true) return; // Paper - replace light engine impl
++        if (true) return; // Paper - replace sky engine impl
+         this.addTask(pos.x(), pos.z(), () -> {
+             return 0;
+         }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> {
+@@ -276,7 +276,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+ 
+     @Override
+     public void retainData(ChunkPos pos, boolean retainData) {
+-        if (true) return; // Paper - replace light engine impl
++        if (true) return; // Paper - replace sky engine impl
+         this.addTask(pos.x, pos.z, () -> {
+             return 0;
+         }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> {
+@@ -299,7 +299,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+     }
+ 
+     public CompletableFuture<ChunkAccess> lightChunk(ChunkAccess chunk, boolean excludeBlocks) {
+-        // Paper start - replace light engine impl
++        // Paper start - replace sky engine impl
+         if (true) {
+             boolean lit = excludeBlocks;
+             final ChunkPos chunkPos = chunk.getPos();
+@@ -325,7 +325,7 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
+                 this.tryScheduleUpdate();
+             }).whenComplete((final ChunkAccess c, final Throwable throwable) -> {
+                 if (throwable != null) {
+-                    LOGGER.error("Failed to light chunk " + chunkPos, throwable);
++                    LOGGER.error("Failed to sky chunk " + chunkPos, throwable);
+                 }
+             });
+         }
+diff --git a/src/main/java/net/minecraft/server/level/TicketType.java b/src/main/java/net/minecraft/server/level/TicketType.java
+index e9bc61590d33dc341074371859ceec54599e6c47..cdaf8a9d1cc5cd8b78950c2c302e2b057b81db21 100644
+--- a/src/main/java/net/minecraft/server/level/TicketType.java
++++ b/src/main/java/net/minecraft/server/level/TicketType.java
+@@ -21,7 +21,7 @@ public class TicketType<T> {
+     });
+     public static final TicketType<ChunkPos> PLAYER = TicketType.create("player", Comparator.comparingLong(ChunkPos::toLong));
+     public static final TicketType<ChunkPos> FORCED = TicketType.create("forced", Comparator.comparingLong(ChunkPos::toLong));
+-    public static final TicketType<ChunkPos> LIGHT = TicketType.create("light", Comparator.comparingLong(ChunkPos::toLong));
++    public static final TicketType<ChunkPos> LIGHT = TicketType.create("sky", Comparator.comparingLong(ChunkPos::toLong));
+     public static final TicketType<BlockPos> PORTAL = TicketType.create("portal", Vec3i::compareTo, 300);
+     public static final TicketType<Long> LOGIN = create("login", Long::compareTo, 100); // Paper
+     public static final TicketType<Integer> POST_TELEPORT = TicketType.create("post_teleport", Integer::compareTo, 5);
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java b/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
+index 25ce337ed266be7bafeacd9eb6f53a9474775fc5..5495e6b47ba821a7a2882159d33b7803ab71c17c 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
+@@ -776,7 +776,7 @@ public abstract class BlockBehaviour implements FeatureElement {
+                 this.cache = new BlockBehaviour.BlockStateBase.Cache(this.asState());
+             }
+             this.shapeExceedsCube = this.cache == null || this.cache.largeCollisionShape; // Paper - moved from actual method to here
+-            this.opacityIfCached = this.cache == null || this.isConditionallyFullOpaque() ? -1 : this.cache.lightBlock; // Paper - starlight - cache opacity for light
++            this.opacityIfCached = this.cache == null || this.isConditionallyFullOpaque() ? -1 : this.cache.lightBlock; // Paper - starlight - cache opacity for sky
+ 
+             // Paper start
+             if (io.papermc.paper.util.CollisionUtil.isSpecialCollidingBlock(this)) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkAccess.java b/src/main/java/net/minecraft/world/level/chunk/ChunkAccess.java
+index e254b2d04e4fc1dc76c26f61ea38aeb27755143f..21362b7c254a2e67a1053f2b776372d761d8ac37 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkAccess.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkAccess.java
+@@ -81,7 +81,7 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
+     private static final org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry DATA_TYPE_REGISTRY = new org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry();
+     public org.bukkit.craftbukkit.persistence.DirtyCraftPersistentDataContainer persistentDataContainer = new org.bukkit.craftbukkit.persistence.DirtyCraftPersistentDataContainer(ChunkAccess.DATA_TYPE_REGISTRY);
+     // CraftBukkit end
+-    // Paper start - rewrite light engine
++    // Paper start - rewrite sky engine
+     private volatile ca.spottedleaf.starlight.common.light.SWMRNibbleArray[] blockNibbles;
+ 
+     private volatile ca.spottedleaf.starlight.common.light.SWMRNibbleArray[] skyNibbles;
+@@ -121,7 +121,7 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
+     public void setBlockEmptinessMap(final boolean[] emptinessMap) {
+         this.blockEmptinessMap = emptinessMap;
+     }
+-    // Paper end - rewrite light engine
++    // Paper end - rewrite sky engine
+ 
+     public ChunkAccess(ChunkPos pos, UpgradeData upgradeData, LevelHeightAccessor heightLimitView, Registry<Biome> biome, long inhabitedTime, @Nullable LevelChunkSection[] sectionArrayInitializer, @Nullable BlendingData blendingData) {
+         this.locX = pos.x; this.locZ = pos.z; // Paper - reduce need for field lookups
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+index 71df7c590e31932f2b8fc26a2afaaa54f52674ac..cd7449fb1e0a9f7a128d91dc7e34f6e4df135cf5 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+@@ -177,7 +177,7 @@ public class ChunkStatus {
+ 
+         return CompletableFuture.completedFuture(Either.left(ichunkaccess)); // Paper - rewrite chunk system
+     }); // Paper - rewrite chunk system
+-    public static final ChunkStatus LIGHT = ChunkStatus.register("light", ChunkStatus.FEATURES, 1, ChunkStatus.POST_FEATURES, ChunkStatus.ChunkType.PROTOCHUNK, (chunkstatus, executor, worldserver, chunkgenerator, structuretemplatemanager, lightenginethreaded, function, list, ichunkaccess, flag) -> {
++    public static final ChunkStatus LIGHT = ChunkStatus.register("sky", ChunkStatus.FEATURES, 1, ChunkStatus.POST_FEATURES, ChunkStatus.ChunkType.PROTOCHUNK, (chunkstatus, executor, worldserver, chunkgenerator, structuretemplatemanager, lightenginethreaded, function, list, ichunkaccess, flag) -> {
+         return ChunkStatus.lightChunk(chunkstatus, lightenginethreaded, ichunkaccess);
+     }, (chunkstatus, worldserver, structuretemplatemanager, lightenginethreaded, function, ichunkaccess) -> {
+         return ChunkStatus.lightChunk(chunkstatus, lightenginethreaded, ichunkaccess);
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ImposterProtoChunk.java b/src/main/java/net/minecraft/world/level/chunk/ImposterProtoChunk.java
+index 9a1cffd51aaf97f759a9057aefbf50bd6f5ed028..aef06590fa386acb2854e9d78251affa78b34eb3 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ImposterProtoChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ImposterProtoChunk.java
+@@ -31,7 +31,7 @@ public class ImposterProtoChunk extends ProtoChunk {
+     private final LevelChunk wrapped;
+     private final boolean allowWrites;
+ 
+-    // Paper start - rewrite light engine
++    // Paper start - rewrite sky engine
+     @Override
+     public ca.spottedleaf.starlight.common.light.SWMRNibbleArray[] getBlockNibbles() {
+         return this.wrapped.getBlockNibbles();
+@@ -71,7 +71,7 @@ public class ImposterProtoChunk extends ProtoChunk {
+     public void setBlockEmptinessMap(final boolean[] emptinessMap) {
+         this.wrapped.setBlockEmptinessMap(emptinessMap);
+     }
+-    // Paper end - rewrite light engine
++    // Paper end - rewrite sky engine
+ 
+     public ImposterProtoChunk(LevelChunk wrapped, boolean bl) {
+         super(wrapped.getPos(), UpgradeData.EMPTY, wrapped.levelHeightAccessor, wrapped.getLevel().registryAccess().registryOrThrow(Registries.BIOME), wrapped.getBlendingData());
+diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+index 28e4b302284f955a73e75d0f4276d55fb51826f5..3719143c21d81c2e28dc4107dd66e13f9fc2a4db 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+@@ -94,10 +94,10 @@ public class LevelChunk extends ChunkAccess {
+ 
+     public LevelChunk(Level world, ChunkPos pos, UpgradeData upgradeData, LevelChunkTicks<Block> blockTickScheduler, LevelChunkTicks<Fluid> fluidTickScheduler, long inhabitedTime, @Nullable LevelChunkSection[] sectionArrayInitializer, @Nullable LevelChunk.PostLoadProcessor entityLoader, @Nullable BlendingData blendingData) {
+         super(pos, upgradeData, world, net.minecraft.server.MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME), inhabitedTime, sectionArrayInitializer, blendingData); // Paper - Anti-Xray - The world isn't ready yet, use server singleton for registry
+-        // Paper start - rewrite light engine
++        // Paper start - rewrite sky engine
+         this.setBlockNibbles(ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(world));
+         this.setSkyNibbles(ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(world));
+-        // Paper end - rewrite light engine
++        // Paper end - rewrite sky engine
+         this.tickersInLevel = Maps.newHashMap();
+         this.clientLightReady = false;
+         this.level = (ServerLevel) world; // CraftBukkit - type
+@@ -364,12 +364,12 @@ public class LevelChunk extends ChunkAccess {
+ 
+     public LevelChunk(ServerLevel world, ProtoChunk protoChunk, @Nullable LevelChunk.PostLoadProcessor entityLoader) {
+         this(world, protoChunk.getPos(), protoChunk.getUpgradeData(), protoChunk.unpackBlockTicks(), protoChunk.unpackFluidTicks(), protoChunk.getInhabitedTime(), protoChunk.getSections(), entityLoader, protoChunk.getBlendingData());
+-        // Paper start - rewrite light engine
++        // Paper start - rewrite sky engine
+         this.setBlockNibbles(protoChunk.getBlockNibbles());
+         this.setSkyNibbles(protoChunk.getSkyNibbles());
+         this.setSkyEmptinessMap(protoChunk.getSkyEmptinessMap());
+         this.setBlockEmptinessMap(protoChunk.getBlockEmptinessMap());
+-        // Paper end - rewrite light engine
++        // Paper end - rewrite sky engine
+         Iterator iterator = protoChunk.getBlockEntities().values().iterator();
+ 
+         while (iterator.hasNext()) {
+@@ -840,7 +840,7 @@ public class LevelChunk extends ChunkAccess {
+         this.playerChunk = chunkHolder.vanillaChunkHolder;
+     }
+ 
+-    /* Note: We skip the light neighbour chunk loading done for the vanilla full chunk */
++    /* Note: We skip the sky neighbour chunk loading done for the vanilla full chunk */
+     /* Starlight does not need these chunks for lighting purposes because of edge checks */
+     public void pushChunkIntoLoadedMap() {
+         int chunkX = this.chunkPos.x;
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java b/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
+index c24b4c6a560aab2df07783b3481981deb8571a50..fed0cb857fe838e84ed882e586162641922fc3d5 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
+@@ -55,12 +55,12 @@ public class ProtoChunk extends ChunkAccess {
+ 
+     public ProtoChunk(ChunkPos pos, UpgradeData upgradeData, @Nullable LevelChunkSection[] sections, ProtoChunkTicks<Block> blockTickScheduler, ProtoChunkTicks<Fluid> fluidTickScheduler, LevelHeightAccessor world, Registry<Biome> biomeRegistry, @Nullable BlendingData blendingData) {
+         super(pos, upgradeData, world, biomeRegistry, 0L, sections, blendingData);
+-        // Paper start - rewrite light engine
++        // Paper start - rewrite sky engine
+         if (!(this instanceof ImposterProtoChunk)) {
+             this.setBlockNibbles(ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(world));
+             this.setSkyNibbles(ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(world));
+         }
+-        // Paper end - rewrite light engine
++        // Paper end - rewrite sky engine
+         this.blockTicks = blockTickScheduler;
+         this.fluidTicks = fluidTickScheduler;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
+index d4c4d37bcef14e392739d9aae9e20b7d69b05c12..45aa8fc47fa4be697c36f65d76435329881a9ea8 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
+@@ -96,13 +96,13 @@ public class ChunkSerializer {
+     public static final String BLOCK_LIGHT_TAG = "BlockLight";
+     public static final String SKY_LIGHT_TAG = "SkyLight";
+ 
+-    // Paper start - replace light engine impl
++    // Paper start - replace sky engine impl
+     private static final int STARLIGHT_LIGHT_VERSION = 8;
+ 
+     private static final String BLOCKLIGHT_STATE_TAG = "starlight.blocklight_state";
+     private static final String SKYLIGHT_STATE_TAG = "starlight.skylight_state";
+     private static final String STARLIGHT_VERSION_TAG = "starlight.light_version";
+-    // Paper end - replace light engine impl
++    // Paper end - replace sky engine impl
+ 
+     public ChunkSerializer() {}
+ 
+@@ -231,39 +231,39 @@ public class ChunkSerializer {
+             boolean flag3 = nbttagcompound1.contains("BlockLight", 7);
+             boolean flag4 = flag1 && nbttagcompound1.contains("SkyLight", 7);
+ 
+-            // Paper start - rewrite the light engine
++            // Paper start - rewrite the sky engine
+             if (flag) {
+                 try {
+                 int y = sectionData.getByte("Y");
+-                // Paper end - rewrite the light engine
++                // Paper end - rewrite the sky engine
+                 if (flag3) {
+-                    // Paper start - rewrite the light engine
++                    // Paper start - rewrite the sky engine
+                     // this is where our diff is
+                     blockNibbles[y - minSection] = new ca.spottedleaf.starlight.common.light.SWMRNibbleArray(sectionData.getByteArray("BlockLight").clone(), sectionData.getInt(BLOCKLIGHT_STATE_TAG)); // clone for data safety
+                 } else {
+                     blockNibbles[y - minSection] = new ca.spottedleaf.starlight.common.light.SWMRNibbleArray(null, sectionData.getInt(BLOCKLIGHT_STATE_TAG));
+-                    // Paper end - rewrite the light engine
++                    // Paper end - rewrite the sky engine
+                 }
+ 
+                 if (flag4) {
+-                    // Paper start - rewrite the light engine
++                    // Paper start - rewrite the sky engine
+                     // we store under the same key so mod programs editing nbt
+                     // can still read the data, hopefully.
+                     // however, for compatibility we store chunks as unlit so vanilla
+-                    // is forced to re-light them if it encounters our data. It's too much of a burden
++                    // is forced to re-sky them if it encounters our data. It's too much of a burden
+                     // to try and maintain compatibility with a broken and inferior skylight management system.
+                     skyNibbles[y - minSection] = new ca.spottedleaf.starlight.common.light.SWMRNibbleArray(sectionData.getByteArray("SkyLight").clone(), sectionData.getInt(SKYLIGHT_STATE_TAG)); // clone for data safety
+                 } else if (flag1) {
+                     skyNibbles[y - minSection] = new ca.spottedleaf.starlight.common.light.SWMRNibbleArray(null, sectionData.getInt(SKYLIGHT_STATE_TAG));
+-                    // Paper end - rewrite the light engine
++                    // Paper end - rewrite the sky engine
+                 }
+ 
+-                // Paper start - rewrite the light engine
++                // Paper start - rewrite the sky engine
+                 } catch (Exception ex) {
+-                    LOGGER.warn("Failed to load light data for chunk " + chunkPos + " in world '" + world.getWorld().getName() + "', light will be regenerated", ex);
++                    LOGGER.warn("Failed to load sky data for chunk " + chunkPos + " in world '" + world.getWorld().getName() + "', sky will be regenerated", ex);
+                     flag = false;
+                 }
+-                // Paper end - rewrite light engine
++                // Paper end - rewrite sky engine
+             }
+         }
+ 
+@@ -292,8 +292,8 @@ public class ChunkSerializer {
+             }, chunkPos);
+ 
+             object1 = new LevelChunk(world.getLevel(), chunkPos, chunkconverter, levelchunkticks, levelchunkticks1, l, achunksection, ChunkSerializer.postLoadChunk(world, nbt), blendingdata);
+-            ((LevelChunk)object1).setBlockNibbles(blockNibbles); // Paper - replace light impl
+-            ((LevelChunk)object1).setSkyNibbles(skyNibbles); // Paper - replace light impl
++            ((LevelChunk)object1).setBlockNibbles(blockNibbles); // Paper - replace sky impl
++            ((LevelChunk)object1).setSkyNibbles(skyNibbles); // Paper - replace sky impl
+         } else {
+             ProtoChunkTicks<Block> protochunkticklist = ProtoChunkTicks.load(nbt.getList("block_ticks", 10), (s) -> {
+                 return BuiltInRegistries.BLOCK.getOptional(ResourceLocation.tryParse(s));
+@@ -302,8 +302,8 @@ public class ChunkSerializer {
+                 return BuiltInRegistries.FLUID.getOptional(ResourceLocation.tryParse(s));
+             }, chunkPos);
+             ProtoChunk protochunk = new ProtoChunk(chunkPos, chunkconverter, achunksection, protochunkticklist, protochunkticklist1, world, iregistry, blendingdata);
+-            protochunk.setBlockNibbles(blockNibbles); // Paper - replace light impl
+-            protochunk.setSkyNibbles(skyNibbles); // Paper - replace light impl
++            protochunk.setBlockNibbles(blockNibbles); // Paper - replace sky impl
++            protochunk.setSkyNibbles(skyNibbles); // Paper - replace sky impl
+ 
+             object1 = protochunk;
+             protochunk.setInhabitedTime(l);
+@@ -327,7 +327,7 @@ public class ChunkSerializer {
+             BelowZeroRetrogen belowzeroretrogen = protochunk.getBelowZeroRetrogen();
+             boolean flag5 = chunkstatus.isOrAfter(ChunkStatus.LIGHT) || belowzeroretrogen != null && belowzeroretrogen.targetStatus().isOrAfter(ChunkStatus.LIGHT);
+ 
+-            if (!flag) { // Paper - fix incorrect parsing of blocks that emit light - it should always parse it, unless the chunk is marked as lit
++            if (!flag) { // Paper - fix incorrect parsing of blocks that emit sky - it should always parse it, unless the chunk is marked as lit
+                 // Paper start - let's make sure the implementation isn't as slow as possible
+                 int offX = chunkPos.x << 4;
+                 int offZ = chunkPos.z << 4;
+@@ -502,12 +502,12 @@ public class ChunkSerializer {
+     }
+     public static CompoundTag saveChunk(ServerLevel world, ChunkAccess chunk, @org.checkerframework.checker.nullness.qual.Nullable AsyncSaveData asyncsavedata) {
+         // Paper end
+-        // Paper start - rewrite light impl
++        // Paper start - rewrite sky impl
+         final int minSection = io.papermc.paper.util.WorldUtil.getMinLightSection(world);
+         final int maxSection = io.papermc.paper.util.WorldUtil.getMaxLightSection(world);
+         ca.spottedleaf.starlight.common.light.SWMRNibbleArray[] blockNibbles = chunk.getBlockNibbles();
+         ca.spottedleaf.starlight.common.light.SWMRNibbleArray[] skyNibbles = chunk.getSkyNibbles();
+-        // Paper end - rewrite light impl
++        // Paper end - rewrite sky impl
+         ChunkPos chunkcoordintpair = chunk.getPos();
+         CompoundTag nbttagcompound = new CompoundTag();
+ 
+@@ -558,13 +558,13 @@ public class ChunkSerializer {
+         for (int i = lightenginethreaded.getMinLightSection(); i < lightenginethreaded.getMaxLightSection(); ++i) {
+             int j = chunk.getSectionIndexFromSectionY(i);
+             boolean flag1 = j >= 0 && j < achunksection.length;
+-            // Paper - replace light engine
++            // Paper - replace sky engine
+ 
+-            // Paper start - replace light engine
++            // Paper start - replace sky engine
+             ca.spottedleaf.starlight.common.light.SWMRNibbleArray.SaveState blockNibble = blockNibbles[i - minSection].getSaveState();
+             ca.spottedleaf.starlight.common.light.SWMRNibbleArray.SaveState skyNibble = skyNibbles[i - minSection].getSaveState();
+             if (flag1 || blockNibble != null || skyNibble != null) {
+-                // Paper end - replace light engine
++                // Paper end - replace sky engine
+                 CompoundTag nbttagcompound1 = new CompoundTag(); CompoundTag section = nbttagcompound1; // Paper
+ 
+                 if (flag1) {
+@@ -584,7 +584,7 @@ public class ChunkSerializer {
+                 // we store under the same key so mod programs editing nbt
+                 // can still read the data, hopefully.
+                 // however, for compatibility we store chunks as unlit so vanilla
+-                // is forced to re-light them if it encounters our data. It's too much of a burden
++                // is forced to re-sky them if it encounters our data. It's too much of a burden
+                 // to try and maintain compatibility with a broken and inferior skylight management system.
+ 
+                 if (blockNibble != null) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
+index 5a425be023d77f0370d102dfb52427147849ac1a..fa846c9ddb6a602e327f6957f8a493be03defee8 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
+@@ -51,7 +51,7 @@ public class ChunkStorage implements AutoCloseable {
+ 
+     // CraftBukkit start
+     private boolean check(ServerChunkCache cps, int x, int z) {
+-        if (true) return true; // Paper - this isn't even needed anymore, light is purged updating to 1.14+, why are we holding up the conversion process reading chunk data off disk - return true, we need to set light populated to true so the converter recognizes the chunk as being "full"
++        if (true) return true; // Paper - this isn't even needed anymore, sky is purged updating to 1.14+, why are we holding up the conversion process reading chunk data off disk - return true, we need to set sky populated to true so the converter recognizes the chunk as being "full"
+         ChunkPos pos = new ChunkPos(x, z);
+         if (cps != null) {
+             //com.google.common.base.Preconditions.checkState(org.bukkit.Bukkit.isPrimaryThread(), "primary thread"); // Paper - this function is now MT-Safe
+diff --git a/src/main/java/net/minecraft/world/level/lighting/BlockLightSectionStorage.java b/src/main/java/net/minecraft/world/level/lighting/BlockLightSectionStorage.java
+index 314b46f0becd088d26956b45981217b128d539cb..4c505dfe86c1a664ab9da21423c2f950067be1ab 100644
+--- a/src/main/java/net/minecraft/world/level/lighting/BlockLightSectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/lighting/BlockLightSectionStorage.java
+@@ -9,7 +9,7 @@ import net.minecraft.world.level.chunk.LightChunkGetter;
+ 
+ public class BlockLightSectionStorage extends LayerLightSectionStorage<BlockLightSectionStorage.BlockDataLayerStorageMap> {
+     protected BlockLightSectionStorage(LightChunkGetter chunkProvider) {
+-        super(LightLayer.BLOCK, chunkProvider, new BlockLightSectionStorage.BlockDataLayerStorageMap(new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<>(), false)); // Paper - avoid copying light data
++        super(LightLayer.BLOCK, chunkProvider, new BlockLightSectionStorage.BlockDataLayerStorageMap(new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<>(), false)); // Paper - avoid copying sky data
+     }
+ 
+     @Override
+@@ -20,13 +20,13 @@ public class BlockLightSectionStorage extends LayerLightSectionStorage<BlockLigh
+     }
+ 
+     protected static final class BlockDataLayerStorageMap extends DataLayerStorageMap<BlockLightSectionStorage.BlockDataLayerStorageMap> {
+-        public BlockDataLayerStorageMap(com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> long2objectopenhashmap, boolean isVisible) { // Paper - avoid copying light data
+-            super(long2objectopenhashmap, isVisible); // Paper - avoid copying light data
++        public BlockDataLayerStorageMap(com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> long2objectopenhashmap, boolean isVisible) { // Paper - avoid copying sky data
++            super(long2objectopenhashmap, isVisible); // Paper - avoid copying sky data
+         }
+ 
+         @Override
+         public BlockLightSectionStorage.BlockDataLayerStorageMap copy() {
+-            return new BlockDataLayerStorageMap(this.data, true); // Paper - avoid copying light data
++            return new BlockDataLayerStorageMap(this.data, true); // Paper - avoid copying sky data
+         }
+     }
+ }
+diff --git a/src/main/java/net/minecraft/world/level/lighting/DataLayerStorageMap.java b/src/main/java/net/minecraft/world/level/lighting/DataLayerStorageMap.java
+index f357a3473682c2d37a20fb862522c67b9979402a..ba4c3f1abeac51e6de3eaea376c19c521f190f96 100644
+--- a/src/main/java/net/minecraft/world/level/lighting/DataLayerStorageMap.java
++++ b/src/main/java/net/minecraft/world/level/lighting/DataLayerStorageMap.java
+@@ -9,11 +9,11 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
+     private final long[] lastSectionKeys = new long[2];
+     private final DataLayer[] lastSections = new DataLayer[2];
+     private boolean cacheEnabled;
+-    protected final com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> data; // Paper - avoid copying light data
+-    protected final boolean isVisible; // Paper - avoid copying light data
++    protected final com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> data; // Paper - avoid copying sky data
++    protected final boolean isVisible; // Paper - avoid copying sky data
+     java.util.function.Function<Long, DataLayer> lookup; // Paper - faster branchless lookup
+ 
+-    // Paper start - avoid copying light data
++    // Paper start - avoid copying sky data
+     protected DataLayerStorageMap(com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> data, boolean isVisible) {
+         if (isVisible) {
+             data.performUpdatesLockMap();
+@@ -25,7 +25,7 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
+         } else {
+             lookup = data::getUpdating;
+         }
+-        // Paper end - avoid copying light data
++        // Paper end - avoid copying sky data
+         this.clearCache();
+         this.cacheEnabled = true;
+     }
+@@ -33,13 +33,13 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
+     public abstract M copy();
+ 
+     public void copyDataLayer(long pos) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+-        this.data.queueUpdate(pos, ((DataLayer) this.data.getUpdating(pos)).copy()); // Paper - avoid copying light data
++        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying sky data
++        this.data.queueUpdate(pos, ((DataLayer) this.data.getUpdating(pos)).copy()); // Paper - avoid copying sky data
+         this.clearCache();
+     }
+ 
+     public boolean hasLayer(long chunkPos) {
+-        return lookup.apply(chunkPos) != null; // Paper - avoid copying light data
++        return lookup.apply(chunkPos) != null; // Paper - avoid copying sky data
+     }
+ 
+     @Nullable
+@@ -52,7 +52,7 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
+             }
+         }
+ 
+-        DataLayer dataLayer = lookup.apply(chunkPos); // Paper - avoid copying light data
++        DataLayer dataLayer = lookup.apply(chunkPos); // Paper - avoid copying sky data
+         if (dataLayer == null) {
+             return null;
+         } else {
+@@ -72,13 +72,13 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
+ 
+     @Nullable
+     public DataLayer removeLayer(long chunkPos) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+-        return (DataLayer) this.data.queueRemove(chunkPos); // Paper - avoid copying light data
++        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying sky data
++        return (DataLayer) this.data.queueRemove(chunkPos); // Paper - avoid copying sky data
+     }
+ 
+     public void setLayer(long pos, DataLayer data) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+-        this.data.queueUpdate(pos, data); // Paper - avoid copying light data
++        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying sky data
++        this.data.queueUpdate(pos, data); // Paper - avoid copying sky data
+     }
+ 
+     public void clearCache() {
+diff --git a/src/main/java/net/minecraft/world/level/lighting/LayerLightSectionStorage.java b/src/main/java/net/minecraft/world/level/lighting/LayerLightSectionStorage.java
+index 85175b01b1623b3bc66c65805cec26eaead48265..73d9f10795efccc8e389a974e8a1843814d0a48f 100644
+--- a/src/main/java/net/minecraft/world/level/lighting/LayerLightSectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/lighting/LayerLightSectionStorage.java
+@@ -42,8 +42,8 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
+         this.layer = lightType;
+         this.chunkSource = chunkProvider;
+         this.updatingSectionData = lightData;
+-        this.e_visible = lightData.copy(); // Paper - avoid copying light dat
+-        this.e_visible.disableCache(); // Paper - avoid copying light dat
++        this.e_visible = lightData.copy(); // Paper - avoid copying sky dat
++        this.e_visible.disableCache(); // Paper - avoid copying sky dat
+     }
+ 
+     protected boolean storingLightForSection(long sectionPos) {
+@@ -52,7 +52,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
+ 
+     @Nullable
+     protected DataLayer getDataLayer(long sectionPos, boolean cached) {
+-        // Paper start - avoid copying light data
++        // Paper start - avoid copying sky data
+         if (cached) {
+             return this.getDataLayer(this.updatingSectionData, sectionPos);
+         } else {
+@@ -60,7 +60,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
+                 return this.getDataLayer(this.e_visible, sectionPos);
+             }
+         }
+-        // Paper end - avoid copying light data
++        // Paper end - avoid copying sky data
+     }
+ 
+     @Nullable
+@@ -350,11 +350,11 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
+ 
+     protected void swapSectionMap() {
+         if (!this.changedSections.isEmpty()) {
+-            synchronized (this.visibleUpdateLock) { // Paper - avoid copying light data
++            synchronized (this.visibleUpdateLock) { // Paper - avoid copying sky data
+             M dataLayerStorageMap = this.updatingSectionData.copy();
+             dataLayerStorageMap.disableCache();
+-            this.e_visible = dataLayerStorageMap; // Paper - avoid copying light data
+-            } // Paper - avoid copying light data
++            this.e_visible = dataLayerStorageMap; // Paper - avoid copying sky data
++            } // Paper - avoid copying sky data
+             this.changedSections.clear();
+         }
+ 
+diff --git a/src/main/java/net/minecraft/world/level/lighting/SkyLightSectionStorage.java b/src/main/java/net/minecraft/world/level/lighting/SkyLightSectionStorage.java
+index e6c857c8b4e4e65e3cf6a75ce6d844ff61acb566..7b5782a422500a5901365268a6db18678d680d2e 100644
+--- a/src/main/java/net/minecraft/world/level/lighting/SkyLightSectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/lighting/SkyLightSectionStorage.java
+@@ -21,7 +21,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+     private volatile boolean hasSourceInconsistencies;
+ 
+     protected SkyLightSectionStorage(LightChunkGetter chunkProvider) {
+-        super(LightLayer.SKY, chunkProvider, new SkyLightSectionStorage.SkyDataLayerStorageMap(new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<>(), new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Int(), Integer.MAX_VALUE, false)); // Paper - avoid copying light data
++        super(LightLayer.SKY, chunkProvider, new SkyLightSectionStorage.SkyDataLayerStorageMap(new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<>(), new com.destroystokyo.paper.util.map.QueuedChangesMapLong2Int(), Integer.MAX_VALUE, false)); // Paper - avoid copying sky data
+     }
+ 
+     @Override
+@@ -32,9 +32,9 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+     protected int getLightValue(long blockPos, boolean cached) {
+         long l = SectionPos.blockToSection(blockPos);
+         int i = SectionPos.y(l);
+-        synchronized (this.visibleUpdateLock) { // Paper - avoid copying light data
+-        SkyLightSectionStorage.SkyDataLayerStorageMap skyDataLayerStorageMap = (SkyLightSectionStorage.SkyDataLayerStorageMap) this.e_visible; // Paper - avoid copying light data - must be after lock acquire
+-        int j = skyDataLayerStorageMap.otherData.getVisibleAsync(SectionPos.getZeroNode(l)); // Paper - avoid copying light data
++        synchronized (this.visibleUpdateLock) { // Paper - avoid copying sky data
++        SkyLightSectionStorage.SkyDataLayerStorageMap skyDataLayerStorageMap = (SkyLightSectionStorage.SkyDataLayerStorageMap) this.e_visible; // Paper - avoid copying sky data - must be after lock acquire
++        int j = skyDataLayerStorageMap.otherData.getVisibleAsync(SectionPos.getZeroNode(l)); // Paper - avoid copying sky data
+         if (j != skyDataLayerStorageMap.currentLowestY && i < j) {
+             DataLayer dataLayer = this.getDataLayer(skyDataLayerStorageMap, l);
+             if (dataLayer == null) {
+@@ -53,7 +53,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+         } else {
+             return cached && !this.lightOnInSection(l) ? 0 : 15;
+         }
+-        } // Paper - avoid copying light data
++        } // Paper - avoid copying sky data
+     }
+ 
+     @Override
+@@ -61,13 +61,13 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+         int i = SectionPos.y(sectionPos);
+         if ((this.updatingSectionData).currentLowestY > i) {
+             (this.updatingSectionData).currentLowestY = i;
+-            (this.updatingSectionData).otherData.queueDefaultReturnValue((this.updatingSectionData).currentLowestY); // Paper - avoid copying light data
++            (this.updatingSectionData).otherData.queueDefaultReturnValue((this.updatingSectionData).currentLowestY); // Paper - avoid copying sky data
+         }
+ 
+         long l = SectionPos.getZeroNode(sectionPos);
+-        int j = (this.updatingSectionData).otherData.getUpdating(l); // Paper - avoid copying light data
++        int j = (this.updatingSectionData).otherData.getUpdating(l); // Paper - avoid copying sky data
+         if (j < i + 1) {
+-            (this.updatingSectionData).otherData.queueUpdate(l, i + 1); // Paper - avoid copying light data
++            (this.updatingSectionData).otherData.queueUpdate(l, i + 1); // Paper - avoid copying sky data
+             if (this.columnsWithSkySources.contains(l)) {
+                 this.queueAddSource(sectionPos);
+                 if (j > (this.updatingSectionData).currentLowestY) {
+@@ -104,19 +104,19 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+         }
+ 
+         int i = SectionPos.y(sectionPos);
+-        if ((this.updatingSectionData).otherData.getUpdating(l) == i + 1) { // Paper - avoid copying light data
++        if ((this.updatingSectionData).otherData.getUpdating(l) == i + 1) { // Paper - avoid copying sky data
+             long m;
+             for(m = sectionPos; !this.storingLightForSection(m) && this.hasSectionsBelow(i); m = SectionPos.offset(m, Direction.DOWN)) {
+                 --i;
+             }
+ 
+             if (this.storingLightForSection(m)) {
+-                (this.updatingSectionData).otherData.queueUpdate(l, i + 1); // Paper - avoid copying light data
++                (this.updatingSectionData).otherData.queueUpdate(l, i + 1); // Paper - avoid copying sky data
+                 if (bl) {
+                     this.queueAddSource(m);
+                 }
+             } else {
+-                (this.updatingSectionData).otherData.queueRemove(l); // Paper - avoid copying light data
++                (this.updatingSectionData).otherData.queueRemove(l); // Paper - avoid copying sky data
+             }
+         }
+ 
+@@ -130,7 +130,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+     protected void enableLightSources(long columnPos, boolean enabled) {
+         this.runAllUpdates();
+         if (enabled && this.columnsWithSkySources.add(columnPos)) {
+-            int i = (this.updatingSectionData).otherData.getUpdating(columnPos); // Paper - avoid copying light data
++            int i = (this.updatingSectionData).otherData.getUpdating(columnPos); // Paper - avoid copying sky data
+             if (i != (this.updatingSectionData).currentLowestY) {
+                 long l = SectionPos.asLong(SectionPos.x(columnPos), i - 1, SectionPos.z(columnPos));
+                 this.queueAddSource(l);
+@@ -154,7 +154,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+             return dataLayer;
+         } else {
+             long l = SectionPos.offset(sectionPos, Direction.UP);
+-            int i = (this.updatingSectionData).otherData.getUpdating(SectionPos.getZeroNode(sectionPos)); // Paper - avoid copying light data
++            int i = (this.updatingSectionData).otherData.getUpdating(SectionPos.getZeroNode(sectionPos)); // Paper - avoid copying sky data
+             if (i != (this.updatingSectionData).currentLowestY && SectionPos.y(l) < i) {
+                 DataLayer dataLayer2;
+                 while((dataLayer2 = this.getDataLayer(l, true)) == null) {
+@@ -277,7 +277,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+ 
+     protected boolean isAboveData(long sectionPos) {
+         long l = SectionPos.getZeroNode(sectionPos);
+-        int i = (this.updatingSectionData).otherData.getUpdating(l); // Paper - avoid copying light data
++        int i = (this.updatingSectionData).otherData.getUpdating(l); // Paper - avoid copying sky data
+         return i == (this.updatingSectionData).currentLowestY || SectionPos.y(sectionPos) >= i;
+     }
+ 
+@@ -288,9 +288,9 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+ 
+     protected static final class SkyDataLayerStorageMap extends DataLayerStorageMap<SkyLightSectionStorage.SkyDataLayerStorageMap> {
+         int currentLowestY;
+-        private final com.destroystokyo.paper.util.map.QueuedChangesMapLong2Int otherData; // Paper - avoid copying light data
++        private final com.destroystokyo.paper.util.map.QueuedChangesMapLong2Int otherData; // Paper - avoid copying sky data
+ 
+-        // Paper start - avoid copying light data
++        // Paper start - avoid copying sky data
+         public SkyDataLayerStorageMap(com.destroystokyo.paper.util.map.QueuedChangesMapLong2Object<DataLayer> arrays, com.destroystokyo.paper.util.map.QueuedChangesMapLong2Int columnToTopSection, int minSectionY, boolean isVisible) {
+             super(arrays, isVisible);
+             this.otherData = columnToTopSection;
+@@ -301,8 +301,8 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
+ 
+         @Override
+         public SkyLightSectionStorage.SkyDataLayerStorageMap copy() {
+-            this.otherData.performUpdatesLockMap(); // Paper - avoid copying light data
+-            return new SkyLightSectionStorage.SkyDataLayerStorageMap(this.data, this.otherData, this.currentLowestY, true); // Paper - avoid copying light data
++            this.otherData.performUpdatesLockMap(); // Paper - avoid copying sky data
++            return new SkyLightSectionStorage.SkyDataLayerStorageMap(this.data, this.otherData, this.currentLowestY, true); // Paper - avoid copying sky data
+         }
+     }
+ }
 diff --git a/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java b/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java
 index 5049e969e06f4cc1826378249548064042c28410..a86c02832ea7e6b9052acd1b1f55bf5416bba7b8 100644
 --- a/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java
@@ -2189,3 +5532,29 @@ index 5049e969e06f4cc1826378249548064042c28410..a86c02832ea7e6b9052acd1b1f55bf54
          public LevelStorageAccess(String s, ResourceKey<LevelStem> dimensionType) throws IOException {
              this.dimensionType = dimensionType;
              // CraftBukkit end
+diff --git a/src/main/java/org/bukkit/craftbukkit/generator/CustomChunkGenerator.java b/src/main/java/org/bukkit/craftbukkit/generator/CustomChunkGenerator.java
+index a9673a804d597599c35c83f4f245510c83005328..62850cbfb6639bb8f0127f8c539bc74bec475c3a 100644
+--- a/src/main/java/org/bukkit/craftbukkit/generator/CustomChunkGenerator.java
++++ b/src/main/java/org/bukkit/craftbukkit/generator/CustomChunkGenerator.java
+@@ -223,7 +223,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
+             }
+         }
+ 
+-        // Apply captured light blocks
++        // Apply captured sky blocks
+         for (BlockPos lightPosition : craftData.getLights()) {
+             ((ProtoChunk) chunk).addLight(new BlockPos((x << 4) + lightPosition.getX(), lightPosition.getY(), (z << 4) + lightPosition.getZ()));
+         }
+diff --git a/src/main/java/org/bukkit/craftbukkit/generator/OldCraftChunkData.java b/src/main/java/org/bukkit/craftbukkit/generator/OldCraftChunkData.java
+index ce006e1d6c38e5b0bdb336c480fb9d291292f75c..27825de7abef2e20d20310fcd3f2564ddcd42ea1 100644
+--- a/src/main/java/org/bukkit/craftbukkit/generator/OldCraftChunkData.java
++++ b/src/main/java/org/bukkit/craftbukkit/generator/OldCraftChunkData.java
+@@ -161,7 +161,7 @@ public final class OldCraftChunkData implements ChunkGenerator.ChunkData {
+         LevelChunkSection section = this.getChunkSection(y, true);
+         section.setBlockState(x, y & 0xf, z, type);
+ 
+-        // SPIGOT-1753: Capture light blocks, for light updates
++        // SPIGOT-1753: Capture sky blocks, for sky updates
+         if (type.getLightEmission() > 0) {
+             this.lights.add(new BlockPos(x, y, z));
+         } else {
