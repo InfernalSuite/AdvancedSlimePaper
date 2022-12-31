@@ -3,7 +3,6 @@ package com.grinderwolf.swm.plugin;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.google.common.collect.ImmutableList;
-import com.infernalsuite.aswm.SlimeNMSBridge;
 import com.grinderwolf.swm.api.SlimePlugin;
 import com.grinderwolf.swm.api.events.PostGenerateWorldEvent;
 import com.grinderwolf.swm.api.events.PreGenerateWorldEvent;
@@ -25,8 +24,8 @@ import com.grinderwolf.swm.plugin.log.Logging;
 import com.grinderwolf.swm.plugin.upgrade.WorldUpgrader;
 import com.grinderwolf.swm.plugin.world.WorldUnlocker;
 import com.grinderwolf.swm.plugin.world.importer.WorldImporter;
+import com.infernalsuite.aswm.SlimeNMSBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import lombok.Getter;
 import net.kyori.adventure.util.Services;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -40,7 +39,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,11 +59,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     private static boolean checkIsPaper() {
         try {
             return Class.forName("com.destroystokyo.paper.PaperConfig") != null;
-        } catch(ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             return false;
         }
     }
-    
+
     private static final int BSTATS_ID = 5419;
 
     @Override
@@ -113,7 +117,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             this.setEnabled(false);
             return;
         }
-        
+
         Metrics metrics = new Metrics(this, BSTATS_ID);
 
         final CommandManager commandManager = new CommandManager();
@@ -198,7 +202,8 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                     SlimeWorld world = loadWorld(loader, worldName, worldData.isReadOnly(), propertyMap);
 
                     loadedWorlds.put(worldName, world);
-                } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException | WorldInUseException | CorruptedWorldException | IOException ex) {
+                } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException | WorldInUseException |
+                         CorruptedWorldException | IOException ex) {
                     String message;
 
                     if (ex instanceof IllegalArgumentException) {
@@ -322,7 +327,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         var preEvent = new PreGenerateWorldEvent(slimeWorld);
         Bukkit.getPluginManager().callEvent(preEvent);
 
-        if(preEvent.isCancelled()) {
+        if (preEvent.isCancelled()) {
             return;
         }
 
@@ -419,7 +424,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 var preEvent = new AsyncPreLoadWorldEvent(slimeLoader, worldName, readOnly, slimePropertyMap);
                 Bukkit.getPluginManager().callEvent(preEvent);
 
-                if(preEvent.isCancelled()) {
+                if (preEvent.isCancelled()) {
                     return Optional.empty();
                 }
 
@@ -427,7 +432,8 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 var postEvent = new AsyncPostLoadWorldEvent(world);
                 Bukkit.getPluginManager().callEvent(postEvent);
                 return Optional.ofNullable(postEvent.getSlimeWorld());
-            } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException e) {
+            } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException |
+                     WorldInUseException e) {
                 throw new IllegalStateException(e);
             }
         }, this::runAsync);
@@ -457,7 +463,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 var preEvent = new AsyncPreCreateEmptyWorldEvent(slimeLoader, worldName, readOnly, slimePropertyMap);
                 Bukkit.getPluginManager().callEvent(preEvent);
 
-                if(preEvent.isCancelled()) {
+                if (preEvent.isCancelled()) {
                     return Optional.empty();
                 }
 
@@ -478,7 +484,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 var preEvent = new AsyncPreMigrateWorldEvent(worldName, currentLoader, newLoader);
                 Bukkit.getPluginManager().callEvent(preEvent);
 
-                if(preEvent.isCancelled()) {
+                if (preEvent.isCancelled()) {
                     return;
                 }
 
@@ -498,14 +504,15 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 var preEvent = new AsyncPreImportWorldEvent(worldDir, worldName, slimeLoader);
                 Bukkit.getPluginManager().callEvent(preEvent);
 
-                if(preEvent.isCancelled()) {
+                if (preEvent.isCancelled()) {
                     return;
                 }
 
                 importWorld(preEvent.getWorldDir(), preEvent.getWorldName(), preEvent.getSlimeLoader());
                 var postEvent = new AsyncPostImportWorldEvent(preEvent.getWorldDir(), preEvent.getWorldName(), preEvent.getSlimeLoader());
                 Bukkit.getPluginManager().callEvent(postEvent);
-            } catch (WorldAlreadyExistsException | InvalidWorldException | WorldLoadedException | WorldTooBigException | IOException e) {
+            } catch (WorldAlreadyExistsException | InvalidWorldException | WorldLoadedException | WorldTooBigException |
+                     IOException e) {
                 throw new IllegalStateException(e);
             }
         }, this::runAsync);

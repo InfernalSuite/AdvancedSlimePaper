@@ -1208,10 +1208,10 @@ index 0000000000000000000000000000000000000000..18e08b4a2b43d94597d40a5dced33fc0
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b829e75e0dee41fff439d5d0b092bcba543041a2
+index 0000000000000000000000000000000000000000..e3cc41b275c59da57c0896dfea7a2bf58e1de546
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunk.java
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,42 @@
 +package com.grinderwolf.swm.api.world;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1222,13 +1222,6 @@ index 0000000000000000000000000000000000000000..b829e75e0dee41fff439d5d0b092bcba
 + * In-memory representation of a SRF chunk.
 + */
 +public interface SlimeChunk {
-+
-+    /**
-+     * Returns the name of the world this chunk belongs to.
-+     *
-+     * @return The name of the world of this chunk.
-+     */
-+    String getWorldName();
 +
 +    /**
 +     * Returns the X coordinate of the chunk.
@@ -1251,10 +1244,6 @@ index 0000000000000000000000000000000000000000..b829e75e0dee41fff439d5d0b092bcba
 +     */
 +    SlimeChunkSection[] getSections();
 +
-+    int getMinSection();
-+
-+    int getMaxSection();
-+
 +    /**
 +     * Returns the height maps of the chunk. If it's a pre 1.13 world,
 +     * a {@link com.flowpowered.nbt.IntArrayTag} containing the height
@@ -1264,19 +1253,6 @@ index 0000000000000000000000000000000000000000..b829e75e0dee41fff439d5d0b092bcba
 +     */
 +    CompoundTag getHeightMaps();
 +
-+    /**
-+     * Returns all the tile entities of the chunk.
-+     *
-+     * @return A {@link CompoundTag} containing all the tile entities of the chunk.
-+     */
-+    List<CompoundTag> getTileEntities();
-+
-+    /**
-+     * Returns all the entities of the chunk.
-+     *
-+     * @return A {@link CompoundTag} containing all the entities of the chunk.
-+     */
-+    List<CompoundTag> getEntities();
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeChunkSection.java
 new file mode 100644
@@ -1315,10 +1291,10 @@ index 0000000000000000000000000000000000000000..1917262f82844eb6c4c2e934da44c2a7
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7ecab157a57678e8ccc134fff3baa71e90575155
+index 0000000000000000000000000000000000000000..93b961bf1ca4b3ef1b8167c0269416f554e986b4
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorld.java
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,142 @@
 +package com.grinderwolf.swm.api.world;
 +
 +import com.grinderwolf.swm.api.SlimePlugin;
@@ -1329,6 +1305,7 @@ index 0000000000000000000000000000000000000000..7ecab157a57678e8ccc134fff3baa71e
 +
 +import java.io.IOException;
 +import java.util.Collection;
++import java.util.List;
 +import java.util.Map;
 +
 +/**
@@ -1431,8 +1408,6 @@ index 0000000000000000000000000000000000000000..7ecab157a57678e8ccc134fff3baa71e
 +         return clone(worldName, loader);
 +    }
 +
-+    int getDataVersion();
-+
 +    /**
 +     * Returns whether or not this world is locked and, therefore, can be loaded on the server by
 +     * using the {@link SlimePlugin#generateWorld(SlimeWorld)} method.
@@ -1445,15 +1420,32 @@ index 0000000000000000000000000000000000000000..7ecab157a57678e8ccc134fff3baa71e
 +        return false;
 +    }
 +
++    int getDataVersion();
++
++    /**
++     * Returns all the tile entities of the chunk.
++     *
++     * @return A {@link CompoundTag} containing all the tile entities
++     */
++    List<CompoundTag> getTileEntities();
++
++    /**
++     * Returns all the entities of the chunk.
++     *
++     * @return A {@link CompoundTag} containing all the entities
++     */
++    List<CompoundTag> getEntities();
++
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..458ed677c0f8cc171b491ad1b2c1093ba82633ea
+index 0000000000000000000000000000000000000000..84d0bb757921d71b169f17d585a94fa7043fab91
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/SlimeWorldInstance.java
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,28 @@
 +package com.grinderwolf.swm.api.world;
 +
++import com.flowpowered.nbt.CompoundTag;
 +import com.grinderwolf.swm.api.loaders.SlimeLoader;
 +import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 +import org.bukkit.World;
@@ -1466,7 +1458,7 @@ index 0000000000000000000000000000000000000000..458ed677c0f8cc171b491ad1b2c1093b
 +
 +    World getBukkitWorld();
 +
-+    SlimeWorld getLegacyLazyMirror();
++    SlimeWorld getSlimeWorldMirror();
 +
 +    SlimePropertyMap getPropertyMap();
 +
@@ -1476,13 +1468,15 @@ index 0000000000000000000000000000000000000000..458ed677c0f8cc171b491ad1b2c1093b
 +
 +    CompletableFuture<byte[]> serialize();
 +
++    CompoundTag getExtraData();
++
 +}
 diff --git a/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8c642ddca609080073c045d273b75033fcbc86dd
+index 0000000000000000000000000000000000000000..a7466b2b2b297f52596eaa1dc93e2e4c2511d0f6
 --- /dev/null
 +++ b/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,94 @@
 +package com.grinderwolf.swm.api.world.properties;
 +
 +import com.grinderwolf.swm.api.world.properties.type.SlimePropertyBoolean;
@@ -1571,6 +1565,9 @@ index 0000000000000000000000000000000000000000..8c642ddca609080073c045d273b75033
 +    public static final SlimeProperty<Integer> SAVE_MAX_X = new SlimePropertyInt("saveMaxX", 0);
 +    @ApiStatus.Experimental
 +    public static final SlimeProperty<Integer> SAVE_MAX_Z = new SlimePropertyInt("saveMaxZ", 0);
++
++    public static final SlimeProperty<Integer> CHUNK_SECTION_MIN = new SlimePropertyInt("chunkSectionMin", -4);
++    public static final SlimeProperty<Integer> CHUNK_SECTION_MAX = new SlimePropertyInt("chunkSectionMin", 19);
 +
 +
 +}

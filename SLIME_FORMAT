@@ -1,7 +1,7 @@
 -------------------------------------
 “Slime” file format
 2 bytes - magic = 0xB10B
-1 byte (ubyte) - version, current = 0x09
+1 byte (ubyte) - version, current = 0x0A
 1 byte (ubyte) - world version (see version list below)
 2 bytes (short) - xPos of chunk lowest x & lowest z
 2 bytes (short) - zPos
