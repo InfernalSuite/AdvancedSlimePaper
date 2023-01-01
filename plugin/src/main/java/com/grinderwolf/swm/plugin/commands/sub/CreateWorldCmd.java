@@ -1,18 +1,21 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
-import org.bukkit.*;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
@@ -20,12 +23,22 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-@Getter
 public class CreateWorldCmd implements Subcommand {
 
-    private final String usage = "create <world> <data-source>";
-    private final String description = "Create an empty world.";
-    private final String permission = "swm.createworld";
+    @Override
+    public String getUsage() {
+        return "create <world> <data-source>";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Create an empty world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.createworld";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

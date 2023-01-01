@@ -5,14 +5,13 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..9fdc9b9c4857e4543b7454b8a1661cc34bd3fb87 100644
+index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..3faf7a9a12c70f35ff8e5995d9371166a59680d0 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -10,6 +10,8 @@ dependencies {
+@@ -10,6 +10,7 @@ dependencies {
  
      // ASWM start
      implementation(project(":slimeworldmanager-api"))
-+    implementation(project(":api"))
 +    implementation(project(":core"))
      implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
          exclude("io.papermc.paper", "paper-api")
@@ -501,10 +500,10 @@ index 0000000000000000000000000000000000000000..66442436f172d89f94c11ad41c7d398d
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1f4d1ca18cb16e186d46c7e697a9eb15f72ea80a
+index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde3194a2da
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,127 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -516,6 +515,7 @@ index 0000000000000000000000000000000000000000..1f4d1ca18cb16e186d46c7e697a9eb15
 +import com.infernalsuite.aswm.Converter;
 +import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 +import com.mojang.serialization.Codec;
++import io.papermc.paper.util.WorldUtil;
 +import net.minecraft.core.Holder;
 +import net.minecraft.core.Registry;
 +import net.minecraft.core.SectionPos;
@@ -558,7 +558,7 @@ index 0000000000000000000000000000000000000000..1f4d1ca18cb16e186d46c7e697a9eb15
 +
 +    @Override
 +    public SlimeChunkSection[] getSections() {
-+        SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getMaxSection() - this.chunk.getMinSection() + 1];
++        SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getSectionsCount()];
 +        LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
 +
 +        Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().registryOrThrow(Registries.BIOME);
@@ -970,10 +970,10 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f5cce1672048cb6eac67d4265045ee1f88dc2fd2
+index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317eaf6c9d6b
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,141 @@
+@@ -0,0 +1,146 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -1061,8 +1061,8 @@ index 0000000000000000000000000000000000000000..f5cce1672048cb6eac67d4265045ee1f
 +    }
 +
 +    @Override
-+    public ChunkGenerator getGenerator() {
-+        String biomeStr = this.slimeInstance.getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
++    public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
++        String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
 +        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, new ResourceLocation(biomeStr));
 +        Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeKey).orElseThrow();
 +        return new SlimeLevelGenerator(defaultBiome);
@@ -1070,22 +1070,27 @@ index 0000000000000000000000000000000000000000..f5cce1672048cb6eac67d4265045ee1f
 +
 +    @Override
 +    public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled) {
-+        if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
-+            Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
++        try {
++            if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
++                Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 +
-+            //this.getChunkSource().save(forceSave);
-+            this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
-+            this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save());
++                //this.getChunkSource().save(forceSave);
++                this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
++                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save());
 +
-+            // Update level data
-+            net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
-+            net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
++                // Update level data
++                net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
++                net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
 +
-+            if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
-+                save();
-+            } else {
-+                WORLD_SAVER_SERVICE.execute(this::save);
++                if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
++                    save();
++                } else {
++                    this.save();
++                    //WORLD_SAVER_SERVICE.execute(this::save);
++                }
 +            }
++        } catch (Throwable e) {
++            e.printStackTrace();
 +        }
 +    }
 +
@@ -1103,7 +1108,7 @@ index 0000000000000000000000000000000000000000..f5cce1672048cb6eac67d4265045ee1f
 +                long start = System.currentTimeMillis();
 +                byte[] serializedWorld = slimeWorld.serialize().join();
 +                long saveStart = System.currentTimeMillis();
-+                slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld, false);
++                slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
 +                Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
 +            } catch (IOException | IllegalStateException ex) {
 +                ex.printStackTrace();
@@ -1248,8 +1253,25 @@ index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3
  
              String worldType = (dimension == -999) ? dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath() : org.bukkit.World.Environment.getEnvironment(dimension).toString().toLowerCase();
              String name = (dimensionKey == LevelStem.OVERWORLD) ? s : s + "_" + worldType;
+diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
+index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005800b1fb4 100644
+--- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
++++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
+@@ -297,7 +297,11 @@ public class ServerChunkCache extends ChunkSource {
+     public final io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet<LevelChunk> entityTickingChunks = new io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet<>(4096, 0.75f, 4096, 0.15, true);
+     // Paper end
+ 
+-    public ServerChunkCache(ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) {
++    // ASWM START
++    public final com.infernalsuite.aswm.level.SlimeBootstrap bootstrap;
++    public ServerChunkCache(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) { // ASWM
++        this.bootstrap = bootstrap;
++    // ASWM end
+         this.level = world;
+         this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
+         this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index f3a19d00f78e19aa98c57461efb90d79f656a992..2e8311db4f5e2ae53a98e9f0c1193da11ed06cc8 100644
+index f3a19d00f78e19aa98c57461efb90d79f656a992..617802739fd12b9ca9a9eec2ce0d80a58a5f7bf1 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -128,12 +128,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
@@ -1302,7 +1324,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..2e8311db4f5e2ae53a98e9f0c1193da1
          }
          // CraftBukkit end
 +        // ASWM START
-+        ChunkGenerator result = this.getGenerator();
++        ChunkGenerator result = this.getGenerator(bootstrap);
 +        if (result != null) {
 +            chunkgenerator = result;
 +        }
@@ -1310,12 +1332,21 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..2e8311db4f5e2ae53a98e9f0c1193da1
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          this.entityStorage = new EntityRegionFileStorage(convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), flag2); // Paper - rewrite chunk system  //EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, minecraftserver);
+@@ -574,7 +583,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+         //PersistentEntitySectionManager persistententitysectionmanager = this.entityManager; // Paper - rewrite chunk system
+ 
+         //Objects.requireNonNull(this.entityManager); // Paper - rewrite chunk system
+-        this.chunkSource = new ServerChunkCache(this, convertable_conversionsession, datafixer, structuretemplatemanager, executor, chunkgenerator, j, k, flag2, worldloadlistener, null, () -> { // Paper - rewrite chunk system
++        this.chunkSource = new ServerChunkCache(bootstrap, this, convertable_conversionsession, datafixer, structuretemplatemanager, executor, chunkgenerator, j, k, flag2, worldloadlistener, null, () -> { // Paper - rewrite chunk system // ASWM
+             return minecraftserver.overworld().getDataStorage();
+         });
+         this.chunkSource.getGeneratorState().ensureStructuresGenerated();
 @@ -609,6 +618,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
          this.entityLookup = new io.papermc.paper.chunk.system.entity.EntityLookup(this, new EntityCallbacks()); // Paper - rewrite chunk system
      }
  
 +    // ASWM START
-+    public ChunkGenerator getGenerator() {
++    public ChunkGenerator getGenerator(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap) {
 +        return null;
 +    }
 +    // ASWM END

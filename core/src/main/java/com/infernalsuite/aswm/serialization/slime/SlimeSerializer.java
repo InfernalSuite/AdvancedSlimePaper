@@ -19,6 +19,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +43,7 @@ public class SlimeSerializer {
         try {
             // File Header and Slime version
             outStream.write(SlimeFormat.SLIME_HEADER);
-            outStream.write(SlimeFormat.SLIME_VERSION);
+            outStream.writeByte(SlimeFormat.SLIME_VERSION);
 
             // World version
             outStream.writeInt(world.getDataVersion());
@@ -56,7 +57,6 @@ public class SlimeSerializer {
             outStream.write(compressedChunkData);
 
             // Tile entities
-
             List<CompoundTag> tileEntitiesList = new ArrayList<>();
             for (SlimeChunk chunk : world.getChunkStorage()) {
                 tileEntitiesList.addAll(chunk.getTileEntities());
@@ -70,24 +70,17 @@ public class SlimeSerializer {
             outStream.writeInt(tileEntitiesData.length);
             outStream.write(compressedTileEntitiesData);
 
-
             // Entities
             List<CompoundTag> entitiesList = world.getEntities();
-            SlimeLogger.debug("entitiesList being serialized: " + entitiesList.size());
-            outStream.writeBoolean(!entitiesList.isEmpty());
+            ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
+            CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
+            byte[] entitiesData = serializeCompoundTag(entitiesCompound);
+            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
 
-            if (!entitiesList.isEmpty()) {
-                ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
-                CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
-                byte[] entitiesData = serializeCompoundTag(entitiesCompound);
-                byte[] compressedEntitiesData = Zstd.compress(entitiesData);
-
-                outStream.writeInt(compressedEntitiesData.length);
-                outStream.writeInt(entitiesData.length);
-                outStream.write(compressedEntitiesData);
-            }
-
-
+            outStream.writeInt(compressedEntitiesData.length);
+            outStream.writeInt(entitiesData.length);
+            outStream.write(compressedEntitiesData);
+            
             // Extra Tag
             {
                 byte[] extra = serializeCompoundTag(extraData);
@@ -106,54 +99,49 @@ public class SlimeSerializer {
         return outByteStream.toByteArray();
     }
 
-    static byte[] serializeChunks(Collection<SlimeChunk> chunks) {
+    static byte[] serializeChunks(Collection<SlimeChunk> chunks) throws IOException {
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
         DataOutputStream outStream = new DataOutputStream(outByteStream);
 
+        outStream.writeInt(chunks.size());
         for (SlimeChunk chunk : chunks) {
-            try {
-                // Height Maps
-                byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
-                outStream.writeInt(heightMaps.length);
-                outStream.write(heightMaps);
+            outStream.writeInt(chunk.getX());
+            outStream.writeInt(chunk.getZ());
 
-                // Chunk sections
-                SlimeChunkSection[] sections = chunk.getSections();
+            // Height Maps
+            byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
+            outStream.writeInt(heightMaps.length);
+            outStream.write(heightMaps);
 
-                outStream.writeInt(sections.length);
-                for (int i = 0; i < sections.length; i++) {
-                    outStream.writeInt(chunk.getX());
-                    outStream.writeInt(chunk.getZ());
+            // Chunk sections
+            SlimeChunkSection[] sections = chunk.getSections();
 
-                    SlimeChunkSection section = sections[i];
+            outStream.writeInt(sections.length);
+            for (SlimeChunkSection slimeChunkSection : sections) {
+                // Block Light
+                boolean hasBlockLight = slimeChunkSection.getBlockLight() != null;
+                outStream.writeBoolean(hasBlockLight);
 
-                    // Block Light
-                    boolean hasBlockLight = section.getBlockLight() != null;
-                    outStream.writeBoolean(hasBlockLight);
-
-                    if (hasBlockLight) {
-                        outStream.write(section.getBlockLight().getBacking());
-                    }
-
-                    // Sky Light
-                    boolean hasSkyLight = section.getSkyLight() != null;
-                    outStream.writeBoolean(hasSkyLight);
-
-                    if (hasSkyLight) {
-                        outStream.write(section.getSkyLight().getBacking());
-                    }
-
-                    // Block Data
-                    byte[] serializedBlockStates = serializeCompoundTag(section.getBlockStatesTag());
-                    outStream.writeInt(serializedBlockStates.length);
-                    outStream.write(serializedBlockStates);
-
-                    byte[] serializedBiomes = serializeCompoundTag(section.getBiomeTag());
-                    outStream.writeInt(serializedBiomes.length);
-                    outStream.write(serializedBiomes);
+                if (hasBlockLight) {
+                    outStream.write(slimeChunkSection.getBlockLight().getBacking());
                 }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+
+                // Sky Light
+                boolean hasSkyLight = slimeChunkSection.getSkyLight() != null;
+                outStream.writeBoolean(hasSkyLight);
+
+                if (hasSkyLight) {
+                    outStream.write(slimeChunkSection.getSkyLight().getBacking());
+                }
+
+                // Block Data
+                byte[] serializedBlockStates = serializeCompoundTag(slimeChunkSection.getBlockStatesTag());
+                outStream.writeInt(serializedBlockStates.length);
+                outStream.write(serializedBlockStates);
+
+                byte[] serializedBiomes = serializeCompoundTag(slimeChunkSection.getBiomeTag());
+                outStream.writeInt(serializedBiomes.length);
+                outStream.write(serializedBiomes);
             }
         }
 

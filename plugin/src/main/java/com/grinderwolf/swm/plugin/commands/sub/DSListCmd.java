@@ -1,11 +1,11 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.SlimeNMSBridge;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -17,14 +17,24 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
 public class DSListCmd implements Subcommand {
 
     private static final int MAX_ITEMS_PER_PAGE = 5;
 
-    private final String usage = "dslist <data-source> [page]";
-    private final String description = "List all worlds inside a data source.";
-    private final String permission = "swm.dslist";
+    @Override
+    public String getUsage() {
+        return "dslist <data-source> [page]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "List all worlds inside a data source.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.dslist";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
@@ -120,7 +130,7 @@ public class DSListCmd implements Subcommand {
         World world = Bukkit.getWorld(worldName);
 
         if (world != null) {
-            SlimeWorld slimeWorld = SWMPlugin.getInstance().getNms().getSlimeWorld(world);
+            SlimeWorld slimeWorld = SlimeNMSBridge.instance().getInstance(world).getSlimeWorldMirror();
 
             if (slimeWorld != null) {
                 return loader.equals(slimeWorld.getLoader());

@@ -1,20 +1,25 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.infernalsuite.aswm.utils.SlimeFormat;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.utils.SlimeFormat;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.util.Collections;
 import java.util.List;
 
-@Getter
 public class VersionCmd implements Subcommand {
 
-    private final String usage = "version";
-    private final String description = "Shows the plugin version.";
+    @Override
+    public String getUsage() {
+        return "version";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Shows the plugin version.";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

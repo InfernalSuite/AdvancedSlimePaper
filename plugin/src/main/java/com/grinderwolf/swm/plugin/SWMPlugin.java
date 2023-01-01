@@ -14,9 +14,12 @@ import com.infernalsuite.aswm.SlimePlugin;
 import com.infernalsuite.aswm.events.PostGenerateWorldEvent;
 import com.infernalsuite.aswm.events.PreGenerateWorldEvent;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.exceptions.InvalidWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
@@ -298,10 +301,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     public void generateWorld(SlimeWorld slimeWorld) {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
-        if (!slimeWorld.isReadOnly()) {
-            throw new IllegalArgumentException("This world cannot be loaded, as it has not been locked.");
-        }
-
         var preEvent = new PreGenerateWorldEvent(slimeWorld);
         Bukkit.getPluginManager().callEvent(preEvent);
 
@@ -347,7 +346,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
+    public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(loader, "Loader cannot be null");

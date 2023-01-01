@@ -111,4 +111,87 @@ public class WorldData {
     }
 
 
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public String getSpawn() {
+        return spawn;
+    }
+
+    public void setSpawn(String spawn) {
+        this.spawn = spawn;
+    }
+
+    public String getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public boolean isAllowMonsters() {
+        return allowMonsters;
+    }
+
+    public void setAllowMonsters(boolean allowMonsters) {
+        this.allowMonsters = allowMonsters;
+    }
+
+    public boolean isAllowAnimals() {
+        return allowAnimals;
+    }
+
+    public void setAllowAnimals(boolean allowAnimals) {
+        this.allowAnimals = allowAnimals;
+    }
+
+    public boolean isDragonBattle() {
+        return dragonBattle;
+    }
+
+    public void setDragonBattle(boolean dragonBattle) {
+        this.dragonBattle = dragonBattle;
+    }
+
+    public boolean isPvp() {
+        return pvp;
+    }
+
+    public void setPvp(boolean pvp) {
+        this.pvp = pvp;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    public String getWorldType() {
+        return worldType;
+    }
+
+    public void setWorldType(String worldType) {
+        this.worldType = worldType;
+    }
+
+    public String getDefaultBiome() {
+        return defaultBiome;
+    }
+
+    public void setDefaultBiome(String defaultBiome) {
+        this.defaultBiome = defaultBiome;
+    }
+
+    public void setLoadOnStartup(boolean loadOnStartup) {
+        this.loadOnStartup = loadOnStartup;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
 }

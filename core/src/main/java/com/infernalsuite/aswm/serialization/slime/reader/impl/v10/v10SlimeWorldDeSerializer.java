@@ -42,13 +42,13 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         // World version
         int worldVersion = dataStream.readInt();
         // Chunk Data
-        Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, dataStream, worldVersion);
+
+        byte[] chunkBytes = readCompressed(dataStream);
+        Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
 
         byte[] tileEntities = readCompressed(dataStream);
         byte[] entities = readCompressed(dataStream);
         byte[] extra = readCompressed(dataStream);
-
-        // Chunk deserialization
 
         // Entity deserialization
         com.flowpowered.nbt.CompoundTag entitiesCompound = readCompound(entities);
@@ -89,9 +89,9 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         );
     }
 
-    private static Map<ChunkPos, SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, DataInputStream stream, int currentVersion) throws IOException {
+    private static Map<ChunkPos, SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, byte[] bytes) throws IOException {
         Map<ChunkPos, SlimeChunk> chunkMap = new HashMap<>();
-        DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(readCompressed(stream)));
+        DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(bytes));
 
         int chunks = chunkData.readInt();
         for (int i = 0; i < chunks; i++) {
@@ -173,6 +173,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         byte[] compressed = new byte[compressedLength];
         byte[] normal = new byte[normalLength];
 
+        stream.read(compressed);
         Zstd.decompress(normal, compressed);
         return normal;
     }

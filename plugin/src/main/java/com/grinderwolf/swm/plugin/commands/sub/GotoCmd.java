@@ -3,7 +3,6 @@ package com.grinderwolf.swm.plugin.commands.sub;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -16,12 +15,22 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
 public class GotoCmd implements Subcommand {
 
-    private final String usage = "goto <world> [player]";
-    private final String description = "Teleport yourself (or someone else) to a world.";
-    private final String permission = "swm.goto";
+    @Override
+    public String getUsage() {
+        return "goto <world> [player]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Teleport yourself (or someone else) to a world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.goto";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

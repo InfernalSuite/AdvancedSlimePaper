@@ -4,7 +4,6 @@ package com.grinderwolf.swm.plugin.commands.sub;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -15,12 +14,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Getter
 public class SetSpawnCmd implements Subcommand {
 
-    private final String usage = "setspawn (world) (x) (y) (z) (yaw) (pitch)";
-    private final String description = "Set the spawnpoint of a world based on your location or one provided.";
-    private final String permission = "swm.setspawn";
+    @Override
+    public String getUsage() {
+        return "setspawn (world) (x) (y) (z) (yaw) (pitch)";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Set the spawnpoint of a world based on your location or one provided.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.setspawn";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

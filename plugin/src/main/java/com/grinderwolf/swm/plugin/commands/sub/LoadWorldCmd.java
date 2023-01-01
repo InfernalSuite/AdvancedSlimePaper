@@ -1,19 +1,17 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.exceptions.NewerFormatException;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldInUseException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -25,12 +23,22 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
 public class LoadWorldCmd implements Subcommand {
 
-    private final String usage = "load <world>";
-    private final String description = "Load a world.";
-    private final String permission = "swm.loadworld";
+    @Override
+    public String getUsage() {
+        return "load <world>";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Load a world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.loadworld";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
@@ -101,9 +109,6 @@ public class LoadWorldCmd implements Subcommand {
                 } catch (UnknownWorldException ex) {
                     sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + worldName +
                             ": world could not be found (using data source '" + worldData.getDataSource() + "').");
-                } catch (WorldInUseException ex) {
-                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + worldName +
-                            ": world is already in use. If you think this is a mistake, please wait some time and try again.");
                 } catch (IllegalArgumentException ex) {
                     sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + worldName +
                             ": " + ex.getMessage());

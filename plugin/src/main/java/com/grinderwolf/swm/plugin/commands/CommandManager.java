@@ -2,7 +2,6 @@ package com.grinderwolf.swm.plugin.commands;
 
 import com.grinderwolf.swm.plugin.commands.sub.*;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -14,12 +13,10 @@ import java.util.*;
 
 public class CommandManager implements TabExecutor {
 
-    @Getter
     private static CommandManager instance;
     private final Map<String, Subcommand> commands = new HashMap<>();
 
     /* A list containing all the worlds that are being performed operations on, so two commands cannot be run at the same time */
-    @Getter
     private final Set<String> worldsInUse = new HashSet<>();
 
     public CommandManager() {
@@ -40,6 +37,14 @@ public class CommandManager implements TabExecutor {
         commands.put("reload", new ReloadConfigCmd());
         commands.put("create", new CreateWorldCmd());
         commands.put("debug", new DebugCmd());
+    }
+
+    public static CommandManager getInstance() {
+        return instance;
+    }
+
+    public Set<String> getWorldsInUse() {
+        return worldsInUse;
     }
 
     @Override

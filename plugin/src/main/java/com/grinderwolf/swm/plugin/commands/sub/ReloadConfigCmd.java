@@ -2,7 +2,6 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -11,12 +10,22 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-@Getter
 public class ReloadConfigCmd implements Subcommand {
 
-    private final String usage = "reload";
-    private final String description = "Reloads the config files.";
-    private final String permission = "swm.reload";
+    @Override
+    public String getUsage() {
+        return "reload";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Reloads the config files.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.reload";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

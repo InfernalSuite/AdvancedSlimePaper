@@ -1,8 +1,6 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
@@ -10,7 +8,12 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -22,12 +25,22 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
 public class CloneWorldCmd implements Subcommand {
 
-    private final String usage = "clone-world <template-world> <world-name> [new-data-source]";
-    private final String description = "Clones a world";
-    private final String permission = "swm.cloneworld";
+    @Override
+    public String getUsage() {
+        return "clone-world <template-world> <world-name> [new-data-source]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Clones a world";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.cloneworld";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
@@ -127,7 +140,7 @@ public class CloneWorldCmd implements Subcommand {
 
                     Logging.error("Failed to load world " + templateWorldName + ":");
                     ex.printStackTrace();
-                } catch (WorldInUseException ignored) { } finally {
+                } finally {
                     CommandManager.getInstance().getWorldsInUse().remove(worldName);
                 }
             });

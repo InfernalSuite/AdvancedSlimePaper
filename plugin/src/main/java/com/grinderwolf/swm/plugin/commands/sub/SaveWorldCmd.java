@@ -2,7 +2,6 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -12,12 +11,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Getter
 public class SaveWorldCmd implements Subcommand {
 
-    private final String usage = "save <world>";
-    private final String description = "Saves a world.";
-    private final String permission = "swm.saveworld";
+    @Override
+    public String getUsage() {
+        return "save <world>";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Saves a world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.saveworld";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {

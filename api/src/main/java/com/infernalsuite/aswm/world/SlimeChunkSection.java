@@ -2,6 +2,7 @@ package com.infernalsuite.aswm.world;
 
 import com.infernalsuite.aswm.utils.NibbleArray;
 import com.flowpowered.nbt.CompoundTag;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * In-memory representation of a SRF chunk section.
@@ -17,6 +18,7 @@ public interface SlimeChunkSection {
      *
      * @return A {@link NibbleArray} with the block light data.
      */
+    @Nullable
     NibbleArray getBlockLight();
 
     /**
@@ -24,5 +26,6 @@ public interface SlimeChunkSection {
      *
      * @return A {@link NibbleArray} containing the sky light data.
      */
+    @Nullable
     NibbleArray getSkyLight();
 }

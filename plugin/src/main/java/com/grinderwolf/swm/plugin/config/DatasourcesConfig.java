@@ -211,6 +211,9 @@ public class DatasourcesConfig {
         @Setting("path")
         private String path = "slime_worlds";
 
+        public String getPath() {
+            return path;
+        }
     }
 
     @ConfigSerializable
@@ -228,5 +231,37 @@ public class DatasourcesConfig {
         public boolean isEnabled() {
             return enabled;
         }
+    }
+
+    public FileConfig getFileConfig() {
+        return fileConfig;
+    }
+
+    public void setFileConfig(FileConfig fileConfig) {
+        this.fileConfig = fileConfig;
+    }
+
+    public MysqlConfig getMysqlConfig() {
+        return mysqlConfig;
+    }
+
+    public void setMysqlConfig(MysqlConfig mysqlConfig) {
+        this.mysqlConfig = mysqlConfig;
+    }
+
+    public MongoDBConfig getMongoDbConfig() {
+        return mongoDbConfig;
+    }
+
+    public void setMongoDbConfig(MongoDBConfig mongoDbConfig) {
+        this.mongoDbConfig = mongoDbConfig;
+    }
+
+    public RedisConfig getRedisConfig() {
+        return redisConfig;
+    }
+
+    public void setRedisConfig(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 }

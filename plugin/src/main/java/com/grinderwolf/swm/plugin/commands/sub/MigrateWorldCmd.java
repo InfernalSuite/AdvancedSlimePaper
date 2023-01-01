@@ -1,9 +1,5 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.exceptions.WorldInUseException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
@@ -11,7 +7,9 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -23,12 +21,22 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Getter
 public class MigrateWorldCmd implements Subcommand {
 
-    private final String usage = "migrate <world> <new-data-source>";
-    private final String description = "Migrate a world from one data source to another.";
-    private final String permission = "swm.migrate";
+    @Override
+    public String getUsage() {
+        return "migrate <world> <new-data-source>";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Migrate a world from one data source to another.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.migrate";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
@@ -95,8 +103,6 @@ public class MigrateWorldCmd implements Subcommand {
 
                     Logging.error("Failed to load world " + worldName + " (using data source " + currentSource + "):");
                     ex.printStackTrace();
-                } catch (WorldInUseException ex) {
-                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "World " + worldName + " is being used on another server.");
                 } catch (WorldAlreadyExistsException ex) {
                     sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Data source " + newSource + " already contains a world named " + worldName + "!");
                 } catch (UnknownWorldException ex) {

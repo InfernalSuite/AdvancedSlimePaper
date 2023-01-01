@@ -2,8 +2,6 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
@@ -11,7 +9,8 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -25,12 +24,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Getter
 public class DeleteWorldCmd implements Subcommand {
 
-    private final String usage = "delete <world> [data-source]";
-    private final String description = "Delete a world.";
-    private final String permission = "swm.deleteworld";
+    @Override
+    public String getUsage() {
+        return "delete <world> [data-source]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Delete a world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.deleteworld";
+    }
 
     private final Cache<String, String[]> deleteCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 
@@ -91,12 +100,6 @@ public class DeleteWorldCmd implements Subcommand {
                     Bukkit.getScheduler().runTaskAsynchronously(SWMPlugin.getInstance(), () -> {
 
                         try {
-                            if (loader.isWorldLocked(worldName)) {
-                                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "World " + worldName + " is being used on another server.");
-
-                                return;
-                            }
-
                             long start = System.currentTimeMillis();
                             loader.deleteWorld(worldName);
 

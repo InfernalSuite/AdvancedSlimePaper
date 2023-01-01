@@ -2,18 +2,17 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.infernalsuite.aswm.exceptions.InvalidWorldException;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.exceptions.WorldLoadedException;
-import com.infernalsuite.aswm.exceptions.WorldTooBigException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
+import com.infernalsuite.aswm.exceptions.InvalidWorldException;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.exceptions.WorldTooBigException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -27,12 +26,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Getter
 public class ImportWorldCmd implements Subcommand {
 
-    private final String usage = "import <path-to-world> <data-source> [new-world-name]";
-    private final String description = "Convert a world to the slime format and save it.";
-    private final String permission = "swm.importworld";
+    @Override
+    public String getUsage() {
+        return "import <path-to-world> <data-source> [new-world-name]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Convert a world to the slime format and save it.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.importworld";
+    }
 
     private final Cache<String, String[]> importCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 

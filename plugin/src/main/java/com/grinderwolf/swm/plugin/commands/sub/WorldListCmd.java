@@ -1,8 +1,8 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.SlimeNMSBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -14,19 +14,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Getter
 public class WorldListCmd implements Subcommand {
 
     private static final int MAX_ITEMS_PER_PAGE = 5;
 
-    private final String usage = "list [slime] [page]";
-    private final String description = "List all worlds. To only list slime worlds, use the 'slime' argument.";
-    private final String permission = "swm.worldlist";
+    @Override
+    public String getUsage() {
+        return "list [slime] [page]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "List all worlds. To only list slime worlds, use the 'slime' argument.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.worldlist";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
         Map<String, Boolean> loadedWorlds = Bukkit.getWorlds().stream().collect(Collectors.toMap(World::getName,
-                world -> SWMPlugin.getInstance().getNms().getSlimeWorld(world) != null));
+                world -> SlimeNMSBridge.instance().getInstance(world) != null));
 
         boolean onlySlime = args.length > 0 && args[0].equalsIgnoreCase("slime");
 

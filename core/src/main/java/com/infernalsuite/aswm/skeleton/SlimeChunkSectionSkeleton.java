@@ -3,6 +3,7 @@ package com.infernalsuite.aswm.skeleton;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.utils.NibbleArray;
 import com.infernalsuite.aswm.world.SlimeChunkSection;
+import org.jetbrains.annotations.Nullable;
 
 public record SlimeChunkSectionSkeleton(CompoundTag blockStates, CompoundTag biome, NibbleArray block, NibbleArray light) implements SlimeChunkSection {
     @Override
@@ -16,7 +17,7 @@ public record SlimeChunkSectionSkeleton(CompoundTag blockStates, CompoundTag bio
     }
 
     @Override
-    public NibbleArray getBlockLight() {
+    public @Nullable NibbleArray getBlockLight() {
         return this.block;
     }
 
