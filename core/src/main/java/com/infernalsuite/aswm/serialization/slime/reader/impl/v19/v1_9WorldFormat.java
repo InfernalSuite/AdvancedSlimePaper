@@ -1,6 +1,6 @@
-package com.infernalsuite.aswm.serialization.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
-import com.infernalsuite.aswm.serialization.reader.impl.SimpleWorldFormat;
+import com.infernalsuite.aswm.serialization.slime.reader.impl.SimpleWorldFormat;
 
 public interface v1_9WorldFormat {
 

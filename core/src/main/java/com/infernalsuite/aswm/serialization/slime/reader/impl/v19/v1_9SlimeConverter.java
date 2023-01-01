@@ -1,8 +1,8 @@
-package com.infernalsuite.aswm.serialization.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
-import com.infernalsuite.aswm.serialization.reader.impl.SlimeConverter;
+import com.infernalsuite.aswm.serialization.SlimeWorldReader;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-class v1_9SlimeConverter implements SlimeConverter<v1_9SlimeWorld> {
+class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
 
     private static final Map<Byte, Upgrade> upgrades = new HashMap<>();
 
@@ -27,7 +27,7 @@ class v1_9SlimeConverter implements SlimeConverter<v1_9SlimeWorld> {
     }
 
     @Override
-    public SlimeWorld runConversion(v1_9SlimeWorld data) {
+    public SlimeWorld readFromData(v1_9SlimeWorld data) {
         upgradeWorld(data);
 
         Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();

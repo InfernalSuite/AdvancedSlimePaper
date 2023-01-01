@@ -1,15 +1,18 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import lombok.Getter;
-import org.bukkit.*;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -22,12 +25,22 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-@Getter
 public class UnloadWorldCmd implements Subcommand {
 
-    private final String usage = "unload <world> [data-source]";
-    private final String description = "Unload a world.";
-    private final String permission = "swm.unloadworld";
+    @Override
+    public String getUsage() {
+        return "unload <world> [data-source]";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Unload a world.";
+    }
+
+    @Override
+    public String getPermission() {
+        return "swm.unloadworld";
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
@@ -76,7 +89,7 @@ public class UnloadWorldCmd implements Subcommand {
                 }
                 unlockWorldFinally(world, loader, sender);
             });
-        }else{
+        } else {
             Bukkit.unloadWorld(world, true);
             unlockWorldFinally(world, loader, sender);
         }

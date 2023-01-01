@@ -1,118 +1,232 @@
 package com.grinderwolf.swm.plugin.config;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-@Getter
 @ConfigSerializable
 public class DatasourcesConfig {
 
     @Setting("file")
-    @Setter
     private FileConfig fileConfig = new FileConfig();
     @Setting("mysql")
-    @Setter
     private MysqlConfig mysqlConfig = new MysqlConfig();
     @Setting("mongodb")
-    @Setter
     private MongoDBConfig mongoDbConfig = new MongoDBConfig();
     @Setting("redis")
-    @Setter
     private RedisConfig redisConfig = new RedisConfig();
 
-    @Getter
     @ConfigSerializable
     public static class MysqlConfig {
 
         @Setting("enabled")
-        @Setter
         private boolean enabled = false;
 
         @Setting("host")
-        @Setter
         private String host = "127.0.0.1";
         @Setting("port")
-        @Setter
         private int port = 3306;
 
         @Setting("username")
-        @Setter
         private String username = "slimeworldmanager";
         @Setting("password")
-        @Setter
         private String password = "";
 
         @Setting("database")
-        @Setter
         private String database = "slimeworldmanager";
 
         @Setting("usessl")
-        @Setter
         private boolean usessl = false;
 
         @Setting("sqlUrl")
-        @Setter
         private String sqlUrl = "jdbc:mysql://{host}:{port}/{database}?autoReconnect=true&allowMultiQueries=true&useSSL={usessl}";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getDatabase() {
+            return database;
+        }
+
+        public void setDatabase(String database) {
+            this.database = database;
+        }
+
+        public boolean isUsessl() {
+            return usessl;
+        }
+
+        public void setUsessl(boolean usessl) {
+            this.usessl = usessl;
+        }
+
+        public String getSqlUrl() {
+            return sqlUrl;
+        }
+
+        public void setSqlUrl(String sqlUrl) {
+            this.sqlUrl = sqlUrl;
+        }
     }
 
-    @Getter
     @ConfigSerializable
     public static class MongoDBConfig {
 
         @Setting("enabled")
-        @Setter
         private boolean enabled = false;
 
         @Setting("host")
-        @Setter
         private String host = "127.0.0.1";
         @Setting("port")
-        @Setter
         private int port = 27017;
 
         @Setting("auth")
-        @Setter
         private String authSource = "admin";
         @Setting("username")
-        @Setter
         private String username = "slimeworldmanager";
         @Setting("password")
-        @Setter
         private String password = "";
 
         @Setting("database")
-        @Setter
         private String database = "slimeworldmanager";
         @Setting("collection")
-        @Setter
         private String collection = "worlds";
 
         @Setting("uri")
-        @Setter
         private String uri = "";
+
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
+
+        public String getAuthSource() {
+            return authSource;
+        }
+
+        public void setAuthSource(String authSource) {
+            this.authSource = authSource;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getDatabase() {
+            return database;
+        }
+
+        public void setDatabase(String database) {
+            this.database = database;
+        }
+
+        public String getCollection() {
+            return collection;
+        }
+
+        public void setCollection(String collection) {
+            this.collection = collection;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public void setUri(String uri) {
+            this.uri = uri;
+        }
     }
 
-    @Getter
     @ConfigSerializable
     public static class FileConfig {
 
         @Setting("path")
-        @Setter
         private String path = "slime_worlds";
 
     }
 
-    @Getter
     @ConfigSerializable
     public static class RedisConfig {
 
         @Setting("enabled")
-        @Setter
         private boolean enabled = false;
         @Setting("uri")
-        @Setter
         private String uri = "redis://127.0.0.1/";
+
+        public String getUri() {
+            return uri;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
     }
 }

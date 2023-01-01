@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.reader.impl.v10;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v10;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
@@ -8,7 +8,7 @@ import com.github.luben.zstd.Zstd;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.serialization.reader.SlimeWorldReader;
+import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
-class v10SlimeWorldDeSerializer implements SlimeWorldReader<SlimeWorld> {
+class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWorld> {
 
     public static final int ARRAY_SIZE = 16 * 16 * 16 / (8 / 4); // blocks / bytes per block
 

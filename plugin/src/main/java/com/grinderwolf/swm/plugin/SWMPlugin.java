@@ -3,34 +3,28 @@ package com.grinderwolf.swm.plugin;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.google.common.collect.ImmutableList;
-import com.grinderwolf.swm.api.SlimePlugin;
+import com.grinderwolf.swm.plugin.commands.CommandManager;
+import com.grinderwolf.swm.plugin.config.ConfigManager;
+import com.grinderwolf.swm.plugin.config.WorldData;
+import com.grinderwolf.swm.plugin.config.WorldsConfig;
+import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
+import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.SlimeNMSBridge;
+import com.infernalsuite.aswm.SlimePlugin;
 import com.infernalsuite.aswm.events.PostGenerateWorldEvent;
 import com.infernalsuite.aswm.events.PreGenerateWorldEvent;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.exceptions.WorldInUseException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
+import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.SlimeWorldInstance;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-import com.grinderwolf.swm.plugin.commands.CommandManager;
-import com.grinderwolf.swm.plugin.config.ConfigManager;
-import com.grinderwolf.swm.plugin.config.WorldData;
-import com.grinderwolf.swm.plugin.config.WorldsConfig;
-import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
-import com.grinderwolf.swm.plugin.loaders.slime.SlimeWorldReaderRegistry;
-import com.grinderwolf.swm.plugin.log.Logging;
-import com.grinderwolf.swm.plugin.upgrade.WorldUpgrader;
-import com.grinderwolf.swm.plugin.world.WorldUnlocker;
-import com.grinderwolf.swm.plugin.world.importer.WorldImporter;
-import com.infernalsuite.aswm.SlimeNMSBridge;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import net.kyori.adventure.util.Services;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -44,14 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
-    private SlimeNMSBridge bridge = Services.service(SlimeNMSBridge.class).orElseThrow();
+    private static final SlimeNMSBridge BRIDGE_INSTANCE = SlimeNMSBridge.instance();
 
     private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
 
@@ -105,7 +97,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             SlimeWorld netherWorld = getServer().getAllowNether() ? loadedWorlds.get(defaultWorldName + "_nether") : null;
             SlimeWorld endWorld = getServer().getAllowEnd() ? loadedWorlds.get(defaultWorldName + "_the_end") : null;
 
-            bridge.setDefaultWorlds(defaultWorld, netherWorld, endWorld);
+            BRIDGE_INSTANCE.setDefaultWorlds(defaultWorld, netherWorld, endWorld);
         } catch (IOException ex) {
             Logging.error("Failed to retrieve default world name:");
             ex.printStackTrace();
@@ -114,7 +106,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void onEnable() {
-        if (bridge == null) {
+        if (BRIDGE_INSTANCE == null) {
             this.setEnabled(false);
             return;
         }
@@ -130,8 +122,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         } catch (Throwable throwable) {
             // For some versions that does not have TabComplete?
         }
-
-        getServer().getPluginManager().registerEvents(new WorldUnlocker(), this);
 
         loadedWorlds.values().stream()
                 .filter(slimeWorld -> Objects.isNull(Bukkit.getWorld(slimeWorld.getName())))
@@ -203,7 +193,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                     SlimeWorld world = loadWorld(loader, worldName, worldData.isReadOnly(), propertyMap);
 
                     loadedWorlds.put(worldName, world);
-                } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException | WorldInUseException |
+                } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException |
                          CorruptedWorldException | IOException ex) {
                     String message;
 
@@ -215,8 +205,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                         message = "world does not exist, are you sure you've set the correct data source?";
                     } else if (ex instanceof NewerFormatException) {
                         message = "world is serialized in a newer Slime Format version (" + ex.getMessage() + ") that SWM does not understand.";
-                    } else if (ex instanceof WorldInUseException) {
-                        message = "world is in use! If you think this is a mistake, please wait some time and try again.";
                     } else if (ex instanceof CorruptedWorldException) {
                         message = "world seems to be corrupted.";
                     } else {
@@ -237,7 +225,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException,
-            CorruptedWorldException, NewerFormatException, WorldInUseException {
+            CorruptedWorldException, NewerFormatException {
         Objects.requireNonNull(loader, "Loader cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
@@ -245,28 +233,16 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         long start = System.currentTimeMillis();
 
         Logging.info("Loading world " + worldName + ".");
-        byte[] serializedWorld = loader.loadWorld(worldName, readOnly);
-        SlimeWorldInstance world;
+        byte[] serializedWorld = loader.loadWorld(worldName);
 
-        try {
-            world = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
-
-            if (world.getVersion() > nms.getWorldVersion()) {
-                throw new NewerFormatException(world.getVersion());
-            } else if (world.getVersion() < nms.getWorldVersion()) {
-                WorldUpgrader.upgradeWorld(world);
-            }
-        } catch (Exception ex) {
-            if (!readOnly) { // Unlock the world as we're not using it
-                loader.unlockWorld(worldName);
-            }
-            throw ex;
-        }
+        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap);
+        Logging.info("Applying datafixers for " + worldName + ".");
+        SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
 
         Logging.info("World " + worldName + " loaded in " + (System.currentTimeMillis() - start) + "ms.");
 
-        registerWorld(world);
-        return world;
+        registerWorld(slimeWorld);
+        return slimeWorld;
     }
 
     @Override
@@ -290,13 +266,14 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         Logging.info("Creating empty world " + worldName + ".");
         long start = System.currentTimeMillis();
-        SlimeLoadedWorld world = SWMPlugin.getInstance().getNms().createSlimeWorld(loader, worldName, new Long2ObjectOpenHashMap<>(), new CompoundTag("", new CompoundMap()), new ArrayList<>(), nms.getWorldVersion(), propertyMap, readOnly, !readOnly, new Long2ObjectOpenHashMap<>());
-        loader.saveWorld(worldName, world.serialize().join(), !readOnly);
+        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, readOnly ? null : loader, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, List.of(), BRIDGE_INSTANCE.getCurrentVersion());
+
+        loader.saveWorld(worldName, SlimeSerializer.serialize(blackhole));
 
         Logging.info("World " + worldName + " created in " + (System.currentTimeMillis() - start) + "ms.");
 
-        registerWorld(world);
-        return world;
+        registerWorld(blackhole);
+        return blackhole;
     }
 
     /**
@@ -321,7 +298,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     public void generateWorld(SlimeWorld slimeWorld) {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
-        if (!slimeWorld.isReadOnly() && !slimeWorld.isLocked()) {
+        if (!slimeWorld.isReadOnly()) {
             throw new IllegalArgumentException("This world cannot be loaded, as it has not been locked.");
         }
 
@@ -332,14 +309,15 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             return;
         }
 
-        nms.generateWorld(slimeWorld);
+        BRIDGE_INSTANCE.loadInstance(slimeWorld);
+
         var postEvent = new PostGenerateWorldEvent(slimeWorld);
         Bukkit.getPluginManager().callEvent(postEvent);
     }
 
     @Override
     public void migrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) throws IOException,
-            WorldInUseException, WorldAlreadyExistsException, UnknownWorldException {
+            WorldAlreadyExistsException, UnknownWorldException {
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(currentLoader, "Current loader cannot be null");
         Objects.requireNonNull(newLoader, "New loader cannot be null");
@@ -348,27 +326,8 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             throw new WorldAlreadyExistsException(worldName);
         }
 
-        World bukkitWorld = Bukkit.getWorld(worldName);
-
-        boolean leaveLock = false;
-
-        if (bukkitWorld != null) {
-            // Make sure the loaded world really is a SlimeWorld and not a normal Bukkit world
-            SlimeLoadedWorld slimeWorld = (SlimeLoadedWorld) SWMPlugin.getInstance().getNms().getSlimeWorld(bukkitWorld);
-
-            if (slimeWorld != null && currentLoader.equals(slimeWorld.getLoader())) {
-                slimeWorld.setLoader(newLoader);
-
-                if (!slimeWorld.isReadOnly()) { // We have to manually unlock the world so no WorldInUseException is thrown
-                    currentLoader.unlockWorld(worldName);
-                    leaveLock = true;
-                }
-            }
-        }
-
-        byte[] serializedWorld = currentLoader.loadWorld(worldName, false);
-
-        newLoader.saveWorld(worldName, serializedWorld, leaveLock);
+        byte[] serializedWorld = currentLoader.loadWorld(worldName);
+        newLoader.saveWorld(worldName, serializedWorld);
         currentLoader.deleteWorld(worldName);
     }
 
@@ -388,136 +347,34 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException,
-            InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
+    public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(loader, "Loader cannot be null");
-
-        if (loader.worldExists(worldName)) {
-            throw new WorldAlreadyExistsException(worldName);
-        }
-
-        World bukkitWorld = Bukkit.getWorld(worldDir.getName());
-
-        if (bukkitWorld != null && nms.getSlimeWorld(bukkitWorld) == null) {
-            throw new WorldLoadedException(worldDir.getName());
-        }
-
-        SlimeLoadedWorld world = WorldImporter.readFromDirectory(worldDir);
-
-        byte[] serializedWorld;
-
-        try {
-            serializedWorld = world.serialize().join();
-        } catch (IndexOutOfBoundsException ex) {
-            throw new WorldTooBigException(worldDir.getName());
-        }
-
-        loader.saveWorld(worldName, serializedWorld, false);
+//
+//        if (loader.worldExists(worldName)) {
+//            throw new WorldAlreadyExistsException(worldName);
+//        }
+//
+//        World bukkitWorld = Bukkit.getWorld(worldDir.getName());
+//
+//        if (bukkitWorld != null && nms.getSlimeWorld(bukkitWorld) == null) {
+//            throw new WorldLoadedException(worldDir.getName());
+//        }
+//
+//        SlimeLoadedWorld world = WorldImporter.readFromDirectory(worldDir);
+//
+//        byte[] serializedWorld;
+//
+//        try {
+//            serializedWorld = world.serialize().join();
+//        } catch (IndexOutOfBoundsException ex) {
+//            throw new WorldTooBigException(worldDir.getName());
+//        }
+//
+//        loader.saveWorld(worldName, serializedWorld, false);
     }
 
-
-    @Override
-    public CompletableFuture<Optional<SlimeWorld>> asyncLoadWorld(SlimeLoader slimeLoader, String worldName, boolean readOnly, SlimePropertyMap slimePropertyMap) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                var preEvent = new AsyncPreLoadWorldEvent(slimeLoader, worldName, readOnly, slimePropertyMap);
-                Bukkit.getPluginManager().callEvent(preEvent);
-
-                if (preEvent.isCancelled()) {
-                    return Optional.empty();
-                }
-
-                var world = loadWorld(preEvent.getSlimeLoader(), preEvent.getWorldName(), preEvent.isReadOnly(), preEvent.getSlimePropertyMap());
-                var postEvent = new AsyncPostLoadWorldEvent(world);
-                Bukkit.getPluginManager().callEvent(postEvent);
-                return Optional.ofNullable(postEvent.getSlimeWorld());
-            } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException |
-                     WorldInUseException e) {
-                throw new IllegalStateException(e);
-            }
-        }, this::runAsync);
-    }
-
-    @Override
-    public CompletableFuture<Optional<SlimeWorld>> asyncGetWorld(String worldName) {
-        return CompletableFuture.supplyAsync(() -> {
-            var preEvent = new AsyncPreGetWorldEvent(worldName);
-            Bukkit.getPluginManager().callEvent(preEvent);
-
-            if (preEvent.isCancelled()) {
-                return Optional.empty();
-            }
-
-            var world = getWorld(preEvent.getWorldName());
-            var postEvent = new AsyncPostGetWorldEvent(world);
-            Bukkit.getPluginManager().callEvent(postEvent);
-            return Optional.ofNullable(postEvent.getSlimeWorld());
-        }, this::runAsync);
-    }
-
-    @Override
-    public CompletableFuture<Optional<SlimeWorld>> asyncCreateEmptyWorld(SlimeLoader slimeLoader, String worldName, boolean readOnly, SlimePropertyMap slimePropertyMap) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                var preEvent = new AsyncPreCreateEmptyWorldEvent(slimeLoader, worldName, readOnly, slimePropertyMap);
-                Bukkit.getPluginManager().callEvent(preEvent);
-
-                if (preEvent.isCancelled()) {
-                    return Optional.empty();
-                }
-
-                var world = createEmptyWorld(preEvent.getSlimeLoader(), preEvent.getWorldName(), preEvent.isReadOnly(), preEvent.getSlimePropertyMap());
-                var postEvent = new AsyncPostCreateEmptyWorldEvent(world);
-                Bukkit.getPluginManager().callEvent(postEvent);
-                return Optional.ofNullable(postEvent.getSlimeWorld());
-            } catch (WorldAlreadyExistsException | IOException e) {
-                throw new IllegalStateException(e);
-            }
-        }, this::runAsync);
-    }
-
-    @Override
-    public CompletableFuture<Void> asyncMigrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var preEvent = new AsyncPreMigrateWorldEvent(worldName, currentLoader, newLoader);
-                Bukkit.getPluginManager().callEvent(preEvent);
-
-                if (preEvent.isCancelled()) {
-                    return;
-                }
-
-                migrateWorld(preEvent.getWorldName(), preEvent.getCurrentLoader(), preEvent.getNewLoader());
-                var postEvent = new AsyncPostMigrateWorldEvent(preEvent.getWorldName(), preEvent.getCurrentLoader(), preEvent.getNewLoader());
-                Bukkit.getPluginManager().callEvent(postEvent);
-            } catch (IOException | WorldInUseException | WorldAlreadyExistsException | UnknownWorldException e) {
-                throw new IllegalStateException(e);
-            }
-        }, this::runAsync);
-    }
-
-    @Override
-    public CompletableFuture<Void> asyncImportWorld(File worldDir, String worldName, SlimeLoader slimeLoader) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var preEvent = new AsyncPreImportWorldEvent(worldDir, worldName, slimeLoader);
-                Bukkit.getPluginManager().callEvent(preEvent);
-
-                if (preEvent.isCancelled()) {
-                    return;
-                }
-
-                importWorld(preEvent.getWorldDir(), preEvent.getWorldName(), preEvent.getSlimeLoader());
-                var postEvent = new AsyncPostImportWorldEvent(preEvent.getWorldDir(), preEvent.getWorldName(), preEvent.getSlimeLoader());
-                Bukkit.getPluginManager().callEvent(postEvent);
-            } catch (WorldAlreadyExistsException | InvalidWorldException | WorldLoadedException | WorldTooBigException |
-                     IOException e) {
-                throw new IllegalStateException(e);
-            }
-        }, this::runAsync);
-    }
 
     public static boolean isPaperMC() {
         return isPaperMC;

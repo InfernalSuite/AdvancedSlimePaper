@@ -2,8 +2,6 @@ package com.grinderwolf.swm.plugin.config;
 
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import io.leangen.geantyref.TypeToken;
-import lombok.AccessLevel;
-import lombok.Getter;
 import org.spongepowered.configurate.loader.HeaderMode;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;

@@ -2,7 +2,6 @@ package com.grinderwolf.swm.plugin.config;
 
 import com.grinderwolf.swm.plugin.log.Logging;
 import io.leangen.geantyref.TypeToken;
-import lombok.Getter;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 

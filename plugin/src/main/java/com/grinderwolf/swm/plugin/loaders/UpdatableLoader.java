@@ -1,8 +1,6 @@
 package com.grinderwolf.swm.plugin.loaders;
 
 import com.infernalsuite.aswm.loaders.SlimeLoader;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 
@@ -10,12 +8,23 @@ public abstract class UpdatableLoader implements SlimeLoader {
 
     public abstract void update() throws NewerDatabaseException, IOException;
 
-    @Getter
-    @RequiredArgsConstructor
     public class NewerDatabaseException extends Exception {
 
         private final int currentVersion;
         private final int databaseVersion;
 
+
+        public NewerDatabaseException(int currentVersion, int databaseVersion) {
+            this.currentVersion = currentVersion;
+            this.databaseVersion = databaseVersion;
+        }
+
+        public int getCurrentVersion() {
+            return currentVersion;
+        }
+
+        public int getDatabaseVersion() {
+            return databaseVersion;
+        }
     }
 }

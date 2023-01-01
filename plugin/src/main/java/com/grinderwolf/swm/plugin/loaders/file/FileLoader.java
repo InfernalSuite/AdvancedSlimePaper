@@ -1,7 +1,6 @@
 package com.grinderwolf.swm.plugin.loaders.file;
 
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldInUseException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.apache.commons.io.FileUtils;
@@ -35,7 +34,7 @@ public class FileLoader implements SlimeLoader {
     }
 
     @Override
-    public byte[] loadWorld(String worldName, boolean readOnly) throws UnknownWorldException, IOException, WorldInUseException {
+    public byte[] loadWorld(String worldName) throws UnknownWorldException, IOException {
         if (!worldExists(worldName)) {
             throw new UnknownWorldException(worldName);
         }
@@ -52,11 +51,6 @@ public class FileLoader implements SlimeLoader {
 
         RandomAccessFile file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
 
-        if(!readOnly) {
-            if(file != null && file.getChannel().isOpen()) {
-                System.out.print("World is unlocked");
-            }
-        }
 
         if(file != null && file.length() > Integer.MAX_VALUE) {
             throw new IndexOutOfBoundsException("World is too big!");
@@ -89,7 +83,7 @@ public class FileLoader implements SlimeLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] serializedWorld, boolean lock) throws IOException {
+    public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
         RandomAccessFile worldFile = worldFiles.get(worldName);
         boolean tempFile = worldFile == null;
 
@@ -101,49 +95,8 @@ public class FileLoader implements SlimeLoader {
         worldFile.setLength(0); // Delete old data
         worldFile.write(serializedWorld);
 
-        if (lock) {
-            FileChannel channel = worldFile.getChannel();
-
-            try {
-                channel.tryLock();
-            } catch (OverlappingFileLockException ignored) {
-
-            }
-        }
 
         worldFile.close();
-    }
-
-    @Override
-    public void unlockWorld(String worldName) throws UnknownWorldException, IOException {
-        if (!worldExists(worldName)) {
-            throw new UnknownWorldException(worldName);
-        }
-
-        RandomAccessFile file = worldFiles.remove(worldName);
-
-        if(file != null) {
-            FileChannel channel = file.getChannel();
-            if(channel.isOpen()) {
-                file.close();
-            }
-        }
-    }
-
-    @Override
-    public boolean isWorldLocked(String worldName) throws IOException {
-        RandomAccessFile file = worldFiles.get(worldName);
-
-        if (file == null) {
-            file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
-        }
-
-        if(file.getChannel().isOpen()) {
-            file.close();
-        }else{
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -153,7 +106,6 @@ public class FileLoader implements SlimeLoader {
         }else {
             try (RandomAccessFile randomAccessFile = worldFiles.get(worldName)) {
                 System.out.println("Deleting world.. " + worldName + ".");
-                unlockWorld(worldName);
                 FileUtils.forceDelete(new File(worldDir, worldName + ".slime"));
                 if(randomAccessFile != null) {
                     System.out.print("Attempting to delete worldData " + worldName + ".");

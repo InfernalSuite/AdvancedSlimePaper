@@ -193,7 +193,7 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..eafe52d7faf124fe7765a4b7241fd6823bbc549c
+index 0000000000000000000000000000000000000000..a73a40a54ad897284cb6a0f8849f255b077172f1
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 @@ -0,0 +1,94 @@
@@ -203,7 +203,7 @@ index 0000000000000000000000000000000000000000..eafe52d7faf124fe7765a4b7241fd682
 +import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 +import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.serialization.reader.impl.SlimeConverter;
++import com.infernalsuite.aswm.serialization.SlimeWorldReader;
 +import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 +import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 +import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
@@ -218,11 +218,11 @@ index 0000000000000000000000000000000000000000..eafe52d7faf124fe7765a4b7241fd682
 +import java.util.Map;
 +import java.util.function.Consumer;
 +
-+class SimpleDataFixerConverter implements SlimeConverter<SlimeWorld> {
++class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
 +
 +
 +    @Override
-+    public SlimeWorld runConversion(SlimeWorld data) {
++    public SlimeWorld readFromData(SlimeWorld data) {
 +        int newVersion = SharedConstants.getCurrentVersion().getWorldVersion();
 +        int currentVersion = data.getDataVersion();
 +
@@ -293,10 +293,10 @@ index 0000000000000000000000000000000000000000..eafe52d7faf124fe7765a4b7241fd682
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d2438b2e176fc3d6c95436ecfa4b764836475a4c
+index 0000000000000000000000000000000000000000..66442436f172d89f94c11ad41c7d398d93e15bf1
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,201 @@
 +package com.infernalsuite.aswm;
 +
 +import com.infernalsuite.aswm.world.SlimeWorld;
@@ -306,6 +306,7 @@ index 0000000000000000000000000000000000000000..d2438b2e176fc3d6c95436ecfa4b7648
 +import com.infernalsuite.aswm.level.SlimeLevelInstance;
 +import com.mojang.serialization.Lifecycle;
 +import net.kyori.adventure.util.Services;
++import net.minecraft.SharedConstants;
 +import net.minecraft.core.registries.Registries;
 +import net.minecraft.resources.ResourceKey;
 +import net.minecraft.resources.ResourceLocation;
@@ -331,8 +332,10 @@ index 0000000000000000000000000000000000000000..d2438b2e176fc3d6c95436ecfa4b7648
 +public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 +
 +    private static final SlimeNMSBridgeImpl INSTANCE = (SlimeNMSBridgeImpl) Services.service(SlimeNMSBridge.class).orElseThrow();
++    private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 +
 +    private static final Logger LOGGER = LogManager.getLogger("SWM");
++
 +
 +
 +    public static SlimeNMSBridgeImpl instance() {
@@ -426,9 +429,14 @@ index 0000000000000000000000000000000000000000..d2438b2e176fc3d6c95436ecfa4b7648
 +
 +    @Override
 +    public SlimeWorld applyDataFixers(SlimeWorld world) {
-+        return null;
++        return DATA_FIXER_CONVERTER.readFromData(world);
 +    }
 +
++
++    @Override
++    public int getCurrentVersion() {
++        return SharedConstants.getCurrentVersion().getWorldVersion();
++    }
 +
 +    public void registerWorld(SlimeLevelInstance server) {
 +        MinecraftServer mcServer = MinecraftServer.getServer();
@@ -1110,7 +1118,7 @@ index 0000000000000000000000000000000000000000..f5cce1672048cb6eac67d4265045ee1f
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java b/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e2b4ff361c1d9412ccbfb4f4edf0e8955c004399
+index 0000000000000000000000000000000000000000..faea20787ad99c06713c82967f81c59a63d7d8a7
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java
 @@ -0,0 +1,73 @@
@@ -1121,7 +1129,7 @@ index 0000000000000000000000000000000000000000..e2b4ff361c1d9412ccbfb4f4edf0e895
 +import com.infernalsuite.aswm.world.SlimeWorld;
 +import com.infernalsuite.aswm.world.SlimeWorldInstance;
 +import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-+import com.infernalsuite.aswm.serialization.SlimeSerializer;
++import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 +import org.bukkit.World;
 +
 +import java.util.concurrent.CompletableFuture;
@@ -1336,3 +1344,10 @@ index 5049e969e06f4cc1826378249548064042c28410..f5234420363afa89449d61cb78e670ec
          public LevelStorageAccess(String s, ResourceKey<LevelStem> dimensionType) throws IOException {
              this.dimensionType = dimensionType;
              // CraftBukkit end
+diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridge b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridge
+new file mode 100644
+index 0000000000000000000000000000000000000000..916b4d2edba2f2a8a0fc1fdb6ab6a57e2a16f938
+--- /dev/null
++++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridge
+@@ -0,0 +1 @@
++com.infernalsuite.aswm.SlimeNMSBridgeImpl

@@ -2,7 +2,6 @@ package com.grinderwolf.swm.plugin.loaders.mongo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldInUseException;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
@@ -102,7 +101,7 @@ public class MongoLoader extends UpdatableLoader {
     }
 
     @Override
-    public byte[] loadWorld(String worldName, boolean readOnly) throws UnknownWorldException, IOException, WorldInUseException {
+    public byte[] loadWorld(String worldName) throws UnknownWorldException, IOException {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
@@ -110,16 +109,6 @@ public class MongoLoader extends UpdatableLoader {
 
             if (worldDoc == null) {
                 throw new UnknownWorldException(worldName);
-            }
-
-            if (!readOnly) {
-                long lockedMillis = worldDoc.getLong("locked");
-
-                if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
-                    throw new WorldInUseException(worldName);
-                }
-
-                updateLock(worldName, true);
             }
 
             GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, collection);
@@ -180,7 +169,7 @@ public class MongoLoader extends UpdatableLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] serializedWorld, boolean lock) throws IOException {
+    public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, collection);
@@ -195,55 +184,8 @@ public class MongoLoader extends UpdatableLoader {
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
             Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
 
-            long lockMillis = lock ? System.currentTimeMillis() : 0L;
 
-            if (worldDoc == null) {
-                mongoCollection.insertOne(new Document().append("name", worldName).append("locked", lockMillis));
-            } else if (System.currentTimeMillis() - worldDoc.getLong("locked") > LoaderUtils.MAX_LOCK_TIME && lock) {
-                updateLock(worldName, true);
-            }
-        } catch (MongoException ex) {
-            throw new IOException(ex);
-        }
-    }
-
-    @Override
-    public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
-        ScheduledFuture future = lockedWorlds.remove(worldName);
-
-        if (future != null) {
-            future.cancel(false);
-        }
-
-        try {
-            MongoDatabase mongoDatabase = client.getDatabase(database);
-            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            UpdateResult result = mongoCollection.updateOne(Filters.eq("name", worldName), Updates.set("locked", 0L));
-
-            if (result.getMatchedCount() == 0) {
-                throw new UnknownWorldException(worldName);
-            }
-        } catch (MongoException ex) {
-            throw new IOException(ex);
-        }
-    }
-
-    @Override
-    public boolean isWorldLocked(String worldName) throws IOException, UnknownWorldException {
-        if (lockedWorlds.containsKey(worldName)) {
-            return true;
-        }
-
-        try {
-            MongoDatabase mongoDatabase = client.getDatabase(database);
-            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
-
-            if (worldDoc == null) {
-                throw new UnknownWorldException(worldName);
-            }
-
-            return System.currentTimeMillis() - worldDoc.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME;
+            mongoCollection.insertOne(new Document().append("name", worldName));
         } catch (MongoException ex) {
             throw new IOException(ex);
         }

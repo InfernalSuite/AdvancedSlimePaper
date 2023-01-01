@@ -28,9 +28,12 @@ public interface SlimeNMSBridge {
     // Will return new (fixed) instance
     SlimeWorld applyDataFixers(SlimeWorld world);
 
+    int getCurrentVersion();
+
     static SlimeNMSBridge instance() {
         return Holder.INSTANCE;
     }
+
 
     @ApiStatus.Internal
     static class Holder {

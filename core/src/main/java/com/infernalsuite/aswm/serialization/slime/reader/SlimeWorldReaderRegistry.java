@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.reader;
+package com.infernalsuite.aswm.serialization.slime.reader;
 
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
@@ -6,8 +6,8 @@ import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.utils.SlimeFormat;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.serialization.reader.impl.v19.v1_9WorldFormat;
-import com.infernalsuite.aswm.serialization.reader.impl.v10.v10WorldFormat;
+import com.infernalsuite.aswm.serialization.slime.reader.impl.v19.v1_9WorldFormat;
+import com.infernalsuite.aswm.serialization.slime.reader.impl.v10.v10WorldFormat;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -18,14 +18,14 @@ import java.util.Map;
 
 public class SlimeWorldReaderRegistry {
 
-    private static final Map<Byte, SlimeWorldReader<SlimeWorld>> FORMATS = new HashMap<>();
+    private static final Map<Byte, VersionedByteSlimeWorldReader<SlimeWorld>> FORMATS = new HashMap<>();
 
     static {
         register(v1_9WorldFormat.FORMAT, 1, 2, 3, 4, 5, 6, 7, 8, 9);
         register(v10WorldFormat.FORMAT, 10);
     }
 
-    private static void register(SlimeWorldReader<SlimeWorld> format, int... bytes) {
+    private static void register(VersionedByteSlimeWorldReader<SlimeWorld> format, int... bytes) {
         for (int value : bytes) {
             FORMATS.put((byte) value, format);
         }
@@ -47,7 +47,7 @@ public class SlimeWorldReaderRegistry {
             throw new NewerFormatException(version);
         }
 
-        SlimeWorldReader<SlimeWorld> reader = FORMATS.get(version);
+        VersionedByteSlimeWorldReader<SlimeWorld> reader = FORMATS.get(version);
         return reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap);
     }
 

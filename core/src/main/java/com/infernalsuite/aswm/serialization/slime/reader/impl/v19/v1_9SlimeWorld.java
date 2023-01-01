@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;

@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization;
+package com.infernalsuite.aswm.serialization.slime;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;

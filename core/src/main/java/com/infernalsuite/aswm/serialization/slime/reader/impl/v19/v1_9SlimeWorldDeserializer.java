@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
@@ -13,7 +13,7 @@ import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.SlimeLogger;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.serialization.reader.SlimeWorldReader;
+import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
 import com.infernalsuite.aswm.utils.NibbleArray;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-class v1_9SlimeWorldDeserializer implements SlimeWorldReader<v1_9SlimeWorld> {
+class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9SlimeWorld> {
 
     @Override
     public v1_9SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap)
