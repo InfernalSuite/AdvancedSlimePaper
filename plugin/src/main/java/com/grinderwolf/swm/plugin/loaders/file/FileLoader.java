@@ -1,8 +1,8 @@
 package com.grinderwolf.swm.plugin.loaders.file;
 
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldInUseException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldInUseException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.apache.commons.io.FileUtils;
 

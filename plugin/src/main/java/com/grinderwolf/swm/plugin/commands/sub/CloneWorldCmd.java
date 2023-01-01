@@ -1,8 +1,8 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;

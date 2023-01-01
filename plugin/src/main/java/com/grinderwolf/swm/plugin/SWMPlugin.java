@@ -4,16 +4,17 @@ import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.google.common.collect.ImmutableList;
 import com.grinderwolf.swm.api.SlimePlugin;
-import com.grinderwolf.swm.api.events.PostGenerateWorldEvent;
-import com.grinderwolf.swm.api.events.PreGenerateWorldEvent;
-import com.grinderwolf.swm.api.exceptions.CorruptedWorldException;
-import com.grinderwolf.swm.api.exceptions.NewerFormatException;
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
-import com.grinderwolf.swm.api.exceptions.WorldInUseException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.api.world.SlimeWorld;
-import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.events.PostGenerateWorldEvent;
+import com.infernalsuite.aswm.events.PreGenerateWorldEvent;
+import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldInUseException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.world.SlimeWorldInstance;
+import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
@@ -143,44 +144,44 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void onDisable() {
-        Bukkit.getWorlds().stream()
-                .map(world -> bridge.getSlimeWorld(world))
-                .filter(Objects::nonNull)
-                .filter((slimeWorld -> !slimeWorld.isReadOnly()))
-                .map(w -> (SlimeLoadedWorld) w)
-                .forEach(world -> {
-                    try {
-                        SlimeLoader loader = world.getLoader();
-                        String name = world.getName();
-
-                        loader.saveWorld(
-                                name,
-                                world.serialize().join(),
-                                world.isLocked()
-                        );
-
-                        if (loader.isWorldLocked(name)) {
-                            loader.unlockWorld(name);
-                        }
-                    } catch (IOException | UnknownWorldException e) {
-                        e.printStackTrace();
-                    }
-                });
+//        Bukkit.getWorlds().stream()
+//                .map(world -> bridge.getSlimeWorld(world))
+//                .filter(Objects::nonNull)
+//                .filter((slimeWorld -> !slimeWorld.isReadOnly()))
+//                .map(w -> (SlimeLoadedWorld) w)
+//                .forEach(world -> {
+//                    try {
+//                        SlimeLoader loader = world.getLoader();
+//                        String name = world.getName();
+//
+//                        loader.saveWorld(
+//                                name,
+//                                world.serialize().join(),
+//                                world.isLocked()
+//                        );
+//
+//                        if (loader.isWorldLocked(name)) {
+//                            loader.unlockWorld(name);
+//                        }
+//                    } catch (IOException | UnknownWorldException e) {
+//                        e.printStackTrace();
+//                    }
+//                });
     }
 
-    private SlimeNMS getNMSBridge() throws InvalidVersionException {
-        String version = Bukkit.getServer().getClass().getPackage().getName();
-        String nmsVersion = version.substring(version.lastIndexOf('.') + 1);
-
-        int dataVersion = Bukkit.getUnsafe().getDataVersion();
-        return switch (dataVersion) {
-            case 2975 -> new v1182SlimeNMS(isPaperMC);
-            case 3105 -> new v119SlimeNMS(isPaperMC);
-            case 3117 -> new v1191SlimeNMS(isPaperMC);
-            case 3120 -> new v1192SlimeNMS(isPaperMC);
-            default -> throw new InvalidVersionException("" + dataVersion);
-        };
-    }
+//    private SlimeNMS getNMSBridge() throws InvalidVersionException {
+//        String version = Bukkit.getServer().getClass().getPackage().getName();
+//        String nmsVersion = version.substring(version.lastIndexOf('.') + 1);
+//
+//        int dataVersion = Bukkit.getUnsafe().getDataVersion();
+//        return switch (dataVersion) {
+//            case 2975 -> new v1182SlimeNMS(isPaperMC);
+//            case 3105 -> new v119SlimeNMS(isPaperMC);
+//            case 3117 -> new v1191SlimeNMS(isPaperMC);
+//            case 3120 -> new v1192SlimeNMS(isPaperMC);
+//            default -> throw new InvalidVersionException("" + dataVersion);
+//        };
+//    }
 
     private List<String> loadWorlds() {
         List<String> erroredWorlds = new ArrayList<>();
@@ -245,7 +246,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         Logging.info("Loading world " + worldName + ".");
         byte[] serializedWorld = loader.loadWorld(worldName, readOnly);
-        SlimeLoadedWorld world;
+        SlimeWorldInstance world;
 
         try {
             world = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);

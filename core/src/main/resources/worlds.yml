@@ -1,0 +1,29 @@
+# This is the configuration file for all the slime worlds
+#
+# Example configuration:
+# worlds:
+#   world1:
+#     source: file
+#     difficulty: peaceful
+#     spawn: 32, 40, 97
+#     allowMonsters: false
+#     allowAnimals: false
+#     loadOnStartup: true
+#     readOnly: true
+#   world2:
+#     source: mysql
+#     difficulty: hard
+#     spawn: -140, 38, 159
+#     allowMonsters: false
+#     allowAnimals: false
+#     loadOnStartup: false
+#     readOnly: true
+#   world3:
+#     source: seaweed
+#     difficulty: easy
+#     spawn: -59, 67, -2
+#     allowMonsters: false
+#     allowAnimals: true
+#     loadOnStartup: true
+#     readOnly: false
+worlds:

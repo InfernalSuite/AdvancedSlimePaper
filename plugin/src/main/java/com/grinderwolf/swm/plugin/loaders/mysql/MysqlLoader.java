@@ -1,8 +1,8 @@
 package com.grinderwolf.swm.plugin.loaders.mysql;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldInUseException;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldInUseException;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;

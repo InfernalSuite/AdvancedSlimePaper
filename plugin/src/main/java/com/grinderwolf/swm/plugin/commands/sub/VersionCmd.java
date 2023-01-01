@@ -1,6 +1,6 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.grinderwolf.swm.api.utils.SlimeFormat;
+import com.infernalsuite.aswm.utils.SlimeFormat;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.log.Logging;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.grinderwolf.swm.plugin.loaders;
 
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.file.FileLoader;

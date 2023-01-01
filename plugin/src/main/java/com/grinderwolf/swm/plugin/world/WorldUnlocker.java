@@ -1,7 +1,7 @@
 package com.grinderwolf.swm.plugin.world;
 
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.world.SlimeWorld;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.bukkit.Bukkit;

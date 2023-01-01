@@ -2,8 +2,8 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;

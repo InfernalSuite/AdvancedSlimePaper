@@ -2,11 +2,11 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldAlreadyExistsException;
-import com.grinderwolf.swm.api.exceptions.WorldLoadedException;
-import com.grinderwolf.swm.api.exceptions.WorldTooBigException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.exceptions.InvalidWorldException;
+import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.exceptions.WorldTooBigException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;

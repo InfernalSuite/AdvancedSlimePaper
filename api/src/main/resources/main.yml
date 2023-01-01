@@ -1,0 +1,4 @@
+# TO PREVENT NULL.
+updater:
+  enabled: false
+  onjoinmessage: true

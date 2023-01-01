@@ -1,8 +1,8 @@
 package com.grinderwolf.swm.plugin.loaders.redis;
 
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.exceptions.WorldInUseException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldInUseException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.redis.util.StringByteCodec;
 import io.lettuce.core.RedisClient;

@@ -1,6 +1,6 @@
 package com.grinderwolf.swm.plugin.loaders;
 
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,7 +1,7 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
-import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
-import com.grinderwolf.swm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;

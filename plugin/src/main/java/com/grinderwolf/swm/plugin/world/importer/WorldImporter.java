@@ -2,12 +2,12 @@ package com.grinderwolf.swm.plugin.world.importer;
 
 import com.flowpowered.nbt.*;
 import com.flowpowered.nbt.stream.NBTInputStream;
-import com.grinderwolf.swm.api.exceptions.InvalidWorldException;
-import com.grinderwolf.swm.api.utils.NibbleArray;
-import com.grinderwolf.swm.api.world.SlimeChunk;
-import com.grinderwolf.swm.api.world.SlimeChunkSection;
-import com.grinderwolf.swm.api.world.properties.SlimeProperties;
-import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.exceptions.InvalidWorldException;
+import com.infernalsuite.aswm.utils.NibbleArray;
+import com.infernalsuite.aswm.world.SlimeChunk;
+import com.infernalsuite.aswm.world.SlimeChunkSection;
+import com.infernalsuite.aswm.world.properties.SlimeProperties;
+import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 import com.grinderwolf.swm.nms.CraftSlimeChunk;
 import com.grinderwolf.swm.nms.CraftSlimeChunkSection;
 import com.grinderwolf.swm.nms.NmsUtil;
