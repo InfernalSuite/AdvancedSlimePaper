@@ -3,6 +3,7 @@ package com.infernalsuite.aswm.skeleton;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.utils.NibbleArray;
 import com.infernalsuite.aswm.world.SlimeChunk;
 import com.infernalsuite.aswm.world.SlimeChunkSection;
 import com.infernalsuite.aswm.world.SlimeWorld;
@@ -103,11 +104,14 @@ public record SkeletonSlimeWorld(
             for (int i = 0; i < copied.length; i++) {
                 SlimeChunkSection original = value.getSections()[i];
 
+                NibbleArray blockLight = original.getBlockLight();
+                NibbleArray skyLight = original.getSkyLight();
+
                 copied[i] = new SlimeChunkSectionSkeleton(
                         original.getBlockStatesTag().clone(),
                         original.getBiomeTag().clone(),
-                        original.getBlockLight().clone(),
-                        original.getSkyLight().clone()
+                        blockLight == null ? null : blockLight.clone(),
+                        skyLight == null ? null : skyLight.clone()
                 );
             }
 
