@@ -16,20 +16,6 @@ index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..3faf7a9a12c70f35ff8e5995d9371166
      implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
          exclude("io.papermc.paper", "paper-api")
      }
-diff --git a/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java b/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..352e386417ad7c4f9feca42f583cfb9abe1701da
---- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/ChunkSerialization.java
-@@ -0,0 +1,8 @@
-+package com.infernalsuite.aswm;
-+
-+import com.flowpowered.nbt.CompoundTag;
-+
-+import java.util.List;
-+
-+public record ChunkSerialization(byte[] chunks, List<CompoundTag> tileEntities, List<CompoundTag> entities) {
-+}
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..14ac753083a3ce8599e5536c06c152bc394c93f2
@@ -192,10 +178,10 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e0b948171db74b85345811b079252fe62a9251de
+index 0000000000000000000000000000000000000000..cb81314f85b15178e1b7604a813185641fd1a01b
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,101 @@
 +package com.infernalsuite.aswm;
 +
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
@@ -224,6 +210,10 @@ index 0000000000000000000000000000000000000000..e0b948171db74b85345811b079252fe6
 +    public SlimeWorld readFromData(SlimeWorld data) {
 +        int newVersion = SharedConstants.getCurrentVersion().getWorldVersion();
 +        int currentVersion = data.getDataVersion();
++        // Already fixed
++        if (currentVersion == newVersion) {
++            return data;
++        }
 +
 +        Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
 +        for (SlimeChunk chunk : data.getChunkStorage()) {
@@ -1581,7 +1571,7 @@ index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f
 +    }
 +}
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..393b0a4538f36770d6e7469b713e9f9f127c2e4c 100644
+index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..3973a8e3278ab7139ab09c464d7e6127fa7dfd3d 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 @@ -35,6 +35,8 @@ import net.minecraft.util.Unit;
@@ -1593,6 +1583,16 @@ index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..393b0a4538f36770d6e7469b713e9f9f
  import org.bukkit.plugin.Plugin;
  import org.slf4j.Logger;
  import java.io.IOException;
+@@ -127,7 +129,8 @@ public final class ChunkHolderManager {
+         return this.chunkHolders.size();
+     }
+ 
+-    public void close(final boolean save, final boolean halt) {
++    public void close(boolean save, final boolean halt) { // ASWM
++        if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) save = false; // ASWM
+         TickThread.ensureTickThread("Closing world off-main");
+         if (halt) {
+             LOGGER.info("Waiting 60s for chunk system to halt for world '" + this.world.getWorld().getName() + "'");
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
 index 3df793f7e6bb67f40e7387a72fdafb912a7b1373..413b3709502b7c83adf71fcb40afbc139ae06ea3 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java

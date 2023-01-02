@@ -65,7 +65,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                 ChunkPos chunkKey = new ChunkPos(chunkX, chunkZ);
                 SlimeChunk chunk = chunks.get(chunkKey);
                 if (chunk != null) {
-                    chunk.getEntities().addAll(serializedEntities);
+                    chunk.getEntities().add(entityCompound);
                 }
             }
         }
