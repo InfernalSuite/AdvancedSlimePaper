@@ -31,19 +31,28 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
         upgradeWorld(data);
 
         Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
-        List<CompoundTag> entities = new ArrayList<>();
         for (Map.Entry<ChunkPos, v1_9SlimeChunk> entry : data.chunks.entrySet()) {
             v1_9SlimeChunk slimeChunk = entry.getValue();
 
             SlimeChunkSection[] sections = new SlimeChunkSection[slimeChunk.sections.length];
             for (int i = 0; i < sections.length; i++) {
                 v1_9SlimeChunkSection dataSection = slimeChunk.sections[i];
-                sections[i] = new SlimeChunkSectionSkeleton(
-                        dataSection.blockStatesTag,
-                        dataSection.biomeTag,
-                        dataSection.blockLight,
-                        dataSection.skyLight
-                );
+                if (dataSection != null) {
+                    sections[i] = new SlimeChunkSectionSkeleton(
+                            dataSection.blockStatesTag,
+                            dataSection.biomeTag,
+                            dataSection.blockLight,
+                            dataSection.skyLight
+                    );
+                } else {
+                    sections[i] = new SlimeChunkSectionSkeleton(
+                            null,
+                            null,
+                            null,
+                            null
+                    );
+                }
+
             }
             // TODO:
             //    slimeChunk.minY,
@@ -54,9 +63,9 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                     slimeChunk.z,
                     sections,
                     slimeChunk.heightMap,
-                    slimeChunk.tileEntities
+                    slimeChunk.tileEntities,
+                    slimeChunk.entities
             ));
-            entities.addAll(slimeChunk.entities);
         }
 
 
@@ -66,7 +75,6 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                 chunks,
                 data.extraCompound,
                 data.propertyMap,
-                entities,
                 3120 // MCVersions.V1_19_2
         );
     }

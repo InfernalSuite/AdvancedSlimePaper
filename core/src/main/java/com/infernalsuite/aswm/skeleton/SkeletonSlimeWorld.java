@@ -23,7 +23,6 @@ public record SkeletonSlimeWorld(
         Map<ChunkPos, SlimeChunk> chunkStorage,
         CompoundTag extraSerialized,
         SlimePropertyMap slimePropertyMap,
-        List<CompoundTag> entities,
         int dataVersion
 ) implements SlimeWorld {
     @Override
@@ -69,11 +68,6 @@ public record SkeletonSlimeWorld(
     @Override
     public int getDataVersion() {
         return this.dataVersion;
-    }
-
-    @Override
-    public List<CompoundTag> getEntities() {
-        return this.entities;
     }
 
     @Override
@@ -123,7 +117,8 @@ public record SkeletonSlimeWorld(
                             value.getZ(),
                             copied,
                             value.getHeightMaps().clone(),
-                            this.deepClone(value.getTileEntities())
+                            this.deepClone(value.getTileEntities()),
+                            this.deepClone(value.getEntities())
                     ));
         }
 
@@ -133,7 +128,6 @@ public record SkeletonSlimeWorld(
                 cloned,
                 this.extraSerialized.clone(),
                 this.slimePropertyMap.clone(),
-                this.deepClone(this.getEntities()),
                 this.dataVersion
         );
     }

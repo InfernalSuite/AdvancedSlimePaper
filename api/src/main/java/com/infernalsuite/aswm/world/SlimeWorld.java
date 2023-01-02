@@ -124,12 +124,4 @@ public interface SlimeWorld {
     }
 
     int getDataVersion();
-
-    /**
-     * Returns all the entities of the chunk.
-     *
-     * @return A {@link CompoundTag} containing all the entities
-     */
-    List<CompoundTag> getEntities();
-
 }

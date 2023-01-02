@@ -46,4 +46,11 @@ public interface SlimeChunk {
      */
     List<CompoundTag> getTileEntities();
 
+    /**
+     * Returns all the entities of the chunk.
+     *
+     * @return A {@link CompoundTag} containing all the entities
+     */
+    List<CompoundTag> getEntities();
+
 }

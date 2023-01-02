@@ -7,8 +7,9 @@ import com.infernalsuite.aswm.world.SlimeChunkSection;
 import java.util.List;
 
 public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
-                                 CompoundTag heightMap, List<CompoundTag> blockEntities) implements SlimeChunk {
-
+                                 CompoundTag heightMap,
+                                 List<CompoundTag> blockEntities,
+                                 List<CompoundTag> entities) implements SlimeChunk {
     @Override
     public int getX() {
         return this.x;
@@ -34,4 +35,8 @@ public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
         return this.blockEntities;
     }
 
+    @Override
+    public List<CompoundTag> getEntities() {
+        return this.entities;
+    }
 }

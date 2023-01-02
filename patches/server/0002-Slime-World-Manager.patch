@@ -192,10 +192,10 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a73a40a54ad897284cb6a0f8849f255b077172f1
+index 0000000000000000000000000000000000000000..e0b948171db74b85345811b079252fe62a9251de
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,97 @@
 +package com.infernalsuite.aswm;
 +
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
@@ -226,18 +226,17 @@ index 0000000000000000000000000000000000000000..a73a40a54ad897284cb6a0f8849f255b
 +        int currentVersion = data.getDataVersion();
 +
 +        Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
-+        List<CompoundTag> entities = new ArrayList<>();
-+        for (CompoundTag upgradeEntity : data.getEntities()) {
-+            entities.add(
-+                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
-+            );
-+        }
-+
 +        for (SlimeChunk chunk : data.getChunkStorage()) {
++            List<CompoundTag> entities = new ArrayList<>();
 +            List<CompoundTag> blockEntities = new ArrayList<>();
-+            for (CompoundTag upgradeEntity : data.getEntities()) {
++            for (CompoundTag upgradeEntity : chunk.getTileEntities()) {
 +                entities.add(
 +                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
++                );
++            }
++            for (CompoundTag upgradeEntity : chunk.getEntities()) {
++                entities.add(
++                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
 +                );
 +            }
 +
@@ -265,7 +264,8 @@ index 0000000000000000000000000000000000000000..a73a40a54ad897284cb6a0f8849f255b
 +                        chunk.getZ(),
 +                        sections,
 +                        chunk.getHeightMaps(),
-+                        blockEntities
++                        blockEntities,
++                        entities
 +                ));
 +            }
 +
@@ -277,13 +277,16 @@ index 0000000000000000000000000000000000000000..a73a40a54ad897284cb6a0f8849f255b
 +                chunks,
 +                data.getExtraData(),
 +                data.getPropertyMap(),
-+                entities,
 +                newVersion
 +        );
 +    }
 +
 +
 +    private static com.flowpowered.nbt.CompoundTag convertAndBack(com.flowpowered.nbt.CompoundTag value, Consumer<net.minecraft.nbt.CompoundTag> acceptor) {
++        if (value == null) {
++            return null;
++        }
++
 +        net.minecraft.nbt.CompoundTag converted = (net.minecraft.nbt.CompoundTag) Converter.convertTag(value);
 +        acceptor.accept(converted);
 +
@@ -498,12 +501,177 @@ index 0000000000000000000000000000000000000000..66442436f172d89f94c11ad41c7d398d
 +
 +}
 \ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9829b6831a8bb402f8b0d7080b98f01d2ecd0d33
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+@@ -0,0 +1,134 @@
++package com.infernalsuite.aswm.level;
++
++import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
++import com.infernalsuite.aswm.Converter;
++import com.infernalsuite.aswm.world.SlimeChunk;
++import com.mojang.logging.LogUtils;
++import io.papermc.paper.chunk.system.poi.PoiChunk;
++import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
++import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
++import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.world.entity.EntityType;
++import net.minecraft.world.level.ChunkPos;
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.chunk.ChunkAccess;
++import net.minecraft.world.level.chunk.ImposterProtoChunk;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.chunk.UpgradeData;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.ticks.LevelChunkTicks;
++import org.slf4j.Logger;
++
++import java.util.ArrayList;
++import java.util.function.Consumer;
++import java.util.stream.Collectors;
++
++public final class ChunkDataLoadTask implements CommonLoadTask {
++
++    private static final Logger LOGGER = LogUtils.getClassLogger();
++
++    private final ChunkTaskScheduler scheduler;
++    private final ServerLevel world;
++    private final int chunkX;
++    private final int chunkZ;
++    private Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun;
++
++    private PrioritisedExecutor.PrioritisedTask task;
++
++    private final ChunkLoadTask chunkLoadTask;
++
++    protected ChunkDataLoadTask(ChunkLoadTask chunkLoadTask, final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
++                                final int chunkZ, final PrioritisedExecutor.Priority priority, final Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
++        this.chunkLoadTask = chunkLoadTask;
++        this.scheduler = scheduler;
++        this.world = world;
++        this.chunkX = chunkX;
++        this.chunkZ = chunkZ;
++        this.onRun = onRun;
++
++        this.task = this.scheduler.createChunkTask(this.chunkX, this.chunkZ, () -> {
++            try {
++                SlimeChunk chunk = ((SlimeLevelInstance) this.world).slimeInstance.getChunk(this.chunkX, this.chunkZ);
++                this.onRun.accept(new GenericDataLoadTask.TaskResult<>(runOnMain(chunk), null));
++            } catch (Throwable e) {
++                LOGGER.error("ERROR", e);
++                this.onRun.accept(new GenericDataLoadTask.TaskResult<>(null, e));
++            }
++        }, priority);
++    }
++
++    private ChunkAccess getEmptyChunk() {
++        LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
++        LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
++
++        return new ImposterProtoChunk(new LevelChunk(this.world, new ChunkPos(this.chunkX, this.chunkZ), UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
++                0L, null, null, null), true);
++    }
++
++    protected ChunkAccess runOnMain(final SlimeChunk data) {
++        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
++        if (poiChunk == null) {
++            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
++        } else {
++            poiChunk.load();
++        }
++
++        // have tasks to run (at this point, it's just the POI consistency checking)
++        try {
++//                if (data.tasks != null) {
++//                    for (int i = 0, len = data.tasks.size(); i < len; ++i) {
++//                        data.tasks.poll().run();
++//                    }
++//                }
++
++            LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
++            if (data != null) {
++                this.world.getEntityLookup().addLegacyChunkEntities(new ArrayList<>(
++                        EntityType.loadEntitiesRecursive(data.getEntities()
++                                        .stream()
++                                        .map((tag) -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag))
++                                        .collect(Collectors.toList()), this.world)
++                                .toList()
++                ));
++            }
++
++            return new ImposterProtoChunk(chunk, false);
++        } catch (final ThreadDeath death) {
++            throw death;
++        } catch (final Throwable thr2) {
++            LOGGER.error("Failed to parse main tasks for task " + this.toString() + ", chunk data will be lost", thr2);
++            return this.getEmptyChunk();
++        }
++    }
++
++    @Override
++    public PrioritisedExecutor.Priority getPriority() {
++        return this.task.getPriority();
++    }
++
++    @Override
++    public void setPriority(PrioritisedExecutor.Priority priority) {
++        this.task.setPriority(priority);
++    }
++
++    @Override
++    public void raisePriority(PrioritisedExecutor.Priority priority) {
++        this.task.raisePriority(priority);
++    }
++
++    @Override
++    public void lowerPriority(PrioritisedExecutor.Priority priority) {
++        this.task.lowerPriority(priority);
++    }
++
++    @Override
++    public boolean cancel() {
++        return this.task.cancel();
++    }
++
++    public boolean schedule(boolean schedule) {
++        this.scheduler.scheduleChunkTask(chunkX, chunkZ, this.task::execute);
++        return true;
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6c6333a326196be1516510f0b5f53cef260ade51
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
+@@ -0,0 +1,18 @@
++package com.infernalsuite.aswm.level;
++
++import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
++
++public interface CommonLoadTask {
++
++    boolean schedule(boolean schedule);
++
++    PrioritisedExecutor.Priority getPriority();
++
++    boolean cancel();
++
++    void lowerPriority(PrioritisedExecutor.Priority priority);
++
++    void raisePriority(PrioritisedExecutor.Priority priority);
++
++    void setPriority(PrioritisedExecutor.Priority priority);
++}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde3194a2da
+index 0000000000000000000000000000000000000000..fd7f3768e154b0ab1a6e2a421438ec3c0ace5faf
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,144 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -522,6 +690,7 @@ index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde
 +import net.minecraft.core.registries.Registries;
 +import net.minecraft.nbt.NbtOps;
 +import net.minecraft.nbt.Tag;
++import net.minecraft.world.entity.Entity;
 +import net.minecraft.world.level.LightLayer;
 +import net.minecraft.world.level.biome.Biome;
 +import net.minecraft.world.level.biome.Biomes;
@@ -535,6 +704,7 @@ index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde
 +import net.minecraft.world.level.lighting.LevelLightEngine;
 +
 +import java.util.ArrayList;
++import java.util.Iterator;
 +import java.util.List;
 +import java.util.Map;
 +
@@ -622,6 +792,21 @@ index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde
 +        return tileEntities;
 +    }
 +
++    @Override
++    public List<CompoundTag> getEntities() {
++        List<CompoundTag> entities = new ArrayList<>();
++
++        for (Iterator<Entity> it = chunk.getChunkHolder().getEntityChunk().entities.iterator(); it.hasNext(); ) {
++            Entity entity = it.next();
++            net.minecraft.nbt.CompoundTag entityNbt = new net.minecraft.nbt.CompoundTag();
++            if (entity.save(entityNbt)) {
++                entities.add((CompoundTag) Converter.convertTag("", entityNbt));
++            }
++        }
++
++        return entities;
++    }
++
 +    public LevelChunk getChunk() {
 +        return chunk;
 +    }
@@ -633,10 +818,10 @@ index 0000000000000000000000000000000000000000..d0319aeaf8705c8cee5e08c9fd428bde
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c15ad49cbe11ddd7ca307f39452199b54d1eeeea
+index 0000000000000000000000000000000000000000..fa6214b2c1bfbdb5b9ac83e648854c3aaa12242a
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,93 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -729,18 +914,86 @@ index 0000000000000000000000000000000000000000..c15ad49cbe11ddd7ca307f39452199b5
 +        return SharedConstants.getCurrentVersion().getWorldVersion();
 +    }
 +
-+    @Override
-+    public List<CompoundTag> getEntities() {
-+        List<CompoundTag> entities = new ArrayList<>();
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..84f7adc1ccf06aa22d59989194de8cec916c8839
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+@@ -0,0 +1,75 @@
++package com.infernalsuite.aswm.level;
 +
-+        for (Entity entity : this.instance.getEntities().getAll()) {
-+            net.minecraft.nbt.CompoundTag entityNbt = new net.minecraft.nbt.CompoundTag();
-+            if (entity.save(entityNbt)) {
-+                entities.add((CompoundTag) Converter.convertTag("", entityNbt));
-+            }
++import com.flowpowered.nbt.CompoundTag;
++import com.infernalsuite.aswm.world.SlimeChunk;
++import com.infernalsuite.aswm.world.SlimeChunkSection;
++
++import java.util.List;
++
++public class SafeNmsChunkWrapper implements SlimeChunk {
++
++    private final NMSSlimeChunk wrapper;
++    private final SlimeChunk safety;
++
++    public SafeNmsChunkWrapper(NMSSlimeChunk wrapper, SlimeChunk safety) {
++        this.wrapper = wrapper;
++        this.safety = safety;
++    }
++
++    @Override
++    public int getX() {
++        return this.wrapper.getX();
++    }
++
++    @Override
++    public int getZ() {
++        return this.wrapper.getZ();
++    }
++
++    @Override
++    public SlimeChunkSection[] getSections() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getSections();
 +        }
 +
-+        return entities;
++        return this.wrapper.getSections();
++    }
++
++    @Override
++    public CompoundTag getHeightMaps() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getHeightMaps();
++        }
++
++        return this.wrapper.getHeightMaps();
++    }
++
++    @Override
++    public List<CompoundTag> getTileEntities() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getTileEntities();
++        }
++
++        return this.wrapper.getTileEntities();
++    }
++
++    @Override
++    public List<CompoundTag> getEntities() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getEntities();
++        }
++
++        return this.wrapper.getEntities();
++    }
++
++    /*
++    Slime chunks can still be requested but not actually loaded, this caused
++    some things to not properly save because they are not "loaded" into the chunk.
++    See ChunkMap#protoChunkToFullChunk
++    anything in the if statement will not be loaded and is stuck inside the runnable.
++    Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
++     */
++    public boolean shouldDefaultBackToSlimeChunk() {
++        return this.safety != null && !this.wrapper.getChunk().loaded;
 +    }
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
@@ -760,14 +1013,15 @@ index 0000000000000000000000000000000000000000..1dfa3d5d5d59e8dbf2e0cffd47c4136a
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292fee9a8ae
+index 0000000000000000000000000000000000000000..20d996841d97ca23c36d8998ad2dbd6318f80ab9
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,168 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
 +import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
 +import com.flowpowered.nbt.LongArrayTag;
 +import com.infernalsuite.aswm.utils.NibbleArray;
 +import com.infernalsuite.aswm.world.SlimeChunk;
@@ -775,6 +1029,7 @@ index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292
 +import com.infernalsuite.aswm.Converter;
 +import com.mojang.serialization.Codec;
 +import com.mojang.serialization.DataResult;
++import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Holder;
 +import net.minecraft.core.Registry;
 +import net.minecraft.core.registries.Registries;
@@ -784,6 +1039,7 @@ index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292
 +import net.minecraft.world.level.biome.Biomes;
 +import net.minecraft.world.level.block.Block;
 +import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.block.entity.BlockEntity;
 +import net.minecraft.world.level.block.state.BlockState;
 +import net.minecraft.world.level.chunk.LevelChunk;
 +import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -795,6 +1051,8 @@ index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292
 +import net.minecraft.world.ticks.LevelChunkTicks;
 +
 +import java.util.EnumSet;
++import java.util.List;
++import java.util.Optional;
 +
 +public class SlimeChunkConverter {
 +
@@ -874,25 +1132,24 @@ index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292
 +
 +            // TODO
 +            // Load tile entities
-+//            System.out.println("Loading tile entities for chunk (" + pos.x + ", " + pos.z + ") on world " + slimeWorld.getName());
-+//            List<CompoundTag> tileEntities = chunk.getTileEntities();
-+//
-+//            if (tileEntities != null) {
-+//                for (CompoundTag tag : tileEntities) {
-+//                    Optional<String> type = tag.getStringValue("id");
-+//
-+//                    // Sometimes null tile entities are saved
-+//                    if (type.isPresent()) {
-+//                        BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
-+//                        BlockState blockData = nmsChunk.getBlockState(blockPosition);
-+//                        BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
-+//
-+//                        if (entity != null) {
-+//                            nmsChunk.setBlockEntity(entity);
-+//                        }
-+//                    }
-+//                }
-+//            }
++            List<CompoundTag> tileEntities = chunk.getTileEntities();
++
++            if (tileEntities != null) {
++                for (CompoundTag tag : tileEntities) {
++                    Optional<String> type = tag.getStringValue("id");
++
++                    // Sometimes null tile entities are saved
++                    if (type.isPresent()) {
++                        BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
++                        BlockState blockData = nmsChunk.getBlockState(blockPosition);
++                        BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
++
++                        if (entity != null) {
++                            nmsChunk.setBlockEntity(entity);
++                        }
++                    }
++                }
++            }
 +        };
 +
 +        LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
@@ -926,6 +1183,182 @@ index 0000000000000000000000000000000000000000..d75963c2e68b1f1bfd04d57e196dc292
 +        }
 +
 +        return nmsChunk;
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5cdc6d947ab4cfc6701358c89284684bb37daae6
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -0,0 +1,170 @@
++package com.infernalsuite.aswm.level;
++
++import com.flowpowered.nbt.CompoundTag;
++import com.infernalsuite.aswm.ChunkPos;
++import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
++import com.infernalsuite.aswm.loaders.SlimeLoader;
++import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
++import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
++import com.infernalsuite.aswm.world.SlimeChunk;
++import com.infernalsuite.aswm.world.SlimeWorld;
++import com.infernalsuite.aswm.world.SlimeWorldInstance;
++import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.chunk.UpgradeData;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.ticks.LevelChunkTicks;
++import org.bukkit.World;
++
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.CompletableFuture;
++
++
++public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
++
++    private final SlimeLevelInstance instance;
++    private final SlimeWorld liveWorld;
++
++    private final CompoundTag extra;
++    private final SlimePropertyMap propertyMap;
++    private final SlimeLoader loader;
++
++    private final Map<ChunkPos, SlimeChunk> chunkStorage = new HashMap<>();
++    private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
++
++    public SlimeInMemoryWorld(SlimeBootstrap bootstrap, SlimeLevelInstance instance) {
++        this.instance = instance;
++        this.extra = bootstrap.initial().getExtraData();
++        this.propertyMap = bootstrap.initial().getPropertyMap();
++        this.loader = bootstrap.initial().getLoader();
++
++        for (SlimeChunk initial : bootstrap.initial().getChunkStorage()) {
++            ChunkPos pos = new ChunkPos(initial.getX(), initial.getZ());
++            List<CompoundTag> tags = new ArrayList<>(initial.getEntities());
++
++            this.entityStorage.put(pos, tags);
++            this.chunkStorage.put(pos, initial);
++        }
++
++        this.liveWorld = new NMSSlimeWorld(instance);
++    }
++
++    @Override
++    public String getName() {
++        return this.instance.getMinecraftWorld().serverLevelData.getLevelName();
++    }
++
++    @Override
++    public SlimeLoader getLoader() {
++        return this.loader;
++    }
++
++    public LevelChunk promote(int x, int z, SlimeChunk chunk) {
++        LevelChunk levelChunk;
++        if (chunk == null) {
++            net.minecraft.world.level.ChunkPos pos = new net.minecraft.world.level.ChunkPos(x, z);
++            LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
++            LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
++
++            levelChunk = new LevelChunk(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
++                    0L, null, null, null) {
++
++                @Override
++                public void unloadCallback() {
++                    super.unloadCallback();
++                    SlimeInMemoryWorld.this.unload(x, z);
++                }
++            };
++            chunk = new NMSSlimeChunk(levelChunk);
++
++        } else {
++            levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
++            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk), chunk);
++        }
++        this.chunkStorage.put(new ChunkPos(x, z), chunk);
++
++        return levelChunk;
++    }
++
++    public void unload(int x, int z) {
++        SlimeChunk chunk = this.getChunk(x, z);
++        if (chunk != null) {
++            this.chunkStorage.put(new ChunkPos(x, z), new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(), chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
++        }
++    }
++
++    @Override
++    public SlimeChunk getChunk(int x, int z) {
++        return this.chunkStorage.get(new ChunkPos(x, z));
++    }
++
++    @Override
++    public Collection<SlimeChunk> getChunkStorage() {
++        return this.chunkStorage.values();
++    }
++
++    @Override
++    public World getBukkitWorld() {
++        return this.instance.getWorld();
++    }
++
++    @Override
++    public SlimeWorld getSlimeWorldMirror() {
++        return this.liveWorld;
++    }
++
++    @Override
++    public SlimePropertyMap getPropertyMap() {
++        return this.propertyMap;
++    }
++
++    @Override
++    public boolean isReadOnly() {
++        return this.getSaveStrategy() == null;
++    }
++
++    @Override
++    public SlimeWorld clone(String worldName) {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public int getDataVersion() {
++        return this.liveWorld.getDataVersion();
++    }
++
++    @Override
++    public SlimeLoader getSaveStrategy() {
++        return this.loader;
++    }
++
++    @Override
++    public CompletableFuture<byte[]> serialize() {
++        return CompletableFuture.completedFuture(SlimeSerializer.serialize(this));
++    }
++
++    @Override
++    public CompoundTag getExtraData() {
++        return this.extra;
++    }
++
++    @Override
++    public Collection<CompoundTag> getWorldMaps() {
++        return List.of();
++    }
++
++    public Map<ChunkPos, List<CompoundTag>> getEntityStorage() {
++        return entityStorage;
 +    }
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
@@ -970,16 +1403,21 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317eaf6c9d6b
+index 0000000000000000000000000000000000000000..ce68f021659742c4732ea3767dc8818a88bc1f90
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,157 @@
 +package com.infernalsuite.aswm.level;
 +
++import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
 +import com.infernalsuite.aswm.world.SlimeWorldInstance;
 +import com.infernalsuite.aswm.world.properties.SlimeProperties;
 +import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
++import com.mojang.datafixers.util.Either;
++import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
++import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
++import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Holder;
 +import net.minecraft.core.registries.Registries;
@@ -993,6 +1431,7 @@ index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317e
 +import net.minecraft.util.datafix.DataFixers;
 +import net.minecraft.world.Difficulty;
 +import net.minecraft.world.level.biome.Biome;
++import net.minecraft.world.level.chunk.ChunkAccess;
 +import net.minecraft.world.level.chunk.ChunkGenerator;
 +import net.minecraft.world.level.dimension.LevelStem;
 +import net.minecraft.world.level.storage.LevelStorageSource;
@@ -1009,6 +1448,7 @@ index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317e
 +import java.util.UUID;
 +import java.util.concurrent.ExecutorService;
 +import java.util.concurrent.Executors;
++import java.util.function.Consumer;
 +import java.util.logging.Level;
 +
 +public class SlimeLevelInstance extends ServerLevel {
@@ -1046,7 +1486,7 @@ index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317e
 +                primaryLevelData, worldKey, worldDimension,
 +                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
 +                Collections.emptyList(), true, environment, null, null);
-+        this.slimeInstance = new v1192SlimeLoadedWorld(slimeBootstrap, this);
++        this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 +
 +
 +        SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
@@ -1119,87 +1559,12 @@ index 0000000000000000000000000000000000000000..9bc3f532c63feeb8505973d8debf317e
 +    public SlimeWorldInstance getSlimeInstance() {
 +        return this.slimeInstance;
 +    }
++
++    public ChunkDataLoadTask getLoadTask(ChunkLoadTask task, ChunkTaskScheduler scheduler, ServerLevel world, int chunkX, int chunkZ, PrioritisedExecutor.Priority priority, Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
++        return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
++    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java b/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..faea20787ad99c06713c82967f81c59a63d7d8a7
---- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/v1192SlimeLoadedWorld.java
-@@ -0,0 +1,73 @@
-+package com.infernalsuite.aswm.level;
-+
-+import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.loaders.SlimeLoader;
-+import com.infernalsuite.aswm.world.SlimeWorld;
-+import com.infernalsuite.aswm.world.SlimeWorldInstance;
-+import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
-+import org.bukkit.World;
-+
-+import java.util.concurrent.CompletableFuture;
-+
-+public class v1192SlimeLoadedWorld implements SlimeWorldInstance {
-+
-+
-+    private final SlimeLevelInstance instance;
-+    private final SlimeWorld world;
-+
-+    private final CompoundTag extra;
-+    private final SlimePropertyMap propertyMap;
-+    private final SlimeLoader loader;
-+
-+
-+    public v1192SlimeLoadedWorld(SlimeBootstrap bootstrap, SlimeLevelInstance instance) {
-+        this.instance = instance;
-+        this.extra = bootstrap.initial().getExtraData();
-+        this.propertyMap = bootstrap.initial().getPropertyMap();
-+        this.loader = bootstrap.initial().getLoader();
-+
-+        this.world = new NMSSlimeWorld(instance);
-+    }
-+
-+
-+    @Override
-+    public String getName() {
-+        return this.instance.getMinecraftWorld().serverLevelData.getLevelName();
-+    }
-+
-+    @Override
-+    public World getBukkitWorld() {
-+        return this.instance.getWorld();
-+    }
-+
-+    @Override
-+    public SlimeWorld getSlimeWorldMirror() {
-+        return this.world;
-+    }
-+
-+    @Override
-+    public SlimePropertyMap getPropertyMap() {
-+        return this.propertyMap;
-+    }
-+
-+    @Override
-+    public boolean isReadOnly() {
-+        return this.getSaveStrategy() == null;
-+    }
-+
-+    @Override
-+    public SlimeLoader getSaveStrategy() {
-+        return this.loader;
-+    }
-+
-+    @Override
-+    public CompletableFuture<byte[]> serialize() {
-+        return CompletableFuture.completedFuture(SlimeSerializer.serialize(this.world));
-+    }
-+
-+    @Override
-+    public CompoundTag getExtraData() {
-+        return this.extra;
-+    }
-+}
 diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f819200d7
@@ -1215,6 +1580,81 @@ index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f
 +        //return (long)chunkX & 4294967295L | ((long)chunkZ & 4294967295L) << 32;
 +    }
 +}
+diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
+index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..393b0a4538f36770d6e7469b713e9f9f127c2e4c 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
++++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
+@@ -35,6 +35,8 @@ import net.minecraft.util.Unit;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.chunk.ChunkAccess;
+ import net.minecraft.world.level.chunk.ChunkStatus;
++import org.bukkit.Bukkit;
++import org.bukkit.Material;
+ import org.bukkit.plugin.Plugin;
+ import org.slf4j.Logger;
+ import java.io.IOException;
+diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
+index 3df793f7e6bb67f40e7387a72fdafb912a7b1373..413b3709502b7c83adf71fcb40afbc139ae06ea3 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
++++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
+@@ -31,8 +31,8 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+ 
+     private static final Logger LOGGER = LogUtils.getClassLogger();
+ 
+-    private final NewChunkHolder chunkHolder;
+-    private final ChunkDataLoadTask loadTask;
++    public final NewChunkHolder chunkHolder; // ASWM
++    private final com.infernalsuite.aswm.level.CommonLoadTask loadTask; // ASWM
+ 
+     private boolean cancelled;
+     private NewChunkHolder.GenericDataLoadTaskCallback entityLoadTask;
+@@ -42,10 +42,20 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+                             final NewChunkHolder chunkHolder, final PrioritisedExecutor.Priority priority) {
+         super(scheduler, world, chunkX, chunkZ);
+         this.chunkHolder = chunkHolder;
+-        this.loadTask = new ChunkDataLoadTask(scheduler, world, chunkX, chunkZ, priority);
+-        this.loadTask.addCallback((final GenericDataLoadTask.TaskResult<ChunkAccess, Throwable> result) -> {
+-            ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
+-        });
++        // ASWM start
++        if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance levelInstance) {
++
++            this.loadTask = levelInstance.getLoadTask(this, scheduler, world, chunkX, chunkZ, priority, result -> {
++                ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
++            });
++        } else {
++            ChunkDataLoadTask task = new ChunkDataLoadTask(scheduler, world, chunkX, chunkZ, priority);
++            task.addCallback((final GenericDataLoadTask.TaskResult<ChunkAccess, Throwable> result) -> {
++                ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
++            });
++            this.loadTask = task;
++        }
++        // ASWM end
+     }
+ 
+     @Override
+@@ -249,7 +259,7 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+         }
+     }
+ 
+-    public final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkSerializer.InProgressChunkHolder, ChunkAccess> {
++    public final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkSerializer.InProgressChunkHolder, ChunkAccess> implements com.infernalsuite.aswm.level.CommonLoadTask { // ASWM
+         protected ChunkDataLoadTask(final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
+                                     final int chunkZ, final PrioritisedExecutor.Priority priority) {
+             super(scheduler, world, chunkX, chunkZ, RegionFileIOThread.RegionFileType.CHUNK_DATA, priority);
+diff --git a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
+index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed514d1ec7 100644
+--- a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
++++ b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
+@@ -35,7 +35,7 @@ public final class ChunkEntitySlices {
+     protected final EntityCollectionBySection allEntities;
+     protected final EntityCollectionBySection hardCollidingEntities;
+     protected final Reference2ObjectOpenHashMap<Class<? extends Entity>, EntityCollectionBySection> entitiesByClass;
+-    protected final EntityList entities = new EntityList();
++    public final EntityList entities = new EntityList(); // ASWM
+ 
+     public ChunkHolder.FullChunkStatus status;
+ 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
 index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3a6672f0e 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
@@ -1271,7 +1711,7 @@ index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index f3a19d00f78e19aa98c57461efb90d79f656a992..617802739fd12b9ca9a9eec2ce0d80a58a5f7bf1 100644
+index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5a6bce3a1 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -128,12 +128,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
@@ -1312,7 +1752,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..617802739fd12b9ca9a9eec2ce0d80a5
 +        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, i, list, flag1, env, gen, biomeProvider);
 +    }
 +
-+    public com.infernalsuite.aswm.world.SlimeWorldInstance slimeInstance;
++    public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance;
 +
 +    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
 +    // ASWM END

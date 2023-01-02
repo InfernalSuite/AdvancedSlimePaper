@@ -269,7 +269,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         Logging.info("Creating empty world " + worldName + ".");
         long start = System.currentTimeMillis();
-        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, readOnly ? null : loader, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, List.of(), BRIDGE_INSTANCE.getCurrentVersion());
+        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, readOnly ? null : loader, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
 
         loader.saveWorld(worldName, SlimeSerializer.serialize(blackhole));
 

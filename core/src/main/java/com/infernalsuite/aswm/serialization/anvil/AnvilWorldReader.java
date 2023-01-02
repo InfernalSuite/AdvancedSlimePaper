@@ -75,11 +75,9 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
         Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
 
-        List<CompoundTag> entities = new ArrayList<>();
-
         for (File file : regionDir.listFiles((dir, name) -> name.endsWith(".mca"))) {
             chunks.putAll(
-                    loadChunks(file, worldVersion, entities).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
+                    loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
             );
         }
 
@@ -110,7 +108,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
         propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-        return new SkeletonSlimeWorld(worldDir.getName(), null, chunks, new CompoundTag("", extraData), propertyMap, entities, worldVersion);
+        return new SkeletonSlimeWorld(worldDir.getName(), null, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
     }
 
     private static CompoundTag loadMap(File mapFile) throws IOException {
@@ -153,7 +151,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         throw new InvalidWorldException(file.getParentFile());
     }
 
-    private static List<SlimeChunk> loadChunks(File file, int worldVersion, List<CompoundTag> entities) throws IOException {
+    private static List<SlimeChunk> loadChunks(File file, int worldVersion) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(file.toPath());
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
@@ -189,7 +187,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
                     levelDataTag = (CompoundTag) globalMap.get("Level");
                 }
 
-                return readChunk(levelDataTag, worldVersion, entities);
+                return readChunk(levelDataTag, worldVersion);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -197,7 +195,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    private static SlimeChunk readChunk(CompoundTag compound, int worldVersion, List<CompoundTag> entityList) {
+    private static SlimeChunk readChunk(CompoundTag compound, int worldVersion) {
         int chunkX = compound.getAsIntTag("xPos").get().getValue();
         int chunkZ = compound.getAsIntTag("zPos").get().getValue();
 
@@ -261,7 +259,6 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
             maxSectionY = sectionsTag.getValue().stream().map(c -> c.getByteValue("Y").orElseThrow()).max(Byte::compareTo).orElse((byte) 0) + 1; // Add 1 to the section, as we serialize it with the 1 added.
         }
-        entityList.addAll(entities);
 
         SlimeChunkSection[] sectionArray = new SlimeChunkSection[maxSectionY - minSectionY];
 
@@ -302,7 +299,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
         for (SlimeChunkSection section : sectionArray) {
             if (section != null) { // Chunk isn't empty
-                return new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMapsCompound, tileEntities);
+                return new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMapsCompound, tileEntities, entities);
             }
         }
 
