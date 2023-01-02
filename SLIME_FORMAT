@@ -2,17 +2,7 @@
 “Slime” file format
 2 bytes - magic = 0xB10B
 1 byte (ubyte) - version, current = 0x0A
-1 byte (ubyte) - world version (see version list below)
-2 bytes (short) - xPos of chunk lowest x & lowest z
-2 bytes (short) - zPos
-2 bytes (ushort) - width
-2 bytes (ushort) - depth
-[depends] - chunk bitmask
-  -> each chunk is 1 bit: 0 if all air (missing), 1 if present
-  -> chunks are ordered zx, meaning
-  -> the last byte has unused bits on the right
-  -> size is ceil((width*depth) / 8) bytes
-
+4 bytes (int) - world version (see version list below)
 4 bytes (int) - compressed chunks size
 4 bytes (int) - uncompressed chunks size
   <array of chunks> (size determined from bitmask)
@@ -25,10 +15,8 @@
     inside an nbt list named “tiles”, in a global compound, no gzip anywhere
     compressed using zstd
 
-1 byte (boolean) - has entities
-[if has entities]
-  4 bytes (int) compressed entities size
-  4 bytes (int) uncompressed entities size
+4 bytes (int) compressed entities size
+4 bytes (int) uncompressed entities size
   <array of entity nbt compounds>
     Same format as mc EXCEPT optional “CustomId”
     inside an nbt list named “entities”, in a global compound
@@ -37,56 +25,26 @@
 4 bytes (int) - compressed “extra” size
 4 bytes (int) - uncompressed “extra” size
 [depends] - compound tag compressed using zstd
-
-4 bytes (int) - compressed world maps size
-4 bytes (int) - uncompressed world maps size
-  <array of tile entity nbt compounds>
-    Same format as mc, with a new "id" int tag
-    inside an nbt list named “maps”, in a global compound, no gzip anywhere
-    compressed using zstd
 -------------------------------------
 
 Custom chunk format
-[if world mc version is 1.13 or newer]
-  4 bytes (int) - heightmaps size
+4 byte (int) - chunk x
+4 byte (int) - chunk z
+4 bytes (int) - heightmaps size
   <array of heightmap nbt compounds>
     same format as mc, uncompressed
-    4 bytes (int) - biome array size
-    <array of biomes (ints)>
-[else]
-  256 ints - heightmap
-  256 bytes - biomes
-[if world mc version is 1.18 or newer]
-  4 bytes (int) min section y
-  4 bytes (int) max section y
-  4 bytes (int) section count
-[else]
-  2 bytes - sections bitmask (bottom to top)
-
+4 bytes (int) section count
 [for each section]
-  [if world mc version is 1.18 or newer]
-    4 bytes (int) y position of section
-  1 byte (boolean) - has block light
-  [if has block light]
-    2048 bytes - block light
-  [if world mc version is 1.18 or newer]
-    4 bytes (int) - block states byte size
-    <block states component>
-    4 bytes (int) - biomes byte size
-    <biomes component>
-  [else if world mc version is 1.13 or newer]
-    4 bytes (int) - block palette array size
-    <array of block palette nbt compounds>
-      same format as mc, without being inside a global compound
-    4 bytes (int) - block state array size
-    <array of block states (longs)>
-  [else]
-    4096 bytes - blocks
-    2048 bytes - data
   1 byte (boolean) - has sky light
   [if has sky light]
-    2048 bytes - sky light
-  For each section
+      2048 bytes - sky light
+  1 byte (boolean) - has block light
+    [if has block light]
+        2048 bytes - block light
+  4 bytes (int) - block states byte size
+      <block states component>
+  4 bytes (int) - biomes byte size
+      <biomes component>
 
 -------------------------------------
 
@@ -111,3 +69,4 @@ Version history:
  - v7: Added world maps
  - v8: Variable biomes size
  - v9: Fix issue with biomes size, causing old worlds to be corrupted
+ - v10: Use minecraft version id, remove legacy version artifacts
