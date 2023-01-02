@@ -21,6 +21,7 @@ import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.exceptions.WorldLoadedException;
 import com.infernalsuite.aswm.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
@@ -28,6 +29,7 @@ import com.infernalsuite.aswm.world.SlimeWorld;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -350,28 +352,28 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(loader, "Loader cannot be null");
-//
-//        if (loader.worldExists(worldName)) {
-//            throw new WorldAlreadyExistsException(worldName);
-//        }
-//
-//        World bukkitWorld = Bukkit.getWorld(worldDir.getName());
-//
-//        if (bukkitWorld != null && nms.getSlimeWorld(bukkitWorld) == null) {
-//            throw new WorldLoadedException(worldDir.getName());
-//        }
-//
-//        SlimeLoadedWorld world = WorldImporter.readFromDirectory(worldDir);
-//
-//        byte[] serializedWorld;
-//
-//        try {
-//            serializedWorld = world.serialize().join();
-//        } catch (IndexOutOfBoundsException ex) {
-//            throw new WorldTooBigException(worldDir.getName());
-//        }
-//
-//        loader.saveWorld(worldName, serializedWorld, false);
+
+        if (loader.worldExists(worldName)) {
+            throw new WorldAlreadyExistsException(worldName);
+        }
+
+        World bukkitWorld = Bukkit.getWorld(worldDir.getName());
+
+        if (bukkitWorld != null && BRIDGE_INSTANCE.getInstance(bukkitWorld) == null) {
+            throw new WorldLoadedException(worldDir.getName());
+        }
+
+        SlimeWorld world = AnvilWorldReader.readFromDirectory(worldDir);
+
+        byte[] serializedWorld;
+
+        try {
+            serializedWorld = SlimeSerializer.serialize(world);
+        } catch (IndexOutOfBoundsException ex) {
+            throw new WorldTooBigException(worldDir.getName());
+        }
+
+        loader.saveWorld(worldName, serializedWorld);
     }
 
 
