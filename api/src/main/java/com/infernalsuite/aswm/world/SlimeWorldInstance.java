@@ -21,8 +21,6 @@ public interface SlimeWorldInstance {
 
     SlimeLoader getSaveStrategy();
 
-    CompletableFuture<byte[]> serialize();
-
     CompoundTag getExtraData();
 
 }
