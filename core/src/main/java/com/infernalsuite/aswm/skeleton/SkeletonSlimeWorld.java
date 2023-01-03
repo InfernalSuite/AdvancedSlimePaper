@@ -4,6 +4,7 @@ import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.world.SlimeChunk;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
@@ -93,7 +94,15 @@ public record SkeletonSlimeWorld(
             }
         }
 
-        return SkeletonCloning.fullClone(this);
+        SkeletonSlimeWorld clonedWorld = SkeletonCloning.fullClone(worldName, this);
+
+        if (loader != null) {
+            byte[] serializedWorld = SlimeSerializer.serialize(clonedWorld);
+
+            loader.saveWorld(worldName, serializedWorld);
+        }
+
+        return clonedWorld;
     }
 
 }
