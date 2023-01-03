@@ -1798,7 +1798,7 @@ index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5a6bce3a1 100644
+index 54c2b7fba83d6f06dba95b1bb5b487a02048d6e6..2fcb2450285b6a58482e8ff3ae23fed689d40076 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -128,12 +128,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
@@ -1831,7 +1831,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5
  import org.bukkit.event.world.TimeSkipEvent;
  // CraftBukkit end
  import it.unimi.dsi.fastutil.ints.IntArrayList; // Paper
-@@ -527,6 +522,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -525,6 +520,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
  
      // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
      public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
@@ -1846,7 +1846,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5
          // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
          // Objects.requireNonNull(minecraftserver); // CraftBukkit - decompile error
          super(iworlddataserver, resourcekey, worlddimension.type(), minecraftserver::getProfiler, false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig)), executor); // Paper - Async-Anti-Xray - Pass executor
-@@ -563,6 +566,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -561,6 +564,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
              chunkgenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkgenerator, gen);
          }
          // CraftBukkit end
@@ -1859,7 +1859,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          this.entityStorage = new EntityRegionFileStorage(convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), flag2); // Paper - rewrite chunk system  //EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, minecraftserver);
-@@ -574,7 +583,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -572,7 +581,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
          //PersistentEntitySectionManager persistententitysectionmanager = this.entityManager; // Paper - rewrite chunk system
  
          //Objects.requireNonNull(this.entityManager); // Paper - rewrite chunk system
@@ -1868,7 +1868,7 @@ index f3a19d00f78e19aa98c57461efb90d79f656a992..5609f9893c9793509666c6b51f6639e5
              return minecraftserver.overworld().getDataStorage();
          });
          this.chunkSource.getGeneratorState().ensureStructuresGenerated();
-@@ -609,6 +618,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -607,6 +616,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
          this.entityLookup = new io.papermc.paper.chunk.system.entity.EntityLookup(this, new EntityCallbacks()); // Paper - rewrite chunk system
      }
  
