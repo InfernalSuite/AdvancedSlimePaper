@@ -12,6 +12,7 @@ import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
@@ -140,6 +141,7 @@ public class CloneWorldCmd implements Subcommand {
 
                     Logging.error("Failed to load world " + templateWorldName + ":");
                     ex.printStackTrace();
+                } catch (WorldLockedException ignored) {
                 } finally {
                     CommandManager.getInstance().getWorldsInUse().remove(worldName);
                 }

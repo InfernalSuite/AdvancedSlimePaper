@@ -1,8 +1,9 @@
 package com.grinderwolf.swm.plugin.loaders.file;
 
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -12,7 +13,11 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.NotDirectoryException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FileLoader implements SlimeLoader {
@@ -52,12 +57,12 @@ public class FileLoader implements SlimeLoader {
         RandomAccessFile file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
 
 
-        if(file != null && file.length() > Integer.MAX_VALUE) {
+        if (file != null && file.length() > Integer.MAX_VALUE) {
             throw new IndexOutOfBoundsException("World is too big!");
         }
 
         byte[] serializedWorld = new byte[0];
-        if(file != null) {
+        if (file != null) {
             serializedWorld = new byte[(int) file.length()];
             file.seek(0); // Make sure we're at the start of the file
             file.readFully(serializedWorld);
@@ -75,7 +80,7 @@ public class FileLoader implements SlimeLoader {
     public List<String> listWorlds() throws NotDirectoryException {
         String[] worlds = worldDir.list(WORLD_FILE_FILTER);
 
-        if(worlds == null) {
+        if (worlds == null) {
             throw new NotDirectoryException(worldDir.getPath());
         }
 
@@ -100,14 +105,47 @@ public class FileLoader implements SlimeLoader {
     }
 
     @Override
+    public void unlockWorld(String worldName) throws UnknownWorldException, IOException {
+        if (!worldExists(worldName)) {
+            throw new UnknownWorldException(worldName);
+        }
+
+        RandomAccessFile file = worldFiles.remove(worldName);
+
+        if (file != null) {
+            FileChannel channel = file.getChannel();
+            if (channel.isOpen()) {
+                file.close();
+            }
+        }
+    }
+
+    @Override
+    public boolean isWorldLocked(String worldName) throws IOException {
+        RandomAccessFile file = worldFiles.get(worldName);
+
+        if (file == null) {
+            file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
+        }
+
+        if (file.getChannel().isOpen()) {
+            file.close();
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void deleteWorld(String worldName) throws UnknownWorldException {
         if (!worldExists(worldName)) {
             throw new UnknownWorldException(worldName);
-        }else {
+        } else {
             try (RandomAccessFile randomAccessFile = worldFiles.get(worldName)) {
                 System.out.println("Deleting world.. " + worldName + ".");
+                unlockWorld(worldName);
                 FileUtils.forceDelete(new File(worldDir, worldName + ".slime"));
-                if(randomAccessFile != null) {
+                if (randomAccessFile != null) {
                     System.out.print("Attempting to delete worldData " + worldName + ".");
 
                     randomAccessFile.seek(0); // Make sure we're at the start of the file
@@ -118,9 +156,27 @@ public class FileLoader implements SlimeLoader {
                     worldFiles.remove(worldName);
                 }
                 System.out.println("World.. " + worldName + " deleted.");
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException {
+        RandomAccessFile worldFile = worldFiles.get(worldName);
+        boolean tempFile = worldFile == null;
+
+        if (tempFile) {
+            worldFile = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
+        }
+
+        FileChannel channel = worldFile.getChannel();
+
+        try {
+            channel.tryLock();
+        } catch (OverlappingFileLockException ignored) {
+            throw new WorldLockedException(worldName);
         }
     }
 }

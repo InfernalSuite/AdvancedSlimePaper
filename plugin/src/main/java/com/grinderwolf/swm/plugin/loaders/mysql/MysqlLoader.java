@@ -1,11 +1,12 @@
 package com.grinderwolf.swm.plugin.loaders.mysql;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -138,7 +139,7 @@ public class MysqlLoader extends UpdatableLoader {
     @Override
     public byte[] loadWorld(String worldName) throws UnknownWorldException, IOException {
         try (Connection con = source.getConnection();
-            PreparedStatement statement = con.prepareStatement(SELECT_WORLD_QUERY)) {
+             PreparedStatement statement = con.prepareStatement(SELECT_WORLD_QUERY)) {
             statement.setString(1, worldName);
             ResultSet set = statement.executeQuery();
 
@@ -216,4 +217,80 @@ public class MysqlLoader extends UpdatableLoader {
             throw new IOException(ex);
         }
     }
+
+    @Override
+    public void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException {
+        if (this.isWorldLocked(worldName)) {
+            throw new WorldLockedException(worldName);
+        }
+
+        updateLock(worldName, true);
+    }
+
+    @Override
+    public boolean isWorldLocked(String worldName) throws IOException, UnknownWorldException {
+        if (lockedWorlds.containsKey(worldName)) {
+            return true;
+        }
+
+        try (Connection con = source.getConnection();
+             PreparedStatement statement = con.prepareStatement(SELECT_WORLD_QUERY)) {
+            statement.setString(1, worldName);
+            ResultSet set = statement.executeQuery();
+
+            if (!set.next()) {
+                throw new UnknownWorldException(worldName);
+            }
+
+            return System.currentTimeMillis() - set.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME;
+        } catch (SQLException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    @Override
+    public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
+        ScheduledFuture future = lockedWorlds.remove(worldName);
+
+        if (future != null) {
+            future.cancel(false);
+        }
+
+        try (Connection con = source.getConnection();
+             PreparedStatement statement = con.prepareStatement(UPDATE_LOCK_QUERY)) {
+            statement.setLong(1, 0L);
+            statement.setString(2, worldName);
+
+            if (statement.executeUpdate() == 0) {
+                throw new UnknownWorldException(worldName);
+            }
+        } catch (SQLException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    private void updateLock(String worldName, boolean forceSchedule) throws IOException {
+        try (Connection con = source.getConnection();
+             PreparedStatement statement = con.prepareStatement(UPDATE_LOCK_QUERY)) {
+            statement.setLong(1, System.currentTimeMillis());
+            statement.setString(2, worldName);
+
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            Logging.error("Failed to update the lock for world " + worldName + ":");
+            ex.printStackTrace();
+            throw new IOException(ex);
+        }
+
+        if (forceSchedule || lockedWorlds.containsKey(worldName)) { // Only schedule another update if the world is still on the map
+            lockedWorlds.put(worldName, SERVICE.schedule(() -> {
+                try {
+                    updateLock(worldName, false);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }, LoaderUtils.LOCK_INTERVAL, TimeUnit.MILLISECONDS));
+        }
+    }
+
 }

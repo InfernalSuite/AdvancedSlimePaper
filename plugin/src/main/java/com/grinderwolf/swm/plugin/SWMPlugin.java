@@ -19,6 +19,7 @@ import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
@@ -199,7 +200,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
                     loadedWorlds.put(worldName, world);
                 } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException |
-                         CorruptedWorldException | IOException ex) {
+                         CorruptedWorldException | WorldLockedException | IOException ex) {
                     String message;
 
                     if (ex instanceof IllegalArgumentException) {
@@ -208,6 +209,8 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                         ex.printStackTrace();
                     } else if (ex instanceof UnknownWorldException) {
                         message = "world does not exist, are you sure you've set the correct data source?";
+                    } else if (ex instanceof WorldLockedException) {
+                        message = "world is in use! If you think this is a mistake, please wait some time and try again.";
                     } else if (ex instanceof NewerFormatException) {
                         message = "world is serialized in a newer Slime Format version (" + ex.getMessage() + ") that SWM does not understand.";
                     } else if (ex instanceof CorruptedWorldException) {
@@ -230,10 +233,14 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException,
-            CorruptedWorldException, NewerFormatException {
+            CorruptedWorldException, NewerFormatException, WorldLockedException {
         Objects.requireNonNull(loader, "Loader cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
+
+        if (readOnly) {
+            loader.acquireLock(worldName);
+        }
 
         long start = System.currentTimeMillis();
 

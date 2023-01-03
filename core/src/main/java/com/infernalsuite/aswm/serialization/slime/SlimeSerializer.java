@@ -49,7 +49,7 @@ public class SlimeSerializer {
             outStream.writeInt(world.getDataVersion());
 
             // Chunks
-            byte[] chunkData = serializeChunks(world.getChunkStorage());
+            byte[] chunkData = serializeChunks(world, world.getChunkStorage());
             byte[] compressedChunkData = Zstd.compress(chunkData);
 
             outStream.writeInt(compressedChunkData.length);
@@ -102,12 +102,21 @@ public class SlimeSerializer {
         return outByteStream.toByteArray();
     }
 
-    static byte[] serializeChunks(Collection<SlimeChunk> chunks) throws IOException {
+    static byte[] serializeChunks(SlimeWorld world, Collection<SlimeChunk> chunks) throws IOException {
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
         DataOutputStream outStream = new DataOutputStream(outByteStream);
 
-        outStream.writeInt(chunks.size());
+        List<SlimeChunk> emptyChunks = new ArrayList<>(chunks);
         for (SlimeChunk chunk : chunks) {
+            if (!ChunkPruner.canBePruned(world, chunk)) {
+                emptyChunks.add(chunk);
+            } else {
+                System.out.println("PRUNED: " + chunk);
+            }
+        }
+
+        outStream.writeInt(chunks.size());
+        for (SlimeChunk chunk : emptyChunks) {
             outStream.writeInt(chunk.getX());
             outStream.writeInt(chunk.getZ());
 

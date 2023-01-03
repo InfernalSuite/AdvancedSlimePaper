@@ -6,6 +6,7 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -16,6 +17,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,6 +99,18 @@ public class UnloadWorldCmd implements Subcommand {
 
     private void unlockWorldFinally(World world, SlimeLoader loader, CommandSender sender) {
         String worldName = world.getName();
+        System.out.println("Attempting to unlock world.. " + worldName + ".");
+        try {
+            if (loader != null && loader.isWorldLocked(worldName)) {
+                System.out.println("World.. " + worldName + " is locked.");
+                loader.unlockWorld(worldName);
+                System.out.println("Attempted to unlock world.. " + worldName + ".");
+            } else {
+                System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
+            }
+        } catch (UnknownWorldException | IOException e) {
+            e.printStackTrace();
+        }
 
         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
     }

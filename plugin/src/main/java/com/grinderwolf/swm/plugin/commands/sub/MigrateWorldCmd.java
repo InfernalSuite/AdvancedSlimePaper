@@ -9,6 +9,7 @@ import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

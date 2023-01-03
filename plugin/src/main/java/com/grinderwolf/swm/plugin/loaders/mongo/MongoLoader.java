@@ -7,6 +7,7 @@ import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.*;
@@ -221,4 +222,70 @@ public class MongoLoader extends UpdatableLoader {
             throw new IOException(ex);
         }
     }
+
+    @Override
+    public void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException {
+        try {
+            MongoDatabase mongoDatabase = client.getDatabase(database);
+            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
+            Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
+
+            if (worldDoc == null) {
+                throw new UnknownWorldException(worldName);
+            }
+
+            long lockedMillis = worldDoc.getLong("locked");
+
+            if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
+                throw new WorldLockedException(worldName);
+            }
+
+            updateLock(worldName, true);
+        } catch (MongoException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    @Override
+    public boolean isWorldLocked(String worldName) throws IOException, UnknownWorldException {
+        if (lockedWorlds.containsKey(worldName)) {
+            return true;
+        }
+
+        try {
+            MongoDatabase mongoDatabase = client.getDatabase(database);
+            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
+            Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
+
+            if (worldDoc == null) {
+                throw new UnknownWorldException(worldName);
+            }
+
+            return System.currentTimeMillis() - worldDoc.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME;
+        } catch (MongoException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    @Override
+    public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
+        ScheduledFuture future = lockedWorlds.remove(worldName);
+
+        if (future != null) {
+            future.cancel(false);
+        }
+
+        try {
+            MongoDatabase mongoDatabase = client.getDatabase(database);
+            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
+            UpdateResult result = mongoCollection.updateOne(Filters.eq("name", worldName), Updates.set("locked", 0L));
+
+            if (result.getMatchedCount() == 0) {
+                throw new UnknownWorldException(worldName);
+            }
+        } catch (MongoException ex) {
+            throw new IOException(ex);
+        }
+    }
+
 }

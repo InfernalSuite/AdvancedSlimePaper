@@ -10,6 +10,7 @@ import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
@@ -120,6 +121,9 @@ public class LoadWorldCmd implements Subcommand {
 
                     Logging.error("Failed to load world " + worldName + ":");
                     ex.printStackTrace();
+                } catch (WorldLockedException ex) {
+                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + worldName +
+                            ": world is already in use. If you think this is a mistake, please wait some time and try again.");
                 } finally {
                     CommandManager.getInstance().getWorldsInUse().remove(worldName);
                 }

@@ -6,6 +6,7 @@ import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.world.SlimeWorld;
@@ -37,8 +38,10 @@ public interface SlimePlugin {
      * @throws IOException             if the world cannot be obtained from the speficied data source.
      * @throws CorruptedWorldException if the world retrieved cannot be parsed into a {@link SlimeWorld} object.
      * @throws NewerFormatException    if the world uses a newer version of the SRF.
+     * @throws WorldLockedException    if the world is already being used on another server when trying to open it without read-only mode enabled.
      */
-    SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException;
+    SlimeWorld loadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
+            UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLockedException;
 
     /**
      * Gets a world which has already been loaded by ASWM.

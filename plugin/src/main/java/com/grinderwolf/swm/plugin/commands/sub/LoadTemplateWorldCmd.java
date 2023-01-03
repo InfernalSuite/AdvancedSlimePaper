@@ -10,6 +10,7 @@ import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import org.bukkit.Bukkit;
@@ -119,6 +120,8 @@ public class LoadTemplateWorldCmd implements Subcommand {
                 } catch (IllegalArgumentException ex) {
                     sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + templateWorldName +
                             ": " + ex.getMessage());
+                } catch (WorldLockedException ignored) {
+
                 } catch (IOException ex) {
                     if (!(sender instanceof ConsoleCommandSender)) {
                         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + templateWorldName

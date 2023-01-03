@@ -1,6 +1,7 @@
 package com.infernalsuite.aswm.loaders;
 
 import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.exceptions.WorldLockedException;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,5 +59,34 @@ public interface SlimeLoader {
      * @throws IOException           if the world could not be deleted.
      */
     void deleteWorld(String worldName) throws UnknownWorldException, IOException;
+
+    /**
+     * Attempts to lock the world.
+     *
+     * @param worldName name of the world
+     * @throws UnknownWorldException If the world could not be found
+     * @throws WorldLockedException  If the world is already locked
+     * @throws IOException If the world could not be locked
+     */
+    void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException;
+
+    /**
+     * Checks whether or not a world is locked.
+     *
+     * @param worldName The name of the world.
+     * @return <code>true</code> if the world is locked, <code>false</code> otherwhise.
+     * @throws UnknownWorldException if the world could not be found.
+     * @throws IOException           if the world could not be obtained.
+     */
+    boolean isWorldLocked(String worldName) throws UnknownWorldException, IOException;
+
+    /**
+     * Attempts to unlock the world.
+     *
+     * @param worldName name of the world
+     * @throws UnknownWorldException If the world could not be found
+     * @throws IOException If the world could not be unlocked
+     */
+    void unlockWorld(String worldName) throws UnknownWorldException, IOException;
 
 }

@@ -87,7 +87,16 @@ public class SlimeProperties {
     @ApiStatus.Experimental
     public static final SlimeProperty<Integer> SAVE_MAX_Z = new SlimePropertyInt("saveMaxZ", 0);
 
+    @ApiStatus.Experimental
+    public static final SlimeProperty<String> CHUNK_PRUNING = new SlimePropertyString("pruning", "aggressive", (value) ->
+           value.equalsIgnoreCase("aggressive") || value.equalsIgnoreCase("never")
+    );
+
+
+
+    @ApiStatus.Experimental
     public static final SlimeProperty<Integer> CHUNK_SECTION_MIN = new SlimePropertyInt("chunkSectionMin", -4);
+    @ApiStatus.Experimental
     public static final SlimeProperty<Integer> CHUNK_SECTION_MAX = new SlimePropertyInt("chunkSectionMin", 19);
 
 
