@@ -81,6 +81,14 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             );
         }
 
+        // Entity serialization
+        {
+            File entityRegion = new File(worldDir, "entities");
+            for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
+                loadEntities(file, worldVersion, chunks);
+            }
+        }
+
         if (chunks.isEmpty()) {
             throw new InvalidWorldException(worldDir);
         }
@@ -151,6 +159,45 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         throw new InvalidWorldException(file.getParentFile());
     }
 
+    private static void loadEntities(File file, int version, Map<ChunkPos, SlimeChunk> chunkMap) throws IOException {
+        byte[] regionByteArray = Files.readAllBytes(file.toPath());
+        DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
+
+        List<ChunkEntry> chunks = new ArrayList<>(1024);
+
+        for (int i = 0; i < 1024; i++) {
+            int entry = inputStream.readInt();
+            int chunkOffset = entry >>> 8;
+            int chunkSize = entry & 15;
+
+            if (entry != 0) {
+                ChunkEntry chunkEntry = new ChunkEntry(chunkOffset * SECTOR_SIZE, chunkSize * SECTOR_SIZE);
+                chunks.add(chunkEntry);
+            }
+        }
+
+        for (ChunkEntry entry : chunks) {
+            try {
+                DataInputStream headerStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset(), entry.paddedSize()));
+
+                int chunkSize = headerStream.readInt() - 1;
+                int compressionScheme = headerStream.readByte();
+
+                DataInputStream chunkStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset() + 5, chunkSize));
+                InputStream decompressorStream = compressionScheme == 1 ? new GZIPInputStream(chunkStream) : new InflaterInputStream(chunkStream);
+                NBTInputStream nbtStream = new NBTInputStream(decompressorStream, NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
+                CompoundTag globalCompound = (CompoundTag) nbtStream.readTag();
+                CompoundMap globalMap = globalCompound.getValue();
+
+
+                readEntityChunk(new CompoundTag("entityChunk", globalMap), version, chunkMap);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+    }
+
     private static List<SlimeChunk> loadChunks(File file, int worldVersion) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(file.toPath());
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
@@ -193,6 +240,25 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             }
 
         }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private static void readEntityChunk(CompoundTag compound, int worldVersion, Map<ChunkPos, SlimeChunk> slimeChunkMap) {
+        int[] position = compound.getAsIntArrayTag("Position").orElseThrow().getValue();
+        int chunkX = position[0];
+        int chunkZ = position[1];
+
+        int dataVersion = compound.getAsIntTag("DataVersion").map(IntTag::getValue).orElse(-1);
+        if (dataVersion != worldVersion) {
+            System.err.println("Cannot load entity chunk at " + chunkX + "," + chunkZ + ": data version " + dataVersion + " does not match world version " + worldVersion);
+            return;
+        }
+
+        SlimeChunk chunk = slimeChunkMap.get(new ChunkPos(chunkX, chunkZ));
+        if (chunk == null) {
+            System.out.println("Lost entity chunk data at: " + chunkX + " " + chunkZ);
+        } else {
+            chunk.getEntities().addAll((List<CompoundTag>) compound.getAsListTag("Entities").get().getValue());
+        }
     }
 
     private static SlimeChunk readChunk(CompoundTag compound, int worldVersion) {
