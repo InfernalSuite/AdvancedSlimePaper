@@ -4,16 +4,14 @@ import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.world.SlimeChunk;
 import com.infernalsuite.aswm.world.SlimeWorld;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 public record SkeletonSlimeWorld(
         String name,
