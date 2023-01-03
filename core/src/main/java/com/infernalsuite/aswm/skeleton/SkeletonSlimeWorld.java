@@ -93,7 +93,7 @@ public record SkeletonSlimeWorld(
             }
         }
 
-        return SkeletonCloning.fullClone(this);
+        return SkeletonCloning.fullClone(worldName, this);
     }
 
 }

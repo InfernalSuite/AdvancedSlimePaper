@@ -15,8 +15,8 @@ import java.util.Map;
 
 public class SkeletonCloning {
 
-    public static SkeletonSlimeWorld fullClone(SlimeWorld world) {
-        return new SkeletonSlimeWorld(world.getName(),
+    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world) {
+        return new SkeletonSlimeWorld(worldName,
                 world.getLoader(),
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
