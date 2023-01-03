@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..0999e2fb1892a46921da0d4469665c0e58980fa6 100644
+index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..3faf7a9a12c70f35ff8e5995d9371166a59680d0 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -10,6 +10,7 @@ dependencies {
@@ -16,12 +16,6 @@ index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..0999e2fb1892a46921da0d4469665c0e
      implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
          exclude("io.papermc.paper", "paper-api")
      }
-@@ -190,4 +191,5 @@ tasks.registerRunTask("runReobf") {
- tasks.registerRunTask("runDev") {
-     description = "Spin up a non-relocated Mojang-mapped test server"
-     classpath(sourceSets.main.map { it.runtimeClasspath })
-+    jvmArgs("-agentpath:/home/owen/YourKit-JavaProfiler-2022.9-b177/YourKit-JavaProfiler-2022.9/bin/linux-x86-64/libyjpagent.so=delay=10000,listen=all")
- }
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..14ac753083a3ce8599e5536c06c152bc394c93f2
