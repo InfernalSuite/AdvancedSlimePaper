@@ -94,15 +94,7 @@ public record SkeletonSlimeWorld(
             }
         }
 
-        SkeletonSlimeWorld clonedWorld = SkeletonCloning.fullClone(worldName, this);
-
-        if (loader != null) {
-            byte[] serializedWorld = SlimeSerializer.serialize(clonedWorld);
-
-            loader.saveWorld(worldName, serializedWorld);
-        }
-
-        return clonedWorld;
+        return SkeletonCloning.fullClone(worldName, this);
     }
 
 }
