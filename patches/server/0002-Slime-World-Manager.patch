@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..0999e2fb1892a46921da0d4469665c0e58980fa6 100644
+index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..3faf7a9a12c70f35ff8e5995d9371166a59680d0 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -10,6 +10,7 @@ dependencies {
@@ -1092,13 +1092,12 @@ index 0000000000000000000000000000000000000000..d9c646cffdfb484c92a00bcaed6bd12a
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1dfa3d5d5d59e8dbf2e0cffd47c4136a510a4400
+index 0000000000000000000000000000000000000000..6e3ff90802398e3e1580b4c12f19282007f4bc10
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,8 @@
 +package com.infernalsuite.aswm.level;
 +
-+import com.infernalsuite.aswm.loaders.SlimeLoader;
 +import com.infernalsuite.aswm.world.SlimeWorld;
 +
 +public record SlimeBootstrap(
@@ -1277,10 +1276,10 @@ index 0000000000000000000000000000000000000000..1286c0bc07ccbe725ee96670aa50eeff
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..017feabfaea29236318c59d6ddb369669c27f327
+index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b55dbb9d00
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,27 @@
 +package com.infernalsuite.aswm.level;
 +
 +import net.minecraft.world.level.ChunkPos;
@@ -1302,23 +1301,18 @@ index 0000000000000000000000000000000000000000..017feabfaea29236318c59d6ddb36966
 +        this.inMemoryWorld = world.slimeInstance;
 +    }
 +
-+    public void onUnload() {
-+        inMemoryWorld.unload(this.locX, this.locZ);
++    @Override
++    public void unloadCallback() {
++        super.unloadCallback();
++        this.inMemoryWorld.unload(this);
 +    }
-+
-+// TODO: This causes weird behavior
-+//    @Override
-+//    public void unloadCallback() {
-+//        super.unloadCallback();
-+//        inMemoryWorld.unload(this.locX, this.locZ);
-+//    }
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b1e9165909e764be131c68dccc90be9df81ddb1f
+index 0000000000000000000000000000000000000000..96a0865cf9208749de08300ec0fb66d221925f1e
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,217 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1407,28 +1401,22 @@ index 0000000000000000000000000000000000000000..b1e9165909e764be131c68dccc90be9d
 +        return levelChunk;
 +    }
 +
-+    public void unload(int x, int z) {
-+        SlimeChunk chunk = this.getChunk(x, z);
++    // Authored by: Kenox <muranelp@gmail.com>
++    // Don't use the NMS live chunk in the chunk map
++    public void unload(LevelChunk providedChunk) {
++        final int x = providedChunk.locX;
++        final int z = providedChunk.locZ;
 +
-+        {
-+            LevelChunk levelChunk = null;
-+            if (chunk instanceof SafeNmsChunkWrapper safeNmsChunkWrapper) {
-+                if (!safeNmsChunkWrapper.shouldDefaultBackToSlimeChunk()) {
-+                    levelChunk = safeNmsChunkWrapper.getWrapper().getChunk();
-+                }
-+            } else if  (chunk instanceof NMSSlimeChunk nmsSlimeChunk) {
-+                levelChunk = nmsSlimeChunk.getChunk();
-+            }
++        SlimeChunk chunk = new NMSSlimeChunk(providedChunk);
 +
-+            if (levelChunk != null && FastChunkPruner.canBePruned(this.liveWorld, levelChunk)) {
-+                this.chunkStorage.remove(new ChunkPos(x, z));
-+                return;
-+            }
++        if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
++            this.chunkStorage.remove(new ChunkPos(x, z));
++            return;
 +        }
 +
-+        if (chunk != null) {
-+            this.chunkStorage.put(new ChunkPos(x, z), new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(), chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
-+        }
++        this.chunkStorage.put(new ChunkPos(x, z),
++            new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
++                chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
 +    }
 +
 +    @Override
@@ -1584,7 +1572,7 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f4a2696fd2c6ed0078d162e6a2b880aae3804420
+index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a338b0cd719
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 @@ -0,0 +1,190 @@
@@ -1774,7 +1762,7 @@ index 0000000000000000000000000000000000000000..f4a2696fd2c6ed0078d162e6a2b880aa
 +
 +//    @Override
 +//    public void unload(LevelChunk chunk) {
-+//        this.slimeInstance.unload(chunk.locX, chunk.locZ);
++//        this.slimeInstance.unload(chunk);
 +//        super.unload(chunk);
 +//    }
 +}
@@ -1793,33 +1781,11 @@ index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f
 +        //return (long)chunkX & 4294967295L | ((long)chunkZ & 4294967295L) << 32;
 +    }
 +}
-diff --git a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
-index 0e45a340ae534caf676b7f9d0adcbcee5829925e..cb7ef1b7c801692b23a2623d75ae867226b691e1 100644
---- a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
-+++ b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
-@@ -105,7 +105,7 @@ public final class ChunkSystem {
-     }
- 
-     public static void onChunkNotBorder(final LevelChunk chunk, final ChunkHolder holder) {
--
-+        if (chunk instanceof com.infernalsuite.aswm.level.SlimeChunkLevel slimeChunkLevel) slimeChunkLevel.onUnload(); // ASWM
-     }
- 
-     public static void onChunkTicking(final LevelChunk chunk, final ChunkHolder holder) {
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..3973a8e3278ab7139ab09c464d7e6127fa7dfd3d 100644
+index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..f24506ef4a1f014929ec445b532867d7cfc42057 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-@@ -35,6 +35,8 @@ import net.minecraft.util.Unit;
- import net.minecraft.world.level.ChunkPos;
- import net.minecraft.world.level.chunk.ChunkAccess;
- import net.minecraft.world.level.chunk.ChunkStatus;
-+import org.bukkit.Bukkit;
-+import org.bukkit.Material;
- import org.bukkit.plugin.Plugin;
- import org.slf4j.Logger;
- import java.io.IOException;
-@@ -127,7 +129,8 @@ public final class ChunkHolderManager {
+@@ -127,7 +127,8 @@ public final class ChunkHolderManager {
          return this.chunkHolders.size();
      }
  
