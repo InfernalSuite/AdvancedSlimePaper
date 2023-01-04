@@ -101,7 +101,7 @@ public class CloneWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(initLoader, templateWorldName, true, worldData.toPropertyMap()).clone(worldName, loader);
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
 
                             config.getWorlds().put(worldName, worldData);
                             config.save();

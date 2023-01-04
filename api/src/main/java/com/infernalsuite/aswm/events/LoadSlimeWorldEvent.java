@@ -7,12 +7,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class PostGenerateWorldEvent extends Event {
+public class LoadSlimeWorldEvent extends Event {
 
   private static final HandlerList handlers = new HandlerList();
   private final SlimeWorld slimeWorld;
 
-  public PostGenerateWorldEvent(SlimeWorld slimeWorld) {
+  public LoadSlimeWorldEvent(SlimeWorld slimeWorld) {
     super(false);
     this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
   }

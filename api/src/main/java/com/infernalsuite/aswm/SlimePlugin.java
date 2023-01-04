@@ -27,7 +27,7 @@ public interface SlimePlugin {
     /**
      * Loads a world using a specificied {@link SlimeLoader}.
      * This world can then be added to the server's world
-     * list by using the {@link #generateWorld(SlimeWorld)} method.
+     * list by using the {@link #loadWorld(SlimeWorld)} method.
      *
      * @param loader      {@link SlimeLoader} used to retrieve the world.
      * @param worldName   Name of the world.
@@ -62,7 +62,7 @@ public interface SlimePlugin {
     /**
      * Creates an empty world and stores it using a specified
      * {@link SlimeLoader}. This world can then be added to
-     * the server's world list by using the {@link #generateWorld(SlimeWorld)} method.
+     * the server's world list by using the {@link #loadWorld(SlimeWorld)} method.
      *
      * @param loader      {@link SlimeLoader} used to store the world.
      * @param worldName   Name of the world.
@@ -79,8 +79,9 @@ public interface SlimePlugin {
      * adds it to the server's world list.
      *
      * @param world {@link SlimeWorld} world to be added to the server's world list
+     * @return Returns a slime world representing a live minecraft world
      */
-    void generateWorld(SlimeWorld world);
+    SlimeWorld loadWorld(SlimeWorld world);
 
     /**
      * Migrates a {@link SlimeWorld} to another datasource.

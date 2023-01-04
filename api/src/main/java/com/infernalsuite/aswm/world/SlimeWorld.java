@@ -8,7 +8,6 @@ import com.infernalsuite.aswm.loaders.SlimeLoader;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -113,7 +112,7 @@ public interface SlimeWorld {
 
     /**
      * Returns whether or not this world is locked and, therefore, can be loaded on the server by
-     * using the {@link SlimePlugin#generateWorld(SlimeWorld)} method.
+     * using the {@link SlimePlugin#loadWorld(SlimeWorld)} method.
      *
      * @return true if the world is locked, false otherwise
      */

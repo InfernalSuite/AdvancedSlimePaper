@@ -11,8 +11,7 @@ import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.SlimeNMSBridge;
 import com.infernalsuite.aswm.SlimePlugin;
-import com.infernalsuite.aswm.events.PostGenerateWorldEvent;
-import com.infernalsuite.aswm.events.PreGenerateWorldEvent;
+import com.infernalsuite.aswm.events.LoadSlimeWorldEvent;
 import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.exceptions.InvalidWorldException;
 import com.infernalsuite.aswm.exceptions.NewerFormatException;
@@ -27,6 +26,7 @@ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.world.SlimeWorldInstance;
 import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -131,7 +131,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         loadedWorlds.values().stream()
                 .filter(slimeWorld -> Objects.isNull(Bukkit.getWorld(slimeWorld.getName())))
-                .forEach(this::generateWorld);
+                .forEach(this::loadWorld);
 
         this.getServer().getPluginManager().registerEvents(this, this);
 
@@ -307,20 +307,15 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public void generateWorld(SlimeWorld slimeWorld) {
+    public SlimeWorld loadWorld(SlimeWorld slimeWorld) {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
-        var preEvent = new PreGenerateWorldEvent(slimeWorld);
-        Bukkit.getPluginManager().callEvent(preEvent);
+        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
 
-        if (preEvent.isCancelled()) {
-            return;
-        }
-
-        BRIDGE_INSTANCE.loadInstance(slimeWorld);
-
-        var postEvent = new PostGenerateWorldEvent(slimeWorld);
-        Bukkit.getPluginManager().callEvent(postEvent);
+        SlimeWorld mirror = instance.getSlimeWorldMirror();
+        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
+        registerWorld(mirror);
+        return mirror;
     }
 
     @Override

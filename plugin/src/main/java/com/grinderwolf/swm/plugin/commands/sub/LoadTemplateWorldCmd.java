@@ -93,7 +93,7 @@ public class LoadTemplateWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(loader, templateWorldName, true, worldData.toPropertyMap()).clone(worldName);
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
                         } catch (IllegalArgumentException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 

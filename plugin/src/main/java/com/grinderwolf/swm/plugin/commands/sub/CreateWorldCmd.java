@@ -94,7 +94,7 @@ public class CreateWorldCmd implements Subcommand {
 
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
 
                             // Bedrock block
                             Location location = new Location(Bukkit.getWorld(worldName), 0, 61, 0);
