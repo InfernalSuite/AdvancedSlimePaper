@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kenox <muranelp@gmail.com>
+Date: Wed, 4 Jan 2023 18:03:47 +0100
+Subject: [PATCH] Fix entitiy loading issue due to my last commit
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+index f5cfd730bcdcf99a76b56f189f36420ac3ce01f0..c543afee97e18f04547064c4d7304996caebcb45 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+@@ -19,9 +19,9 @@ public class SlimeChunkLevel extends LevelChunk {
+         this.inMemoryWorld = world.slimeInstance;
+     }
+ 
+-//    public void onUnload() {
+-//        inMemoryWorld.unload(this.locX, this.locZ);
+-//    }
++    public void onUnload(LevelChunk levelChunk) {
++        inMemoryWorld.unload(levelChunk);
++    }
+ 
+ // TODO: This causes weird behavior
+ //    @Override
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 1c33fa8d17f7a31fcc6b7d64200d9c8b6a8c3cd2..7fe3bc492f5f7dba588e47f312763a338b0cd719 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -182,9 +182,9 @@ public class SlimeLevelInstance extends ServerLevel {
+         }
+     }
+ 
+-    @Override
+-    public void unload(LevelChunk chunk) {
+-        this.slimeInstance.unload(chunk);
+-        super.unload(chunk);
+-    }
++//    @Override
++//    public void unload(LevelChunk chunk) {
++//        this.slimeInstance.unload(chunk);
++//        super.unload(chunk);
++//    }
+ }
+diff --git a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
+index c8b38f258f457437ef22128bc280f43771048169..3d50e711a5013a1b1225230392e558dac5aba420 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
++++ b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
+@@ -105,7 +105,7 @@ public final class ChunkSystem {
+     }
+ 
+     public static void onChunkNotBorder(final LevelChunk chunk, final ChunkHolder holder) {
+-//        if (chunk instanceof com.infernalsuite.aswm.level.SlimeChunkLevel slimeChunkLevel) slimeChunkLevel.onUnload(); // ASWM
++        if (chunk instanceof com.infernalsuite.aswm.level.SlimeChunkLevel slimeChunkLevel) slimeChunkLevel.onUnload(chunk); // ASWM
+     }
+ 
+     public static void onChunkTicking(final LevelChunk chunk, final ChunkHolder holder) {
