@@ -11,11 +11,11 @@ import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.SlimeLogger;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
-import com.infernalsuite.aswm.utils.NibbleArray;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.utils.NibbleArray;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

@@ -1,12 +1,10 @@
 package com.grinderwolf.swm.plugin.config;
 
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
-
-import static com.infernalsuite.aswm.world.properties.SlimeProperties.*;
 
 @ConfigSerializable
 public class WorldData {

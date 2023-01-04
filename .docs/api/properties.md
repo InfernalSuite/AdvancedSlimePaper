@@ -15,6 +15,6 @@ properties.setInt(SlimeProperties.SPAWN_Z, 170);
 // add as many as you would like
 ```
 
-[1]: ../../slimeworldmanager-api/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperty.java
-[2]: ../../slimeworldmanager-api/src/main/java/com/grinderwolf/swm/api/world/properties/SlimeProperties.java
-[3]: ../../slimeworldmanager-api/src/main/java/com/grinderwolf/swm/api/world/properties/SlimePropertyMap.java
+[1]: ../../api/src/main/java/com/infernalsuite/aswm/api/world/properties/SlimeProperty.java
+[2]: ../../api/src/main/java/com/infernalsuite/aswm/api/world/properties/SlimeProperties.java
+[3]: ../../api/src/main/java/com/infernalsuite/aswm/api/world/properties/SlimePropertyMap.java

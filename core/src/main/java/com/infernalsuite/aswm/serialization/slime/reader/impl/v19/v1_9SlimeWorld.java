@@ -2,8 +2,8 @@ package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.util.Map;
 

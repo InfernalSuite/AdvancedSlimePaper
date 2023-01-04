@@ -1,13 +1,13 @@
 package com.grinderwolf.swm.plugin.loaders.mongo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.*;

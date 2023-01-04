@@ -18,7 +18,7 @@ try {
     SlimeWorld world = plugin.loadWorld(sqlLoader, "my-world", props);
 
     // note that this method must be called synchronously
-    plugin.generateWorld(world);
+    plugin.loadWorld(world);
 } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException | UnsupportedWorldException exception) {
     // exception handling
 }
