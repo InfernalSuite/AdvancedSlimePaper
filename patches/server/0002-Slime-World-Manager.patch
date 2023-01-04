@@ -1572,15 +1572,16 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a338b0cd719
+index 0000000000000000000000000000000000000000..2073d05a33628125dc79063a1f66f827236ee702
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,190 @@
+@@ -0,0 +1,192 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
 +import com.infernalsuite.aswm.Converter;
++import com.infernalsuite.aswm.loaders.SlimeLoader;
 +import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 +import com.infernalsuite.aswm.world.SlimeChunk;
 +import com.infernalsuite.aswm.world.SlimeWorld;
@@ -1606,7 +1607,6 @@ index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a33
 +import net.minecraft.world.level.biome.Biome;
 +import net.minecraft.world.level.chunk.ChunkAccess;
 +import net.minecraft.world.level.chunk.ChunkGenerator;
-+import net.minecraft.world.level.chunk.LevelChunk;
 +import net.minecraft.world.level.dimension.LevelStem;
 +import net.minecraft.world.level.storage.LevelStorageSource;
 +import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -1623,6 +1623,7 @@ index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a33
 +import java.util.UUID;
 +import java.util.concurrent.ExecutorService;
 +import java.util.concurrent.Executors;
++import java.util.concurrent.Future;
 +import java.util.function.Consumer;
 +import java.util.logging.Level;
 +import java.util.stream.Collectors;
@@ -1699,7 +1700,8 @@ index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a33
 +                net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
 +
 +                if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
-+                    save();
++                    save().get(); // Async wait for it to finish
++                    this.slimeInstance.getLoader().unlockWorld(this.slimeInstance.getName()); // Unlock
 +                } else {
 +                    this.save();
 +                    //WORLD_SAVER_SERVICE.execute(this::save);
@@ -1716,7 +1718,7 @@ index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a33
 +        this.save(progressListener, flush, savingDisabled);
 +    }
 +
-+    private void save() {
++    private Future<?> save() {
 +        synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
 +            SlimeWorldInstance slimeWorld = this.slimeInstance;
 +            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
@@ -1725,7 +1727,7 @@ index 0000000000000000000000000000000000000000..7fe3bc492f5f7dba588e47f312763a33
 +            Bukkit.getLogger().log(Level.INFO, "CONVERTING NMS -> SKELETON");
 +            SlimeWorld world = this.slimeInstance.getForSerialization();
 +            Bukkit.getLogger().log(Level.INFO, "CONVERTED TO SKELETON, PUSHING OFF-THREAD");
-+            WORLD_SAVER_SERVICE.submit(() -> {
++            return WORLD_SAVER_SERVICE.submit(() -> {
 +                try {
 +                    byte[] serializedWorld = SlimeSerializer.serialize(world);
 +                    long saveStart = System.currentTimeMillis();
