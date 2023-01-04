@@ -14,10 +14,19 @@ releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #ne
 
 ### Maven
 ```xml
+<!-- InfernalSuite RELEASE -->
 <repositories>
   <repository>
-    <id>rapture-snapshots</id>
-    <url>https://repo.rapture.pw/repository/maven-snapshots/</url>
+    <id>is-releases</id>
+    <url>https://repo.infernalsuite.com/repository/maven-releases/</url>
+  </repository>
+</repositories>
+
+<!-- InfernalSuite SNAPSHOT -->
+<repositories>
+  <repository>
+    <id>is-snapshots</id>
+    <url>https://repo.infernalsuite.com/repository/maven-snapshots/</url>
   </repository>
 </repositories>
 ```
