@@ -53,9 +53,9 @@ public interface SlimePlugin {
 
     /**
      * Gets a list of worlds which have been loaded by ASWM.
+     * Note: The returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
      *
      * @return a list of worlds
-     * @apiNote the returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
      */
     List<SlimeWorld> getLoadedWorlds();
 
