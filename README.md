@@ -1,4 +1,4 @@
-# Advanced Slime World Manager [![Build Status](https://travis-ci.org/Paul19988/Advanced-Slime-World-Manager.svg?branch=feature%2F1.16)](https://travis-ci.org/Paul19988/Advanced-Slime-World-Manager)
+# Advanced Slime Paper [![Build Status](https://ci.infernalsuite.com/app/rest/builds/buildType:(id:AdvancedSlimePaper_Build)/statusIcon)](https://ci.infernalsuite.com/viewType.html?buildTypeId=AdvancedSlimePaper_Build&guest=1)
 
 [<img src="https://discordapp.com/assets/e4923594e694a21542a489471ecffa50.svg" alt="" height="55" />](https://discord.gg/YevvsMa)
 
@@ -14,10 +14,19 @@ releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #ne
 
 ### Maven
 ```xml
+<!-- InfernalSuite RELEASE -->
 <repositories>
   <repository>
-    <id>rapture-snapshots</id>
-    <url>https://repo.rapture.pw/repository/maven-snapshots/</url>
+    <id>is-releases</id>
+    <url>https://repo.infernalsuite.com/repository/maven-releases/</url>
+  </repository>
+</repositories>
+
+<!-- InfernalSuite SNAPSHOT -->
+<repositories>
+  <repository>
+    <id>is-snapshots</id>
+    <url>https://repo.infernalsuite.com/repository/maven-snapshots/</url>
   </repository>
 </repositories>
 ```
