@@ -6,6 +6,8 @@ import org.bukkit.World;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
+import static com.infernalsuite.aswm.api.world.properties.SlimeProperties.*;
+
 @ConfigSerializable
 public class WorldData {
 
