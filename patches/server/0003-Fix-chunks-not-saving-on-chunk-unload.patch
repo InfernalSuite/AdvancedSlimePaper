@@ -1,0 +1,99 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kenox <muranelp@gmail.com>
+Date: Wed, 4 Jan 2023 15:46:21 +0100
+Subject: [PATCH] Fix chunks not saving on chunk unload
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+index 017feabfaea29236318c59d6ddb369669c27f327..f5cfd730bcdcf99a76b56f189f36420ac3ce01f0 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+@@ -19,9 +19,9 @@ public class SlimeChunkLevel extends LevelChunk {
+         this.inMemoryWorld = world.slimeInstance;
+     }
+ 
+-    public void onUnload() {
+-        inMemoryWorld.unload(this.locX, this.locZ);
+-    }
++//    public void onUnload() {
++//        inMemoryWorld.unload(this.locX, this.locZ);
++//    }
+ 
+ // TODO: This causes weird behavior
+ //    @Override
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index b1e9165909e764be131c68dccc90be9df81ddb1f..27e767700e96b4f48a3c76ef52ba6ea46a0d6cc6 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -86,28 +86,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+         return levelChunk;
+     }
+ 
+-    public void unload(int x, int z) {
+-        SlimeChunk chunk = this.getChunk(x, z);
+-
+-        {
+-            LevelChunk levelChunk = null;
+-            if (chunk instanceof SafeNmsChunkWrapper safeNmsChunkWrapper) {
+-                if (!safeNmsChunkWrapper.shouldDefaultBackToSlimeChunk()) {
+-                    levelChunk = safeNmsChunkWrapper.getWrapper().getChunk();
+-                }
+-            } else if  (chunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+-                levelChunk = nmsSlimeChunk.getChunk();
+-            }
++    public void unload(LevelChunk providedChunk) {
++        final int x = providedChunk.locX;
++        final int z = providedChunk.locZ;
+ 
+-            if (levelChunk != null && FastChunkPruner.canBePruned(this.liveWorld, levelChunk)) {
+-                this.chunkStorage.remove(new ChunkPos(x, z));
+-                return;
+-            }
+-        }
++        SlimeChunk chunk = new NMSSlimeChunk(providedChunk);
+ 
+-        if (chunk != null) {
+-            this.chunkStorage.put(new ChunkPos(x, z), new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(), chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
++        if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
++            this.chunkStorage.remove(new ChunkPos(x, z));
++            return;
+         }
++
++        this.chunkStorage.put(new ChunkPos(x, z),
++            new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
++                chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index f4a2696fd2c6ed0078d162e6a2b880aae3804420..1c33fa8d17f7a31fcc6b7d64200d9c8b6a8c3cd2 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -182,9 +182,9 @@ public class SlimeLevelInstance extends ServerLevel {
+         }
+     }
+ 
+-//    @Override
+-//    public void unload(LevelChunk chunk) {
+-//        this.slimeInstance.unload(chunk.locX, chunk.locZ);
+-//        super.unload(chunk);
+-//    }
++    @Override
++    public void unload(LevelChunk chunk) {
++        this.slimeInstance.unload(chunk);
++        super.unload(chunk);
++    }
+ }
+diff --git a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
+index cb7ef1b7c801692b23a2623d75ae867226b691e1..c8b38f258f457437ef22128bc280f43771048169 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
++++ b/src/main/java/io/papermc/paper/chunk/system/ChunkSystem.java
+@@ -105,7 +105,7 @@ public final class ChunkSystem {
+     }
+ 
+     public static void onChunkNotBorder(final LevelChunk chunk, final ChunkHolder holder) {
+-        if (chunk instanceof com.infernalsuite.aswm.level.SlimeChunkLevel slimeChunkLevel) slimeChunkLevel.onUnload(); // ASWM
++//        if (chunk instanceof com.infernalsuite.aswm.level.SlimeChunkLevel slimeChunkLevel) slimeChunkLevel.onUnload(); // ASWM
+     }
+ 
+     public static void onChunkTicking(final LevelChunk chunk, final ChunkHolder holder) {
