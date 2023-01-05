@@ -12,6 +12,7 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -81,7 +82,7 @@ public class SlimeSerializer {
             outStream.writeInt(compressedEntitiesData.length);
             outStream.writeInt(entitiesData.length);
             outStream.write(compressedEntitiesData);
-            
+
             // Extra Tag
             {
                 byte[] extra = serializeCompoundTag(extraData);
@@ -128,6 +129,14 @@ public class SlimeSerializer {
 
             outStream.writeInt(sections.length);
             for (SlimeChunkSection slimeChunkSection : sections) {
+                if (slimeChunkSection == null) {
+                    slimeChunkSection = new SlimeChunkSectionSkeleton(
+                        new CompoundTag("", new CompoundMap()),
+                        new CompoundTag("", new CompoundMap()),
+                        null,
+                        null
+                    );
+                }
                 // Block Light
                 boolean hasBlockLight = slimeChunkSection.getBlockLight() != null;
                 outStream.writeBoolean(hasBlockLight);
