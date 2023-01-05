@@ -7,6 +7,7 @@ import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
+import com.grinderwolf.swm.plugin.listeners.WorldUnlocker;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.api.SlimeNMSBridge;
@@ -134,7 +135,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 .forEach(this::loadWorld);
 
         this.getServer().getPluginManager().registerEvents(this, this);
-
+        this.getServer().getPluginManager().registerEvents(new WorldUnlocker(), this);
         //loadedWorlds.clear // - Commented out because not sure why this would be cleared. Needs checking
     }
 
