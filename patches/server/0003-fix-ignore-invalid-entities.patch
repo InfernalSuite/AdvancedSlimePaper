@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?G=C3=BCnther=20Jungbluth?= <gunther@gameslabs.net>
+Date: Mon, 9 Jan 2023 15:04:04 +0100
+Subject: [PATCH] fix: ignore invalid entities
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index 9ec31059556951b3a5a1952ff59b868e0854e11d..cd5a0fd47349a8e5f523cbc525f26edd45b27610 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -9,6 +9,7 @@ import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
+ import com.infernalsuite.aswm.api.utils.NibbleArray;
+ import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.infernalsuite.aswm.api.world.SlimeChunkSection;
++import com.mojang.logging.LogUtils;
+ import com.mojang.serialization.Codec;
+ import io.papermc.paper.world.ChunkEntitySlices;
+ import net.minecraft.core.Holder;
+@@ -32,12 +33,14 @@ import net.minecraft.world.level.chunk.PalettedContainerRO;
+ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.levelgen.Heightmap;
+ import net.minecraft.world.level.lighting.LevelLightEngine;
++import org.slf4j.Logger;
+ 
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
+ 
+ public class NMSSlimeChunk implements SlimeChunk {
++    private static final Logger LOGGER = LogUtils.getClassLogger();
+ 
+     private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
+     private static final CompoundTag EMPTY_BIOME_PALETTE;
+@@ -169,8 +172,12 @@ public class NMSSlimeChunk implements SlimeChunk {
+ 
+         for (Entity entity : slices.entities) {
+             net.minecraft.nbt.CompoundTag entityNbt = new net.minecraft.nbt.CompoundTag();
+-            if (entity.save(entityNbt)) {
+-                entities.add(entityNbt);
++            try {
++                if (entity.save(entityNbt)) {
++                    entities.add(entityNbt);
++                }
++            } catch (Exception e) {
++                LOGGER.error("Could not save the entity = {}, exception = {}", entity, e);
+             }
+         }
+ 
