@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?G=C3=BCnther=20Jungbluth?= <gunther@gameslabs.net>
+Date: Mon, 9 Jan 2023 17:07:46 +0100
+Subject: [PATCH] fix: null sections, from lower level heights/depths
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+index e3b253fda8e12ef165fc55f42aefcc91f0a46b5e..ca045e00a592b2e5707639ba62d9461b563764ba 100644
+--- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+@@ -3,6 +3,7 @@ package com.infernalsuite.aswm;
+ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+ import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
+ import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
++import com.flowpowered.nbt.CompoundMap;
+ import com.flowpowered.nbt.CompoundTag;
+ import com.infernalsuite.aswm.serialization.SlimeWorldReader;
+ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
+@@ -50,6 +51,16 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+             for (int i = 0; i < sections.length; i++) {
+                 SlimeChunkSection dataSection = chunk.getSections()[i];
+ 
++                if (dataSection == null) {
++                    sections[i] = chunk.getSections()[i] = new SlimeChunkSectionSkeleton(
++                        new CompoundTag("", new CompoundMap()),
++                        new CompoundTag("", new CompoundMap()),
++                        null,
++                        null
++                    );
++                    continue;
++                }
++
+                 com.flowpowered.nbt.CompoundTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+                     WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", currentVersion, newVersion);
+                 });
