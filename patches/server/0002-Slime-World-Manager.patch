@@ -1603,10 +1603,10 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7a325c27bece0b0112dcaba7779e7429374fc39f
+index 0000000000000000000000000000000000000000..1a61cad9d4b68b2fbaeeb98f139033022c045748
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,190 @@
+@@ -0,0 +1,192 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1744,7 +1744,9 @@ index 0000000000000000000000000000000000000000..7a325c27bece0b0112dcaba7779e7429
 +
 +    @Override
 +    public void saveIncrementally(boolean doFull) {
-+        this.save();
++        if (doFull) {
++            this.save();
++        }
 +    }
 +
 +    private Future<?> save() {
