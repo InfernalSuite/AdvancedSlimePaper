@@ -646,10 +646,10 @@ index 0000000000000000000000000000000000000000..6c6333a326196be1516510f0b5f53cef
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7cf30f3b04ee33f43bb900eccdf5ac4bc7ba69b9
+index 0000000000000000000000000000000000000000..0ab08b9b8b5582b90a7d63bf7403dc255d358a8d
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,59 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.infernalsuite.aswm.api.world.SlimeWorld;
@@ -662,6 +662,13 @@ index 0000000000000000000000000000000000000000..7cf30f3b04ee33f43bb900eccdf5ac4b
 +public class FastChunkPruner {
 +
 +    public static boolean canBePruned(SlimeWorld world, LevelChunk chunk) {
++        // Kenox <muranelp@gmail.com>
++        // It's not safe to assume that the chunk can be pruned
++        // if there isn't a loaded chunk there
++        if (chunk == null || chunk.getChunkHolder() == null) {
++            return false;
++        }
++
 +        SlimePropertyMap propertyMap = world.getPropertyMap();
 +        if (propertyMap.getValue(SlimeProperties.SHOULD_LIMIT_SAVE)) {
 +            int minX = propertyMap.getValue(SlimeProperties.SAVE_MIN_X);
@@ -704,10 +711,10 @@ index 0000000000000000000000000000000000000000..7cf30f3b04ee33f43bb900eccdf5ac4b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9ec31059556951b3a5a1952ff59b868e0854e11d
+index 0000000000000000000000000000000000000000..edc9a3178ae24c66bfc14eb45ef9a3a160616dbc
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-@@ -0,0 +1,190 @@
+@@ -0,0 +1,198 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -719,6 +726,7 @@ index 0000000000000000000000000000000000000000..9ec31059556951b3a5a1952ff59b868e
 +import com.infernalsuite.aswm.api.utils.NibbleArray;
 +import com.infernalsuite.aswm.api.world.SlimeChunk;
 +import com.infernalsuite.aswm.api.world.SlimeChunkSection;
++import com.mojang.logging.LogUtils;
 +import com.mojang.serialization.Codec;
 +import io.papermc.paper.world.ChunkEntitySlices;
 +import net.minecraft.core.Holder;
@@ -742,12 +750,14 @@ index 0000000000000000000000000000000000000000..9ec31059556951b3a5a1952ff59b868e
 +import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 +import net.minecraft.world.level.levelgen.Heightmap;
 +import net.minecraft.world.level.lighting.LevelLightEngine;
++import org.slf4j.Logger;
 +
 +import java.util.ArrayList;
 +import java.util.List;
 +import java.util.Map;
 +
 +public class NMSSlimeChunk implements SlimeChunk {
++    private static final Logger LOGGER = LogUtils.getClassLogger();
 +
 +    private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
 +    private static final CompoundTag EMPTY_BIOME_PALETTE;
@@ -877,10 +887,15 @@ index 0000000000000000000000000000000000000000..9ec31059556951b3a5a1952ff59b868e
 +            return new ArrayList<>();
 +        }
 +
++        // Work by <gunther@gameslabs.net>
 +        for (Entity entity : slices.entities) {
 +            net.minecraft.nbt.CompoundTag entityNbt = new net.minecraft.nbt.CompoundTag();
-+            if (entity.save(entityNbt)) {
-+                entities.add(entityNbt);
++            try {
++                if (entity.save(entityNbt)) {
++                    entities.add(entityNbt);
++                }
++            } catch (Exception e) {
++                LOGGER.error("Could not save the entity = {}, exception = {}", entity, e);
 +            }
 +        }
 +
