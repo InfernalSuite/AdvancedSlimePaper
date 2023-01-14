@@ -47,7 +47,7 @@ releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #ne
 ### Gradle
 ```groovy
 repositories {
-    maven { url = 'https://repo.rapture.pw/repository/maven-snapshots/' }
+    maven { url = 'https://repo.infernalsuite.com/repository/maven-snapshots/' }
 }
 
 dependencies {
