@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kenox <muranelp@gmail.com>
+Date: Tue, 10 Jan 2023 22:04:56 +0100
+Subject: [PATCH] Fix chunks not saving due to npe
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+index 7cf30f3b04ee33f43bb900eccdf5ac4bc7ba69b9..434ce74ebec9becea1608ba3ac4f78d1c12d9794 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
++++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+@@ -10,6 +10,10 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
+ public class FastChunkPruner {
+ 
+     public static boolean canBePruned(SlimeWorld world, LevelChunk chunk) {
++        if(chunk == null || chunk.getChunkHolder() == null) {
++            return false;
++        }
++
+         SlimePropertyMap propertyMap = world.getPropertyMap();
+         if (propertyMap.getValue(SlimeProperties.SHOULD_LIMIT_SAVE)) {
+             int minX = propertyMap.getValue(SlimeProperties.SAVE_MIN_X);
