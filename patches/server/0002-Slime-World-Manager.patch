@@ -1603,10 +1603,10 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55920240f0
+index 0000000000000000000000000000000000000000..7a325c27bece0b0112dcaba7779e7429374fc39f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,191 @@
+@@ -0,0 +1,190 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1716,7 +1716,7 @@ index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55
 +    }
 +
 +    @Override
-+    public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled) {
++    public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled, boolean close) {
 +        try {
 +            if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
 +                Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
@@ -1742,10 +1742,9 @@ index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55
 +        }
 +    }
 +
-+    // This may not work with spigot.
 +    @Override
-+    public void save(@Nullable ProgressListener progressListener, boolean flush, boolean savingDisabled, boolean close) {
-+        this.save(progressListener, flush, savingDisabled);
++    public void saveIncrementally(boolean doFull) {
++        this.save();
 +    }
 +
 +    private Future<?> save() {
@@ -1919,7 +1918,7 @@ index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed
      public ChunkHolder.FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b66dace70c6f94d9e246c802726751c4ec794420..8ee8638f69aa0eb45475d2e06b883f7359b9be48 100644
+index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3a6672f0e 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -461,18 +461,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -1956,17 +1955,6 @@ index b66dace70c6f94d9e246c802726751c4ec794420..8ee8638f69aa0eb45475d2e06b883f73
  
              String worldType = (dimension == -999) ? dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath() : org.bukkit.World.Environment.getEnvironment(dimension).toString().toLowerCase();
              String name = (dimensionKey == LevelStem.OVERWORLD) ? s : s + "_" + worldType;
-@@ -1432,6 +1447,10 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
-             for (ServerLevel level : this.getAllLevels()) {
-                 if (level.paperConfig().chunks.autoSaveInterval.value() > 0) {
-                     level.saveIncrementally(fullSave);
-+                    // Advanced Slime Paper start - periodical saving SlimeWorld
-+                    if(fullSave)
-+                        level.save(null, true, false);
-+                    // Advanced Slime Paper end
-                 }
-             }
-         } finally {
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005800b1fb4 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
