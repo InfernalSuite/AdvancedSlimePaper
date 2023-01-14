@@ -1603,10 +1603,10 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55920240f0
+index 0000000000000000000000000000000000000000..7a325c27bece0b0112dcaba7779e7429374fc39f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,191 @@
+@@ -0,0 +1,190 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1716,7 +1716,7 @@ index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55
 +    }
 +
 +    @Override
-+    public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled) {
++    public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled, boolean close) {
 +        try {
 +            if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
 +                Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
@@ -1742,10 +1742,9 @@ index 0000000000000000000000000000000000000000..fc299c312879380d8316a32578902d55
 +        }
 +    }
 +
-+    // This may not work with spigot.
 +    @Override
-+    public void save(@Nullable ProgressListener progressListener, boolean flush, boolean savingDisabled, boolean close) {
-+        this.save(progressListener, flush, savingDisabled);
++    public void saveIncrementally(boolean doFull) {
++        this.save();
 +    }
 +
 +    private Future<?> save() {
