@@ -711,10 +711,10 @@ index 0000000000000000000000000000000000000000..0ab08b9b8b5582b90a7d63bf7403dc25
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..edc9a3178ae24c66bfc14eb45ef9a3a160616dbc
+index 0000000000000000000000000000000000000000..cfd5218fc03664c4909f71a9a12cdc527267368e
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-@@ -0,0 +1,198 @@
+@@ -0,0 +1,203 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -882,6 +882,11 @@ index 0000000000000000000000000000000000000000..edc9a3178ae24c66bfc14eb45ef9a3a1
 +    @Override
 +    public List<CompoundTag> getEntities() {
 +        List<net.minecraft.nbt.CompoundTag> entities = new ArrayList<>();
++
++        if(this.chunk == null) {
++            return new ArrayList<>();
++        }
++
 +        ChunkEntitySlices slices = this.chunk.getChunkHolder().getEntityChunk();
 +        if (slices == null) {
 +            return new ArrayList<>();
