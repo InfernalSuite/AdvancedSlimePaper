@@ -1608,10 +1608,10 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1a61cad9d4b68b2fbaeeb98f139033022c045748
+index 0000000000000000000000000000000000000000..c493dc48273ba4aafcca120cf85dfcb2cd059919
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,193 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1750,6 +1750,7 @@ index 0000000000000000000000000000000000000000..1a61cad9d4b68b2fbaeeb98f13903302
 +    @Override
 +    public void saveIncrementally(boolean doFull) {
 +        if (doFull) {
++            Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 +            this.save();
 +        }
 +    }
