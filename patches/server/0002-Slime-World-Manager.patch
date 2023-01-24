@@ -711,7 +711,7 @@ index 0000000000000000000000000000000000000000..0ab08b9b8b5582b90a7d63bf7403dc25
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..cfd5218fc03664c4909f71a9a12cdc527267368e
+index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b749825cbcb
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 @@ -0,0 +1,203 @@
@@ -883,7 +883,7 @@ index 0000000000000000000000000000000000000000..cfd5218fc03664c4909f71a9a12cdc52
 +    public List<CompoundTag> getEntities() {
 +        List<net.minecraft.nbt.CompoundTag> entities = new ArrayList<>();
 +
-+        if(this.chunk == null) {
++        if(this.chunk == null || this.chunk.getChunkHolder() == null) {
 +            return new ArrayList<>();
 +        }
 +
