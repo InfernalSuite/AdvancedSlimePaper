@@ -88,21 +88,21 @@ public class MongoLoader extends UpdatableLoader {
         MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 
         // Old world lock importing
-        MongoCursor<Document> documents = mongoCollection.find(Filters.or(Filters.eq("locked", true),
-                Filters.eq("locked", false))).cursor();
+        try (MongoCursor<Document> documents = mongoCollection.find(Filters.or(Filters.eq("locked", true),
+                Filters.eq("locked", false))).cursor()) {
+            if (documents.hasNext()) {
+                Logging.warning("Your SWM MongoDB database is outdated. The update process will start in 10 seconds.");
+                Logging.warning("Note that this update will make your database incompatible with older SWM versions.");
+                Logging.warning("Make sure no other servers with older SWM versions are using this database.");
+                Logging.warning("Shut down the server to prevent your database from being updated.");
 
-        if (documents.hasNext()) {
-            Logging.warning("Your SWM MongoDB database is outdated. The update process will start in 10 seconds.");
-            Logging.warning("Note that this update will make your database incompatible with older SWM versions.");
-            Logging.warning("Make sure no other servers with older SWM versions are using this database.");
-            Logging.warning("Shut down the server to prevent your database from being updated.");
-
-            Bukkit.getScheduler().scheduleSyncDelayedTask(SWMPlugin.getInstance(), () -> {
-                while (documents.hasNext()) {
-                    String name = documents.next().getString("name");
-                    mongoCollection.updateOne(Filters.eq("name", name), Updates.set("locked", 0L));
-                }
-            }, 200L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(SWMPlugin.getInstance(), () -> {
+                    while (documents.hasNext()) {
+                        String name = documents.next().getString("name");
+                        mongoCollection.updateOne(Filters.eq("name", name), Updates.set("locked", 0L));
+                    }
+                }, 200L);
+            }
         }
     }
 
@@ -162,10 +162,10 @@ public class MongoLoader extends UpdatableLoader {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            MongoCursor<Document> documents = mongoCollection.find().cursor();
-
-            while (documents.hasNext()) {
-                worldList.add(documents.next().getString("name"));
+            try (MongoCursor<Document> documents = mongoCollection.find().cursor()) {
+                while (documents.hasNext()) {
+                    worldList.add(documents.next().getString("name"));
+                }
             }
         } catch (MongoException ex) {
             throw new IOException(ex);
