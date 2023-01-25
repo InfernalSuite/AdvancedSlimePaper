@@ -1,27 +1,29 @@
 package com.grinderwolf.swm.plugin.loaders.mongo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
-import com.mongodb.client.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-import org.bukkit.Bukkit;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,6 +35,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bukkit.Bukkit;
 
 public class MongoLoader extends UpdatableLoader {
 
@@ -183,10 +188,12 @@ public class MongoLoader extends UpdatableLoader {
             }
 
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
-
-
-            mongoCollection.insertOne(new Document().append("name", worldName));
+            Bson query = Filters.eq("name", worldName);
+            mongoCollection.updateOne(
+                    query,
+                    new Document().append("$set", query),
+                    new UpdateOptions().upsert(true)
+            );
         } catch (MongoException ex) {
             throw new IOException(ex);
         }
