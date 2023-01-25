@@ -45,7 +45,7 @@ public class MongoLoader extends UpdatableLoader {
     private static final ScheduledExecutorService SERVICE = Executors.newScheduledThreadPool(2, new ThreadFactoryBuilder()
             .setNameFormat("SWM MongoDB Lock Pool Thread #%1$d").build());
 
-    private final Map<String, ScheduledFuture> lockedWorlds = new HashMap<>();
+    private final Map<String, ScheduledFuture<?>> lockedWorlds = new HashMap<>();
 
     private final MongoClient client;
     private final String database;
@@ -201,7 +201,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public void deleteWorld(String worldName) throws IOException, UnknownWorldException {
-        ScheduledFuture future = lockedWorlds.remove(worldName);
+        ScheduledFuture<?> future = lockedWorlds.remove(worldName);
 
         if (future != null) {
             future.cancel(false);
@@ -276,7 +276,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
-        ScheduledFuture future = lockedWorlds.remove(worldName);
+        ScheduledFuture<?> future = lockedWorlds.remove(worldName);
 
         if (future != null) {
             future.cancel(false);
