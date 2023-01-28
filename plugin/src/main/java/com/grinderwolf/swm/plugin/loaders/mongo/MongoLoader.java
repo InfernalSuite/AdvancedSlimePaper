@@ -241,10 +241,13 @@ public class MongoLoader extends UpdatableLoader {
                 throw new UnknownWorldException(worldName);
             }
 
-            long lockedMillis = worldDoc.getLong("locked");
+            // Only check lock if its there
+            if (worldDoc.containsKey("locked")) {
+                long lockedMillis = worldDoc.getLong("locked");
 
-            if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
-                throw new WorldLockedException(worldName);
+                if (System.currentTimeMillis() - lockedMillis <= LoaderUtils.MAX_LOCK_TIME) {
+                    throw new WorldLockedException(worldName);
+                }
             }
 
             updateLock(worldName, true);
