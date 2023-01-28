@@ -1324,16 +1324,17 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..649aac469f2d3ae0a23d5d6b17135902156f00db
+index 0000000000000000000000000000000000000000..b7b2679296c917f55a66186782edfd32fc5018f3
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,244 @@
+@@ -0,0 +1,249 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
 +import com.infernalsuite.aswm.ChunkPos;
 +import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 +import com.infernalsuite.aswm.api.loaders.SlimeLoader;
++import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 +import com.infernalsuite.aswm.skeleton.SkeletonCloning;
 +import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 +import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
@@ -1487,14 +1488,18 @@ index 0000000000000000000000000000000000000000..649aac469f2d3ae0a23d5d6b17135902
 +        if (worldName == null) {
 +            throw new IllegalArgumentException("The world name cannot be null!");
 +        }
-+
 +        if (loader != null) {
 +            if (loader.worldExists(worldName)) {
 +                throw new WorldAlreadyExistsException(worldName);
 +            }
 +        }
 +
-+        return SkeletonCloning.fullClone(worldName, this);
++        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this);
++        if (loader != null) {
++            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
++        }
++
++        return cloned;
 +    }
 +
 +    @Override
