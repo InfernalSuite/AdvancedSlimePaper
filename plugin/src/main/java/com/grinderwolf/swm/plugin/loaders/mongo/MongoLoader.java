@@ -271,6 +271,10 @@ public class MongoLoader extends UpdatableLoader {
                 throw new UnknownWorldException(worldName);
             }
 
+            if (!worldDoc.containsKey("locked")) {
+                return false;
+            }
+
             return System.currentTimeMillis() - worldDoc.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME;
         } catch (MongoException ex) {
             throw new IOException(ex);
