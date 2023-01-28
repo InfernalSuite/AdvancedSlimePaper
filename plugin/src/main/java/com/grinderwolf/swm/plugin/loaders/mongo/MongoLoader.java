@@ -271,7 +271,7 @@ public class MongoLoader extends UpdatableLoader {
                 throw new UnknownWorldException(worldName);
             }
 
-            if (worldDoc.containsKey("locked")) {
+            if (!worldDoc.containsKey("locked")) {
                 return false;
             }
 
