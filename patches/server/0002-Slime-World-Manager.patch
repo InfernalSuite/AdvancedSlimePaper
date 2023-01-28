@@ -1608,7 +1608,7 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1a61cad9d4b68b2fbaeeb98f139033022c045748
+index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c46e7d200
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 @@ -0,0 +1,192 @@
@@ -1750,7 +1750,7 @@ index 0000000000000000000000000000000000000000..1a61cad9d4b68b2fbaeeb98f13903302
 +    @Override
 +    public void saveIncrementally(boolean doFull) {
 +        if (doFull) {
-+            this.save();
++            this.save(null, false, false);
 +        }
 +    }
 +
