@@ -1,27 +1,29 @@
 package com.grinderwolf.swm.plugin.loaders.mongo;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
-import com.mongodb.client.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-import org.bukkit.Bukkit;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,6 +35,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bukkit.Bukkit;
 
 public class MongoLoader extends UpdatableLoader {
 
@@ -40,7 +45,7 @@ public class MongoLoader extends UpdatableLoader {
     private static final ScheduledExecutorService SERVICE = Executors.newScheduledThreadPool(2, new ThreadFactoryBuilder()
             .setNameFormat("SWM MongoDB Lock Pool Thread #%1$d").build());
 
-    private final Map<String, ScheduledFuture> lockedWorlds = new HashMap<>();
+    private final Map<String, ScheduledFuture<?>> lockedWorlds = new HashMap<>();
 
     private final MongoClient client;
     private final String database;
@@ -83,21 +88,21 @@ public class MongoLoader extends UpdatableLoader {
         MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 
         // Old world lock importing
-        MongoCursor<Document> documents = mongoCollection.find(Filters.or(Filters.eq("locked", true),
-                Filters.eq("locked", false))).cursor();
+        try (MongoCursor<Document> documents = mongoCollection.find(Filters.or(Filters.eq("locked", true),
+                Filters.eq("locked", false))).cursor()) {
+            if (documents.hasNext()) {
+                Logging.warning("Your SWM MongoDB database is outdated. The update process will start in 10 seconds.");
+                Logging.warning("Note that this update will make your database incompatible with older SWM versions.");
+                Logging.warning("Make sure no other servers with older SWM versions are using this database.");
+                Logging.warning("Shut down the server to prevent your database from being updated.");
 
-        if (documents.hasNext()) {
-            Logging.warning("Your SWM MongoDB database is outdated. The update process will start in 10 seconds.");
-            Logging.warning("Note that this update will make your database incompatible with older SWM versions.");
-            Logging.warning("Make sure no other servers with older SWM versions are using this database.");
-            Logging.warning("Shut down the server to prevent your database from being updated.");
-
-            Bukkit.getScheduler().scheduleSyncDelayedTask(SWMPlugin.getInstance(), () -> {
-                while (documents.hasNext()) {
-                    String name = documents.next().getString("name");
-                    mongoCollection.updateOne(Filters.eq("name", name), Updates.set("locked", 0L));
-                }
-            }, 200L);
+                Bukkit.getScheduler().scheduleSyncDelayedTask(SWMPlugin.getInstance(), () -> {
+                    while (documents.hasNext()) {
+                        String name = documents.next().getString("name");
+                        mongoCollection.updateOne(Filters.eq("name", name), Updates.set("locked", 0L));
+                    }
+                }, 200L);
+            }
         }
     }
 
@@ -157,10 +162,10 @@ public class MongoLoader extends UpdatableLoader {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            MongoCursor<Document> documents = mongoCollection.find().cursor();
-
-            while (documents.hasNext()) {
-                worldList.add(documents.next().getString("name"));
+            try (MongoCursor<Document> documents = mongoCollection.find().cursor()) {
+                while (documents.hasNext()) {
+                    worldList.add(documents.next().getString("name"));
+                }
             }
         } catch (MongoException ex) {
             throw new IOException(ex);
@@ -183,10 +188,12 @@ public class MongoLoader extends UpdatableLoader {
             }
 
             MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
-            Document worldDoc = mongoCollection.find(Filters.eq("name", worldName)).first();
-
-
-            mongoCollection.insertOne(new Document().append("name", worldName));
+            Bson query = Filters.eq("name", worldName);
+            mongoCollection.updateOne(
+                    query,
+                    new Document().append("$set", query),
+                    new UpdateOptions().upsert(true)
+            );
         } catch (MongoException ex) {
             throw new IOException(ex);
         }
@@ -194,7 +201,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public void deleteWorld(String worldName) throws IOException, UnknownWorldException {
-        ScheduledFuture future = lockedWorlds.remove(worldName);
+        ScheduledFuture<?> future = lockedWorlds.remove(worldName);
 
         if (future != null) {
             future.cancel(false);
@@ -269,7 +276,7 @@ public class MongoLoader extends UpdatableLoader {
 
     @Override
     public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
-        ScheduledFuture future = lockedWorlds.remove(worldName);
+        ScheduledFuture<?> future = lockedWorlds.remove(worldName);
 
         if (future != null) {
             future.cancel(false);
