@@ -7,6 +7,7 @@ import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -86,14 +87,18 @@ public record SkeletonSlimeWorld(
         if (worldName == null) {
             throw new IllegalArgumentException("The world name cannot be null!");
         }
-
         if (loader != null) {
             if (loader.worldExists(worldName)) {
                 throw new WorldAlreadyExistsException(worldName);
             }
         }
 
-        return SkeletonCloning.fullClone(worldName, this);
+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this);
+        if (loader != null) {
+            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
+        }
+
+        return cloned;
     }
 
 }
