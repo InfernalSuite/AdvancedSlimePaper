@@ -82,7 +82,9 @@ public class WorldData {
 
         SlimePropertyMap propertyMap = new SlimePropertyMap();
 
-        propertyMap.setValue(SPAWN_X, (int) spawnX);
+        propertyMap.setValue
+
+                (SPAWN_X, (int) spawnX);
         propertyMap.setValue(SPAWN_Y, (int) spawnY);
         propertyMap.setValue(SPAWN_Z, (int) spawnZ);
 
