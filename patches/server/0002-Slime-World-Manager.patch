@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index c6ea826dc1d514adc77d6a4c43a35f07d48e36a8..3faf7a9a12c70f35ff8e5995d9371166a59680d0 100644
+index b3bfe0c119dc2efe1d86cf896d3ada3c93e829af..d5fff44fded3b913dce329b1af4b5f8af7b8132e 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -10,6 +10,7 @@ dependencies {
@@ -920,10 +920,10 @@ index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b74
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9d3d196ff7cb82d936db08bd558d692340a226b2
+index 0000000000000000000000000000000000000000..10e733ddff9c4d3e36b45c065b30f8c8ffd71ead
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,92 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -944,10 +944,12 @@ index 0000000000000000000000000000000000000000..9d3d196ff7cb82d936db08bd558d6923
 +
 +public class NMSSlimeWorld implements SlimeWorld {
 +
++    private final SlimeInMemoryWorld memoryWorld;
 +    private final SlimeLevelInstance instance;
 +
-+    public NMSSlimeWorld(SlimeLevelInstance instance) {
-+        this.instance = instance;
++    public NMSSlimeWorld(SlimeInMemoryWorld memoryWorld) {
++        this.instance = memoryWorld.getInstance();
++        this.memoryWorld = memoryWorld;
 +    }
 +
 +    @Override
@@ -1000,12 +1002,12 @@ index 0000000000000000000000000000000000000000..9d3d196ff7cb82d936db08bd558d6923
 +
 +    @Override
 +    public SlimeWorld clone(String worldName) {
-+        return null;
++        return this.memoryWorld.clone(worldName);
 +    }
 +
 +    @Override
 +    public SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
-+        return null;
++        return this.memoryWorld.clone(worldName, loader);
 +    }
 +
 +    @Override
@@ -1322,10 +1324,10 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b496b776329e7f21b2050cda378c5a20e4231c5e
+index 0000000000000000000000000000000000000000..649aac469f2d3ae0a23d5d6b17135902156f00db
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,244 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1385,7 +1387,7 @@ index 0000000000000000000000000000000000000000..b496b776329e7f21b2050cda378c5a20
 +            this.chunkStorage.put(pos, initial);
 +        }
 +
-+        this.liveWorld = new NMSSlimeWorld(instance);
++        this.liveWorld = new NMSSlimeWorld(this);
 +    }
 +
 +    @Override
@@ -1564,6 +1566,10 @@ index 0000000000000000000000000000000000000000..b496b776329e7f21b2050cda378c5a20
 +                world.getPropertyMap(),
 +                world.getDataVersion()
 +        );
++    }
++
++    public SlimeLevelInstance getInstance() {
++        return instance;
 +    }
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
