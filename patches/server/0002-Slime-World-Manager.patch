@@ -285,10 +285,10 @@ index 0000000000000000000000000000000000000000..e3b253fda8e12ef165fc55f42aefcc91
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b7be81499
+index 0000000000000000000000000000000000000000..a8b43b3a4585616d32e6e504c402aadefa84acbb
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-@@ -0,0 +1,202 @@
+@@ -0,0 +1,196 @@
 +package com.infernalsuite.aswm;
 +
 +import com.infernalsuite.aswm.api.SlimeNMSBridge;
@@ -324,16 +324,10 @@ index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b
 +
 +public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 +
-+    private static final SlimeNMSBridgeImpl INSTANCE = (SlimeNMSBridgeImpl) Services.service(SlimeNMSBridge.class).orElseThrow();
 +    private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 +
 +    private static final Logger LOGGER = LogManager.getLogger("SWM");
 +
-+
-+
-+    public static SlimeNMSBridgeImpl instance() {
-+        return INSTANCE;
-+    }
 +
 +
 +    private SlimeWorld defaultWorld;
@@ -1936,16 +1930,39 @@ index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed
      public ChunkHolder.FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3a6672f0e 100644
+index b66dace70c6f94d9e246c802726751c4ec794420..8926bf2fd2d04f2098fc7c4c26a1b4691ec16636 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -461,18 +461,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -8,6 +8,10 @@ import com.google.common.base.Stopwatch;
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.Maps;
+ import com.google.common.collect.Sets;
++//ASWM START
++import com.infernalsuite.aswm.SlimeNMSBridgeImpl;
++import com.infernalsuite.aswm.api.SlimeNMSBridge;
++//ASWM END
+ import com.mojang.authlib.GameProfile;
+ import com.mojang.authlib.GameProfileRepository;
+ import com.mojang.authlib.minecraft.MinecraftSessionService;
+@@ -455,28 +459,49 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         for (LevelStem worldDimension : dimensions) {
+             ResourceKey<LevelStem> dimensionKey = dimensions.getResourceKey(worldDimension).get();
+ 
+-            ServerLevel world;
++            ServerLevel world = null; // ASWM
+             int dimension = 0;
+-
++            // ASWM START
++            boolean isSlimeFormat = false;
++            SlimeNMSBridgeImpl slimeNMSBridge = (SlimeNMSBridgeImpl) SlimeNMSBridge.instance();
++            // ASWM END
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
 +                    // ASWM START
-+                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
-+                        continue;
++                    if (slimeNMSBridge.loadNetherOverride()) {
++                        isSlimeFormat = true;
++                        world = levels.get(Level.NETHER);
 +                    }
 +                    // ASWM END
                  } else {
@@ -1955,8 +1972,9 @@ index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3
                  if (this.server.getAllowEnd()) {
                      dimension = 1;
 +                    // ASWM START
-+                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
-+                        continue;
++                    if (slimeNMSBridge.loadEndOverride()) {
++                        isSlimeFormat = true;
++                        world = levels.get(Level.END);
 +                    }
 +                    // ASWM END
                  } else {
@@ -1966,13 +1984,64 @@ index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3
                  dimension = -999;
              }
 +            // ASWM START
-+            else if (dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
-+                continue;
++            else if (dimensionKey == LevelStem.OVERWORLD && slimeNMSBridge.loadOverworldOverride()) {
++                isSlimeFormat = true;
++                world = levels.get(Level.OVERWORLD);
 +            }
 +            // ASWM END
  
              String worldType = (dimension == -999) ? dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath() : org.bukkit.World.Environment.getEnvironment(dimension).toString().toLowerCase();
              String name = (dimensionKey == LevelStem.OVERWORLD) ? s : s + "_" + worldType;
+-            if (dimension != 0) {
++            if (dimension != 0 && !isSlimeFormat) { // ASWM
+                 File newWorld = LevelStorageSource.getStorageFolder(new File(name).toPath(), dimensionKey).toFile();
+                 File oldWorld = LevelStorageSource.getStorageFolder(new File(s).toPath(), dimensionKey).toFile();
+                 File oldLevelDat = new File(new File(s), "level.dat"); // The data folders exist on first run as they are created in the PersistentCollection constructor above, but the level.dat won't
+@@ -527,6 +552,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, (HolderLookup.Provider) worldloader_a.datapackWorldgen());
+             Pair<WorldData, WorldDimensions.Complete> pair = worldSession.getDataTag(dynamicops, worldloader_a.dataConfiguration(), iregistry, worldloader_a.datapackWorldgen().allRegistriesLifecycle());
+ 
++            // ASWM START
++            if (isSlimeFormat) {
++                worlddata = world.serverLevelData;
++            } else
++            // ASWM END
+             if (pair != null) {
+                 worlddata = (PrimaryLevelData) pair.getFirst();
+             } else {
+@@ -581,8 +611,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 this.worldData.setGameType(((DedicatedServer) this).getProperties().gamemode); // From DedicatedServer.init
+ 
+                 ChunkProgressListener worldloadlistener = this.progressListenerFactory.create(11);
+-
+-                world = new ServerLevel(this, this.executor, worldSession, iworlddataserver, worldKey, worlddimension, worldloadlistener, flag, j, list, true, org.bukkit.World.Environment.getEnvironment(dimension), gen, biomeProvider);
++                if (!isSlimeFormat) { // ASWM
++                    world = new ServerLevel(this, this.executor, worldSession, iworlddataserver, worldKey, worlddimension, worldloadlistener, flag, j, list, true, org.bukkit.World.Environment.getEnvironment(dimension), gen, biomeProvider);
++                } // ASWM
+                 DimensionDataStorage worldpersistentdata = world.getDataStorage();
+                 this.readScoreboard(worldpersistentdata);
+                 this.server.scoreboardManager = new org.bukkit.craftbukkit.scoreboard.CraftScoreboardManager(this, world.getScoreboard());
+@@ -596,13 +627,17 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 } else {
+                     spawners = Collections.emptyList();
+                 }
+-                world = new ServerLevel(this, this.executor, worldSession, iworlddataserver, worldKey, worlddimension, worldloadlistener, flag, j, spawners, true, org.bukkit.World.Environment.getEnvironment(dimension), gen, biomeProvider);
++                if (!isSlimeFormat) { // ASWM
++                    world = new ServerLevel(this, this.executor, worldSession, iworlddataserver, worldKey, worlddimension, worldloadlistener, flag, j, spawners, true, org.bukkit.World.Environment.getEnvironment(dimension), gen, biomeProvider);
++                } // ASWM
+                 // Paper end
+             }
+ 
+             worlddata.setModdedInfo(this.getServerModName(), this.getModdedStatus().shouldReportAsModified());
+-            this.addLevel(world); // Paper - move up
+-            this.initWorld(world, worlddata, worldData, worldoptions);
++            if (!isSlimeFormat) {
++                this.addLevel(world); // Paper - move up
++                this.initWorld(world, worlddata, worldData, worldoptions);
++            }
+ 
+             // Paper - move up
+             this.getPlayerList().addWorldborderListener(world);
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005800b1fb4 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
