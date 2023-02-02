@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class RedisLoader implements SlimeLoader {
 
@@ -61,7 +62,7 @@ public class RedisLoader implements SlimeLoader {
         return connection.smembers(WORLD_LIST_PREFIX)
                 .stream()
                 .map(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .toList();
+                .collect(Collectors.toList()); // We can't use .toList because this needs to be mutable.
     }
 
     @Override
