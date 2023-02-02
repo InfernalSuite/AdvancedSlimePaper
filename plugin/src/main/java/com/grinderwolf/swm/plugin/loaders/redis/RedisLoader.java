@@ -33,6 +33,7 @@ public class RedisLoader implements SlimeLoader {
     private static final byte TRUE = 0x1;
 
     private final Map<String, ScheduledFuture<?>> lockedWorlds = new HashMap<>();
+    private final RedisCommands<String, byte[]> connection;
 
     public RedisLoader(DatasourcesConfig.RedisConfig config) {
         this.connection = RedisClient
@@ -40,8 +41,6 @@ public class RedisLoader implements SlimeLoader {
             .connect(StringByteCodec.INSTANCE)
             .sync();
     }
-
-    private final RedisCommands<String, byte[]> connection;
 
     @Override
     public byte[] loadWorld(String name) throws UnknownWorldException, IOException {
