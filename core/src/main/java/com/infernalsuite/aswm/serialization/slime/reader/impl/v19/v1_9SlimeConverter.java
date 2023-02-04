@@ -69,6 +69,7 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
         return new SkeletonSlimeWorld(
                 data.worldName,
                 data.loader,
+                data.readOnly,
                 chunks,
                 data.extraCompound,
                 data.propertyMap,

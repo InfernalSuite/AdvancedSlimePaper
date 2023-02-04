@@ -178,10 +178,10 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e3b253fda8e12ef165fc55f42aefcc91f0a46b5e
+index 0000000000000000000000000000000000000000..77996d123ceabe61760075945339d0fcd9fdba53
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,102 @@
 +package com.infernalsuite.aswm;
 +
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
@@ -264,6 +264,7 @@ index 0000000000000000000000000000000000000000..e3b253fda8e12ef165fc55f42aefcc91
 +        return new SkeletonSlimeWorld(
 +                data.getName(),
 +                data.getLoader(),
++                data.isReadOnly(),
 +                chunks,
 +                data.getExtraData(),
 +                data.getPropertyMap(),
@@ -1328,10 +1329,10 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b7b2679296c917f55a66186782edfd32fc5018f3
+index 0000000000000000000000000000000000000000..7a2bd53e9ebdf8bb004db744af3587142bdebf4d
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,250 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1570,6 +1571,7 @@ index 0000000000000000000000000000000000000000..b7b2679296c917f55a66186782edfd32
 +
 +        return new SkeletonSlimeWorld(world.getName(),
 +                world.getLoader(),
++                world.isReadOnly(),
 +                cloned,
 +                world.getExtraData(),
 +                world.getPropertyMap(),

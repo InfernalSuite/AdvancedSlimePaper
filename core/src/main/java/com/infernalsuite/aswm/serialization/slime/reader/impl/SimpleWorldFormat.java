@@ -23,7 +23,7 @@ public class SimpleWorldFormat<S> implements VersionedByteSlimeWorldReader<Slime
     }
 
     @Override
-    public SlimeWorld deserializeWorld(byte version, @Nullable SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap) throws IOException, CorruptedWorldException, NewerFormatException {
-        return this.data.readFromData(this.reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap));
+    public SlimeWorld deserializeWorld(byte version, @Nullable SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException {
+        return this.data.readFromData(this.reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap, readOnly));
     }
 }
