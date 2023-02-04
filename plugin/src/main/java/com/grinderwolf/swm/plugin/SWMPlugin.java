@@ -239,10 +239,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
 
-        if (!readOnly) {
-            loader.acquireLock(worldName);
-        }
-
         long start = System.currentTimeMillis();
 
         Logging.info("Loading world " + worldName + ".");
