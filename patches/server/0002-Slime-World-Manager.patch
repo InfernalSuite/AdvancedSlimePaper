@@ -1900,21 +1900,23 @@ index 3df793f7e6bb67f40e7387a72fdafb912a7b1373..413b3709502b7c83adf71fcb40afbc13
                                      final int chunkZ, final PrioritisedExecutor.Priority priority) {
              super(scheduler, world, chunkX, chunkZ, RegionFileIOThread.RegionFileType.CHUNK_DATA, priority);
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
-index 8013dd333e27aa5fd0beb431fa32491eec9f5246..23a88888f1586f9a2d1c076a8661f74551b84868 100644
+index 8013dd333e27aa5fd0beb431fa32491eec9f5246..26fb83169cfd98adc0ffc8131e31ba85de09e0b6 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
-@@ -116,6 +116,11 @@ public final class NewChunkHolder {
-                 this.world.getEntityLookup().addEntityChunkEntities(entities);
-             }
+@@ -110,7 +110,12 @@ public final class NewChunkHolder {
          }
-+        // ASWM start
-+        if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance world) {
-+            world.loadEntities(this.chunkX, this.chunkZ);
-+        }
-+        // ASWM end
  
-         return ret;
-     }
+         if (!transientChunk) {
+-            if (entityChunk != null) {
++            // ASWM start
++            if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance world) {
++                world.loadEntities(this.chunkX, this.chunkZ);
++            }
++            else if (entityChunk != null) {
++            // ASWM end
+                 final List<Entity> entities = EntityStorage.readEntities(this.world, entityChunk);
+ 
+                 this.world.getEntityLookup().addEntityChunkEntities(entities);
 @@ -138,6 +143,12 @@ public final class NewChunkHolder {
      // returns only if the data has been loaded from disk, DOES NOT relate to whether it has been deserialized
      // or added into the world (or even into entityChunk)
