@@ -1940,7 +1940,7 @@ index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed
      public ChunkHolder.FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b66dace70c6f94d9e246c802726751c4ec794420..97710fb00dced2641872e86b8794b7ad83b4ea12 100644
+index b66dace70c6f94d9e246c802726751c4ec794420..49e2f7eb5cc75e05dbf702e83fa13cec19efd412 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -270,7 +270,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -1952,11 +1952,7 @@ index b66dace70c6f94d9e246c802726751c4ec794420..97710fb00dced2641872e86b8794b7ad
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private final FrameTimer frameTimer;
-@@ -457,22 +457,36 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
- 
-             ServerLevel world;
-             int dimension = 0;
--
+@@ -461,18 +461,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
@@ -1983,7 +1979,7 @@ index b66dace70c6f94d9e246c802726751c4ec794420..97710fb00dced2641872e86b8794b7ad
                  dimension = -999;
              }
 +            // ASWM START
-+            if (dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
++            else if (dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
 +                continue;
 +            }
 +            // ASWM END
