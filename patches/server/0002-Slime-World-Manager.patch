@@ -285,10 +285,10 @@ index 0000000000000000000000000000000000000000..e3b253fda8e12ef165fc55f42aefcc91
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b7be81499
+index 0000000000000000000000000000000000000000..11c2ab668881a50562922520e7480e748403926f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-@@ -0,0 +1,202 @@
+@@ -0,0 +1,206 @@
 +package com.infernalsuite.aswm;
 +
 +import com.infernalsuite.aswm.api.SlimeNMSBridge;
@@ -296,6 +296,7 @@ index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b
 +import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
 +import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
 +import com.infernalsuite.aswm.level.SlimeBootstrap;
++import com.infernalsuite.aswm.level.SlimeInMemoryWorld;
 +import com.infernalsuite.aswm.level.SlimeLevelInstance;
 +import com.mojang.serialization.Lifecycle;
 +import net.kyori.adventure.util.Services;
@@ -311,6 +312,8 @@ index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b
 +import net.minecraft.world.level.LevelSettings;
 +import net.minecraft.world.level.dimension.LevelStem;
 +import net.minecraft.world.level.levelgen.WorldOptions;
++import net.minecraft.world.level.storage.CommandStorage;
++import net.minecraft.world.level.storage.DimensionDataStorage;
 +import net.minecraft.world.level.storage.PrimaryLevelData;
 +import org.apache.logging.log4j.LogManager;
 +import org.apache.logging.log4j.Logger;
@@ -324,21 +327,17 @@ index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b
 +
 +public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 +
-+    private static final SlimeNMSBridgeImpl INSTANCE = (SlimeNMSBridgeImpl) Services.service(SlimeNMSBridge.class).orElseThrow();
 +    private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 +
 +    private static final Logger LOGGER = LogManager.getLogger("SWM");
 +
-+
-+
-+    public static SlimeNMSBridgeImpl instance() {
-+        return INSTANCE;
-+    }
-+
-+
 +    private SlimeWorld defaultWorld;
 +    private SlimeWorld defaultNetherWorld;
 +    private SlimeWorld defaultEndWorld;
++
++    public static SlimeNMSBridgeImpl instance() {
++        return (SlimeNMSBridgeImpl) SlimeNMSBridge.instance();
++    }
 +
 +    @Override
 +    public boolean loadOverworldOverride() {
@@ -346,7 +345,12 @@ index 0000000000000000000000000000000000000000..8ff5f678c4f3f6a008c5bb714726c29b
 +            return false;
 +        }
 +
-+        this.loadInstance(defaultWorld, Level.OVERWORLD);
++        // See MinecraftServer loading logic
++        // Some stuff is needed when loading overworld world
++        SlimeLevelInstance instance = ((SlimeInMemoryWorld) this.loadInstance(defaultWorld, Level.OVERWORLD)).getInstance();
++        DimensionDataStorage worldpersistentdata = instance.getDataStorage();
++        instance.getCraftServer().scoreboardManager = new org.bukkit.craftbukkit.scoreboard.CraftScoreboardManager(instance.getServer(), instance.getScoreboard());
++        instance.getServer().commandStorage = new CommandStorage(worldpersistentdata);
 +
 +        return true;
 +    }
@@ -1936,15 +1940,24 @@ index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed
      public ChunkHolder.FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b66dace70c6f94d9e246c802726751c4ec794420..cc7d5bc390bbf37ca425c9b5d267fad3a6672f0e 100644
+index b66dace70c6f94d9e246c802726751c4ec794420..49e2f7eb5cc75e05dbf702e83fa13cec19efd412 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -270,7 +270,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     private final PackRepository packRepository;
+     private final ServerScoreboard scoreboard;
+     @Nullable
+-    private CommandStorage commandStorage;
++    public CommandStorage commandStorage; // ASWM
+     private final CustomBossEvents customBossEvents;
+     private final ServerFunctionManager functionManager;
+     private final FrameTimer frameTimer;
 @@ -461,18 +461,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
 +                    // ASWM START
-+                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
++                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
 +                        continue;
 +                    }
 +                    // ASWM END
