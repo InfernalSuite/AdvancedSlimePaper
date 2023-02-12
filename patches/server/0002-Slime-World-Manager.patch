@@ -1329,10 +1329,10 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7a2bd53e9ebdf8bb004db744af3587142bdebf4d
+index 0000000000000000000000000000000000000000..9bc04bc3215c088a799219551b53f13f9ced5212
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,250 @@
+@@ -0,0 +1,252 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1377,6 +1377,7 @@ index 0000000000000000000000000000000000000000..7a2bd53e9ebdf8bb004db744af358714
 +    private final SlimeLoader loader;
 +
 +    private final Map<ChunkPos, SlimeChunk> chunkStorage = new HashMap<>();
++    private boolean readOnly;
 +   // private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
 +
 +    public SlimeInMemoryWorld(SlimeBootstrap bootstrap, SlimeLevelInstance instance) {
@@ -1384,6 +1385,7 @@ index 0000000000000000000000000000000000000000..7a2bd53e9ebdf8bb004db744af358714
 +        this.extra = bootstrap.initial().getExtraData();
 +        this.propertyMap = bootstrap.initial().getPropertyMap();
 +        this.loader = bootstrap.initial().getLoader();
++        this.readOnly = bootstrap.initial().isReadOnly();
 +
 +        for (SlimeChunk initial : bootstrap.initial().getChunkStorage()) {
 +            ChunkPos pos = new ChunkPos(initial.getX(), initial.getZ());
@@ -1472,7 +1474,7 @@ index 0000000000000000000000000000000000000000..7a2bd53e9ebdf8bb004db744af358714
 +
 +    @Override
 +    public boolean isReadOnly() {
-+        return this.getSaveStrategy() == null;
++        return this.getSaveStrategy() == null || this.readOnly;
 +    }
 +
 +    @Override
