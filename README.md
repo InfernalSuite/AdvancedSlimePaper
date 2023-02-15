@@ -78,6 +78,7 @@ The Javadocs can be found [here](https://grinderwolf.github.io/Slime-World-Manag
    * [Importing a World](.docs/api/import-world.md)
    * [Using Custom Data Sources](.docs/api/use-data-source.md)
    * [Custom Build Preparation](.docs/api/custom-build-preparation.md)
+   * [Setup RunServer for Plugin Development](.docs/api/setup-a-devserver.md)
 * Other
    * [FAQ](.docs/other/faq.md)
 
