@@ -178,7 +178,7 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..77996d123ceabe61760075945339d0fcd9fdba53
+index 0000000000000000000000000000000000000000..58d67fce6b44e763b89aaf58ab725e5ccba0c60e
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 @@ -0,0 +1,102 @@
@@ -208,7 +208,7 @@ index 0000000000000000000000000000000000000000..77996d123ceabe61760075945339d0fc
 +
 +    @Override
 +    public SlimeWorld readFromData(SlimeWorld data) {
-+        int newVersion = SharedConstants.getCurrentVersion().getWorldVersion();
++        int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
 +        int currentVersion = data.getDataVersion();
 +        // Already fixed
 +        if (currentVersion == newVersion) {
@@ -286,7 +286,7 @@ index 0000000000000000000000000000000000000000..77996d123ceabe61760075945339d0fc
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..11c2ab668881a50562922520e7480e748403926f
+index 0000000000000000000000000000000000000000..a9902afe7c5d3387153609b808834e093e12b9e9
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 @@ -0,0 +1,206 @@
@@ -433,7 +433,7 @@ index 0000000000000000000000000000000000000000..11c2ab668881a50562922520e7480e74
 +
 +    @Override
 +    public int getCurrentVersion() {
-+        return SharedConstants.getCurrentVersion().getWorldVersion();
++        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
 +    }
 +
 +    public void registerWorld(SlimeLevelInstance server) {
@@ -496,7 +496,6 @@ index 0000000000000000000000000000000000000000..11c2ab668881a50562922520e7480e74
 +    }
 +
 +}
-\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..9c76d8334f5c4a81586e4836675c1b923c65ebc5
@@ -925,10 +924,10 @@ index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b74
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..10e733ddff9c4d3e36b45c065b30f8c8ffd71ead
+index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984693ebdf8
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,91 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1017,9 +1016,8 @@ index 0000000000000000000000000000000000000000..10e733ddff9c4d3e36b45c065b30f8c8
 +
 +    @Override
 +    public int getDataVersion() {
-+        return SharedConstants.getCurrentVersion().getWorldVersion();
++        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
 +    }
-+
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
 new file mode 100644
@@ -1587,10 +1585,10 @@ index 0000000000000000000000000000000000000000..9bc04bc3215c088a799219551b53f13f
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc7d7d1ae8
+index 0000000000000000000000000000000000000000..561f4bc218dee9940d35ad616cf2164b604c09e7
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,39 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.mojang.serialization.Codec;
@@ -1603,6 +1601,7 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +
 +import java.util.List;
 +import java.util.Optional;
++import java.util.stream.Stream;
 +
 +public class SlimeLevelGenerator extends FlatLevelSource {
 +
@@ -1610,12 +1609,16 @@ index 0000000000000000000000000000000000000000..34f8866dfb6a5b88e8343dda3aac42bc
 +        super(new FlatLevelGeneratorSettings(Optional.empty(), biome, List.of()), getSource(biome));
 +    }
 +
-+
 +    private static BiomeSource getSource(Holder<Biome> biome) {
-+        return new BiomeSource(List.of(biome)) {
++        return new BiomeSource() {
 +            @Override
 +            protected Codec<? extends BiomeSource> codec() {
 +                return null;
++            }
++
++            @Override
++            protected Stream<Holder<Biome>> collectPossibleBiomes() {
++                return Stream.of(biome);
 +            }
 +
 +            @Override
