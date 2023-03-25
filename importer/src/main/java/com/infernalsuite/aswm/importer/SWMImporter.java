@@ -45,14 +45,14 @@ public class SWMImporter {
 
         try {
             outputFile.createNewFile();
-            Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.readFromDirectory(worldDir)));
+            Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.INSTANCE.readFromData(worldDir)));
         } catch (IndexOutOfBoundsException ex) {
             System.err.println("Oops, it looks like the world provided is too big to be imported. " +
                     "Please trim it by using the MCEdit tool and try again.");
         } catch (IOException ex) {
             System.err.println("Failed to save the world file.");
             ex.printStackTrace();
-        } catch (InvalidWorldException ex) {
+        } catch (RuntimeException ex) {
             if(printErrors) {
                 ex.printStackTrace();
             } else {

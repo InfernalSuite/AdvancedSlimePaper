@@ -39,7 +39,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
 
     @SuppressWarnings("unchecked")
     @Override
-    public SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap)
+    public SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
             throws IOException, CorruptedWorldException {
 
         // World version
@@ -99,7 +99,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
             worldPropertyMap.merge(propertyMap); // Override world properties
         }
 
-        return new SkeletonSlimeWorld(worldName, loader, chunks,
+        return new SkeletonSlimeWorld(worldName, loader, readOnly, chunks,
                 extraCompound,
                 worldPropertyMap,
                 worldVersion

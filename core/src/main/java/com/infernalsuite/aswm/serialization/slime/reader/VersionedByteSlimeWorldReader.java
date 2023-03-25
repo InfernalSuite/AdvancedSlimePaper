@@ -11,5 +11,5 @@ import java.io.IOException;
 
 public interface VersionedByteSlimeWorldReader<T> {
 
-    T deserializeWorld(byte version, @Nullable SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap) throws IOException, CorruptedWorldException, NewerFormatException;
+    T deserializeWorld(byte version, @Nullable SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException;
 }

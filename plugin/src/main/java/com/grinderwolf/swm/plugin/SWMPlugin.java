@@ -239,16 +239,12 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
 
-        if (!readOnly) {
-            loader.acquireLock(worldName);
-        }
-
         long start = System.currentTimeMillis();
 
         Logging.info("Loading world " + worldName + ".");
         byte[] serializedWorld = loader.loadWorld(worldName);
 
-        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap);
+        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
         Logging.info("Applying datafixers for " + worldName + ".");
         SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
 
@@ -279,7 +275,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         Logging.info("Creating empty world " + worldName + ".");
         long start = System.currentTimeMillis();
-        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, readOnly ? null : loader, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
 
         loader.saveWorld(worldName, SlimeSerializer.serialize(blackhole));
 
@@ -316,6 +312,15 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         SlimeWorld mirror = instance.getSlimeWorldMirror();
         Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
         registerWorld(mirror);
+
+        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
+            try {
+                slimeWorld.getLoader().acquireLock(slimeWorld.getName());
+            } catch (UnknownWorldException | WorldLockedException | IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         return mirror;
     }
 
@@ -366,7 +371,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             throw new WorldLoadedException(worldDir.getName());
         }
 
-        SlimeWorld world = AnvilWorldReader.readFromDirectory(worldDir);
+        SlimeWorld world = AnvilWorldReader.INSTANCE.readFromData(worldDir);
 
         byte[] serializedWorld;
 

@@ -8,6 +8,7 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.Map;
 public record SkeletonSlimeWorld(
         String name,
         @Nullable SlimeLoader loader,
+        boolean readOnly,
         Map<ChunkPos, SlimeChunk> chunkStorage,
         CompoundTag extraSerialized,
         SlimePropertyMap slimePropertyMap,
@@ -61,7 +63,7 @@ public record SkeletonSlimeWorld(
 
     @Override
     public boolean isReadOnly() {
-        return this.loader == null;
+        return this.readOnly || this.loader == null;
     }
 
     @Override
