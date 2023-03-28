@@ -58,8 +58,11 @@ public class FileLoader implements SlimeLoader {
 
 
         if (file != null && file.length() > Integer.MAX_VALUE) {
+            file.close();
             throw new IndexOutOfBoundsException("World is too big!");
         }
+
+        worldFiles.put(worldName, file);
 
         byte[] serializedWorld = new byte[0];
         if (file != null) {
@@ -94,14 +97,12 @@ public class FileLoader implements SlimeLoader {
 
         if (tempFile) {
             worldFile = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
+            worldFiles.put(worldName, worldFile);
         }
 
         worldFile.seek(0); // Make sure we're at the start of the file
         worldFile.setLength(0); // Delete old data
         worldFile.write(serializedWorld);
-
-
-        worldFile.close();
     }
 
     @Override
@@ -169,6 +170,7 @@ public class FileLoader implements SlimeLoader {
 
         if (tempFile) {
             worldFile = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
+            worldFiles.put(worldName, worldFile);
         }
 
         FileChannel channel = worldFile.getChannel();
