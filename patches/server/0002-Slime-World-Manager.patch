@@ -1499,7 +1499,7 @@ index 0000000000000000000000000000000000000000..9bc04bc3215c088a799219551b53f13f
 +            }
 +        }
 +
-+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this);
++        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
 +        if (loader != null) {
 +            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
 +        }
