@@ -119,13 +119,14 @@ public interface SlimePlugin {
      * @param worldDir  The directory where the world is.
      * @param worldName The name of the world.
      * @param loader    The {@link SlimeLoader} that will be used to store the world.
+     * @return          SlimeWorld to import
      * @throws WorldAlreadyExistsException if the data source already contains a world with the same name.
      * @throws InvalidWorldException       if the provided directory does not contain a valid world.
      * @throws WorldLoadedException        if the world is loaded on the server.
      * @throws WorldTooBigException        if the world is too big to be imported into the SRF.
      * @throws IOException                 if the world could not be read or stored.
      */
-    void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException;
+    SlimeWorld importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException;
 
 //    CompletableFuture<Optional<SlimeWorld>> asyncLoadWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap);
 //
