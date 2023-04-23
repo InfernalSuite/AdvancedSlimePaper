@@ -8,7 +8,6 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -95,7 +94,7 @@ public record SkeletonSlimeWorld(
             }
         }
 
-        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this);
+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
         if (loader != null) {
             loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
         }
