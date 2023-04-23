@@ -1327,7 +1327,7 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9bc04bc3215c088a799219551b53f13f9ced5212
+index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75ae883220
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 @@ -0,0 +1,252 @@
@@ -1949,10 +1949,10 @@ index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed
      public ChunkHolder.FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 963d781167d71de81adf682cb85cf6840a683ac7..433e0aae5ad8733b8006f9fce19f98dc59b5926d 100644
+index 1e36774a345366872ab014372bad2f3f8737d716..69d7e72724c400a2fbef3ae3b8df8b1e2f96a373 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -273,7 +273,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -274,7 +274,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      private final PackRepository packRepository;
      private final ServerScoreboard scoreboard;
      @Nullable
@@ -1961,7 +1961,7 @@ index 963d781167d71de81adf682cb85cf6840a683ac7..433e0aae5ad8733b8006f9fce19f98dc
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private final FrameTimer frameTimer;
-@@ -463,18 +463,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -464,18 +464,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
@@ -2013,7 +2013,7 @@ index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 5a5ff40df37db9cbd53c584ed26a3ce4888b29c0..b3721de8b0dba353acb8e5ba58274a3e8367075d 100644
+index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b93152979c3a 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -130,12 +130,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
