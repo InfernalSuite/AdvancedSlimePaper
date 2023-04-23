@@ -178,7 +178,7 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..58d67fce6b44e763b89aaf58ab725e5ccba0c60e
+index 0000000000000000000000000000000000000000..2f7787178fb41a7e892b1e6ceff371b022f5d423
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 @@ -0,0 +1,102 @@
@@ -220,7 +220,7 @@ index 0000000000000000000000000000000000000000..58d67fce6b44e763b89aaf58ab725e5c
 +            List<CompoundTag> entities = new ArrayList<>();
 +            List<CompoundTag> blockEntities = new ArrayList<>();
 +            for (CompoundTag upgradeEntity : chunk.getTileEntities()) {
-+                entities.add(
++                blockEntities.add(
 +                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
 +                );
 +            }
