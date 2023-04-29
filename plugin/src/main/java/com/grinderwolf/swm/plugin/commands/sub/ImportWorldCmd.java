@@ -88,7 +88,7 @@ public class ImportWorldCmd implements Subcommand {
 
                         try {
                             long start = System.currentTimeMillis();
-                            SlimeWorld world = SWMPlugin.getInstance().importWorld(worldDir, worldName, loader);
+                            SlimeWorld world = SWMPlugin.getInstance().importVanillaWorld(worldDir, worldName, loader);
 
                             sender.sendMessage(Logging.COMMAND_PREFIX +  ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " imported " +
                                     "successfully in " + (System.currentTimeMillis() - start) + "ms.");
