@@ -2,6 +2,7 @@ package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.utils.NibbleArray;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
@@ -15,9 +16,9 @@ import java.util.Map;
 
 public class SkeletonCloning {
 
-    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world) {
+    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
         return new SkeletonSlimeWorld(worldName,
-                world.getLoader(),
+                loader == null ? world.getLoader() : loader,
                 world.isReadOnly(),
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
