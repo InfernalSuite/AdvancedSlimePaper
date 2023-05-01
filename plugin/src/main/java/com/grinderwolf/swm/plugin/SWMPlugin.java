@@ -357,31 +357,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
-        Objects.requireNonNull(worldDir, "World directory cannot be null");
-        Objects.requireNonNull(worldName, "World name cannot be null");
-        Objects.requireNonNull(loader, "Loader cannot be null");
-
-        if (loader.worldExists(worldName)) {
-            throw new WorldAlreadyExistsException(worldName);
-        }
-
-        World bukkitWorld = Bukkit.getWorld(worldDir.getName());
-
-        if (bukkitWorld != null && BRIDGE_INSTANCE.getInstance(bukkitWorld) == null) {
-            throw new WorldLoadedException(worldDir.getName());
-        }
-
-        SlimeWorld world = AnvilWorldReader.INSTANCE.readFromData(worldDir);
-
-        byte[] serializedWorld;
-
-        try {
-            serializedWorld = SlimeSerializer.serialize(world);
-        } catch (IndexOutOfBoundsException ex) {
-            throw new WorldTooBigException(worldDir.getName());
-        }
-
-        loader.saveWorld(worldName, serializedWorld);
+        this.importVanillaWorld(worldDir, worldName, loader);
     }
 
     @Override
