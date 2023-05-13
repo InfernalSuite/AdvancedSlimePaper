@@ -6,6 +6,7 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
+import com.infernalsuite.aswm.api.SlimeNMSBridge;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
@@ -70,7 +71,9 @@ public class UnloadWorldCmd implements Subcommand {
             }
         }
 
-        var loader = source == null ? null : LoaderUtils.getLoader(source);
+        var loader = source == null
+            ? SlimeNMSBridge.instance().getInstance(world).getSlimeWorldMirror().getLoader()
+            : LoaderUtils.getLoader(source);
 
         // Teleport all players outside the world before unloading it
         var players = world.getPlayers();
@@ -88,8 +91,7 @@ public class UnloadWorldCmd implements Subcommand {
                 }
                 unlockWorldFinally(world, loader, sender);
             });
-        } else {
-            Bukkit.unloadWorld(world, true);
+        } else if (Bukkit.unloadWorld(world, true)) {
             unlockWorldFinally(world, loader, sender);
         }
 
