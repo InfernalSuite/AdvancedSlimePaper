@@ -84,8 +84,7 @@ public class UnloadWorldCmd implements Subcommand {
                 Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true)));
                 if (!success.get()) {
                     sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
-                } else {
-                    world.save();
+                    return;
                 }
                 unlockWorldFinally(world, loader, sender);
             });
