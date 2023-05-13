@@ -105,7 +105,7 @@ public class CloneWorldCmd implements Subcommand {
 
                             config.getWorlds().put(worldName, worldData);
                             config.save();
-                        } catch (IllegalArgumentException ex) {
+                        } catch (Exception ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 
                             return;

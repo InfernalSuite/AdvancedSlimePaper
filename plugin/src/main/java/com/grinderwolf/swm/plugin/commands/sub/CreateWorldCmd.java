@@ -106,7 +106,7 @@ public class CreateWorldCmd implements Subcommand {
 
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName
                                     + ChatColor.GREEN + " created in " + (System.currentTimeMillis() - start) + "ms!");
-                        } catch (IllegalArgumentException ex) {
+                        } catch (Exception ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to create world " + worldName + ": " + ex.getMessage() + ".");
                         }
                     });
