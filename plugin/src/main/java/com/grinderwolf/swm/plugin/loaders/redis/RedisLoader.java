@@ -65,11 +65,19 @@ public class RedisLoader implements SlimeLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] bytes) throws IOException {
+    public void saveWorld(String worldName, byte[] bytes, boolean releaseLock) throws IOException {
         connection.set(WORLD_DATA_PREFIX + worldName, bytes);
 
         // Also add to the world list set. We can't do this in one atomic operation (mset) because it's a set add
         connection.sadd(WORLD_LIST_PREFIX, worldName.getBytes(StandardCharsets.UTF_8));
+
+        if (releaseLock) {
+            try {
+                unlockWorld(worldName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

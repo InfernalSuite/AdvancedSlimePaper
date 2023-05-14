@@ -1,14 +1,7 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.plugin.SWMPlugin;
-import com.grinderwolf.swm.plugin.config.ConfigManager;
-import com.grinderwolf.swm.plugin.config.WorldData;
-import com.grinderwolf.swm.plugin.config.WorldsConfig;
-import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.api.SlimeNMSBridge;
-import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -18,12 +11,10 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class UnloadWorldCmd implements Subcommand {
@@ -58,62 +49,24 @@ public class UnloadWorldCmd implements Subcommand {
             return true;
         }
 
-        String source = null;
-
-        if (args.length > 1) {
-            source = args[1];
-        } else {
-            WorldsConfig config = ConfigManager.getWorldConfig();
-            WorldData worldData = config.getWorlds().get(worldName);
-
-            if (worldData != null && !worldData.isReadOnly()) {
-                source = worldData.getDataSource();
-            }
-        }
-
-        var loader = source == null
-            ? SlimeNMSBridge.instance().getInstance(world).getSlimeWorldMirror().getLoader()
-            : LoaderUtils.getLoader(source);
-
         // Teleport all players outside the world before unloading it
         var players = world.getPlayers();
-
-        AtomicBoolean success = new AtomicBoolean();
 
         if (!players.isEmpty()) {
             Location spawnLocation = findValidDefaultSpawn();
             CompletableFuture<Void> cf = CompletableFuture.allOf(players.stream().map(player -> player.teleportAsync(spawnLocation)).collect(Collectors.toList()).toArray(CompletableFuture[]::new));
             cf.thenRun(() -> {
-                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true)));
-                if (!success.get()) {
-                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
-                    return;
-                }
-                unlockWorldFinally(world, loader, sender);
+                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
+                    if (!Bukkit.unloadWorld(world, true)) {
+                        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
+                    }
+                });
             });
-        } else if (Bukkit.unloadWorld(world, true)) {
-            unlockWorldFinally(world, loader, sender);
+        } else {
+            Bukkit.unloadWorld(world, true);
         }
 
         return true;
-    }
-
-    private void unlockWorldFinally(World world, SlimeLoader loader, CommandSender sender) {
-        String worldName = world.getName();
-        System.out.println("Attempting to unlock world.. " + worldName + ".");
-        try {
-            if (loader != null && loader.isWorldLocked(worldName)) {
-                System.out.println("World.. " + worldName + " is locked.");
-                loader.unlockWorld(worldName);
-                System.out.println("Attempted to unlock world.. " + worldName + ".");
-            } else {
-                System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
-            }
-        } catch (UnknownWorldException | IOException e) {
-            e.printStackTrace();
-        }
-
-        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
     }
 
     @NotNull

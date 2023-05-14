@@ -49,7 +49,20 @@ public interface SlimeLoader {
      * @param serializedWorld The world's data file, contained inside a byte array.
      * @throws IOException if the world could not be saved.
      */
-    void saveWorld(String worldName, byte[] serializedWorld) throws IOException;
+    default void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
+        saveWorld(worldName, serializedWorld, false);
+    }
+
+    /**
+     * Saves the world's data file. This method can also
+     * release the lock of the world.
+     *
+     * @param worldName       The name of the world.
+     * @param serializedWorld The world's data file, contained inside a byte array.
+     * @param releaseLock     Should the lock be released at the same time?
+     * @throws IOException    If the world could not be saved.
+     */
+    void saveWorld(String worldName, byte[] serializedWorld, boolean releaseLock) throws IOException;
 
     /**
      * Deletes a world from the data source.

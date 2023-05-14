@@ -175,7 +175,7 @@ public class MongoLoader extends UpdatableLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
+    public void saveWorld(String worldName, byte[] serializedWorld, boolean releaseLock) throws IOException {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
             GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, collection);
@@ -194,6 +194,13 @@ public class MongoLoader extends UpdatableLoader {
                     new Document().append("$set", query),
                     new UpdateOptions().upsert(true)
             );
+            if (releaseLock) {
+                try {
+                    unlockWorld(worldName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (MongoException ex) {
             throw new IOException(ex);
         }

@@ -88,7 +88,7 @@ public class FileLoader implements SlimeLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
+    public void saveWorld(String worldName, byte[] serializedWorld, boolean releaseLock) throws IOException {
         RandomAccessFile worldFile = worldFiles.get(worldName);
         boolean tempFile = worldFile == null;
 
@@ -102,6 +102,14 @@ public class FileLoader implements SlimeLoader {
 
 
         worldFile.close();
+
+        if (releaseLock) {
+            try {
+                unlockWorld(worldName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

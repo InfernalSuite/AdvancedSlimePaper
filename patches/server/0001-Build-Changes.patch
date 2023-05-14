@@ -1828,7 +1828,10 @@ index 0000000000000000000000000000000000000000..2d18d76829b6dc590913d974d50dbaaf
 +                try {
 +                    byte[] serializedWorld = SlimeSerializer.serialize(world);
 +                    long saveStart = System.currentTimeMillis();
-+                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
++                    // If bukkitWorld is null that means the world was unloaded previously
++                    // and the loader should release the lock.
++                    var bukkitWorld = Bukkit.getWorld(slimeWorld.getName());
++                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld, bukkitWorld == null);
 +                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
 +                } catch (IOException | IllegalStateException ex) {
 +                    ex.printStackTrace();

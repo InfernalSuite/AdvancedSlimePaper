@@ -185,12 +185,12 @@ public class MysqlLoader extends UpdatableLoader {
     }
 
     @Override
-    public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
+    public void saveWorld(String worldName, byte[] serializedWorld, boolean releaseLock) throws IOException {
         try (Connection con = source.getConnection();
              PreparedStatement statement = con.prepareStatement(UPDATE_WORLD_QUERY)) {
             statement.setString(1, worldName);
             statement.setBytes(2, serializedWorld);
-            statement.setBytes(3, serializedWorld);
+            statement.setBoolean(3, !releaseLock);
             statement.executeUpdate();
 
         } catch (SQLException ex) {
