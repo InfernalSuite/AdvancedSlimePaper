@@ -12,7 +12,7 @@ index 86771934c76dd63b219069b045dbb5511ee0f45d..f582456d85e5f5caae0a8dad26aa8e0e
              // Paper end
              super.close();
          } finally {
-+            if (!this.plugin.getName().equals("SlimeWorldManager")) { // ASWM - Don't close
++            if (this.plugin == null || !this.plugin.getName().equals("SlimeWorldManager")) { // ASWM - Don't close
              jar.close();
 +            } // ASWM - Don't close
          }
