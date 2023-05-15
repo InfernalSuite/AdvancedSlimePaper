@@ -17,10 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class SlimeSerializer {
 
@@ -124,7 +121,7 @@ public class SlimeSerializer {
             outStream.write(heightMaps);
 
             // Chunk sections
-            SlimeChunkSection[] sections = chunk.getSections();
+            SlimeChunkSection[] sections = Arrays.stream(chunk.getSections()).filter(Objects::nonNull).toList().toArray(new SlimeChunkSection[0]);
 
             outStream.writeInt(sections.length);
             for (SlimeChunkSection slimeChunkSection : sections) {
