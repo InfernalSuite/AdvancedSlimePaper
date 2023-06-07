@@ -357,6 +357,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
+        this.importVanillaWorld(worldDir, worldName, loader);
+    }
+
+    @Override
+    public SlimeWorld importVanillaWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(loader, "Loader cannot be null");
@@ -382,6 +387,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         }
 
         loader.saveWorld(worldName, serializedWorld);
+        return world;
     }
 
 

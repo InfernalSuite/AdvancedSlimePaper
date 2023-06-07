@@ -13,6 +13,8 @@ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.exceptions.WorldLoadedException;
 import com.infernalsuite.aswm.api.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -86,13 +88,30 @@ public class ImportWorldCmd implements Subcommand {
 
                         try {
                             long start = System.currentTimeMillis();
-                            SWMPlugin.getInstance().importWorld(worldDir, worldName, loader);
+                            SlimeWorld world = SWMPlugin.getInstance().importVanillaWorld(worldDir, worldName, loader);
 
                             sender.sendMessage(Logging.COMMAND_PREFIX +  ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " imported " +
                                     "successfully in " + (System.currentTimeMillis() - start) + "ms.");
 
                             WorldData worldData = new WorldData();
+                            StringBuilder spawn = new StringBuilder();
+                            for(String key : world.getPropertyMap().getProperties().keySet()) {
+                                switch (key.toLowerCase()) {
+                                    case "spawnx" -> spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_X)).append(", ");
+                                    case "spawny" -> spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_Y)).append(", ");
+                                    case "spawnz" -> spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_Z));
+                                    case "environment" -> worldData.setEnvironment(world.getPropertyMap().getValue(SlimeProperties.ENVIRONMENT));
+                                    case "difficulty" -> worldData.setDifficulty(world.getPropertyMap().getValue(SlimeProperties.DIFFICULTY).toLowerCase());
+                                    case "allowmonsters" -> worldData.setAllowMonsters(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS));
+                                    case "dragonbattle" -> worldData.setDragonBattle(world.getPropertyMap().getValue(SlimeProperties.DRAGON_BATTLE));
+                                    case "pvp" -> worldData.setPvp(world.getPropertyMap().getValue(SlimeProperties.PVP));
+                                    case "worldtype" -> worldData.setWorldType(world.getPropertyMap().getValue(SlimeProperties.WORLD_TYPE));
+                                    case "defaultbiome" -> worldData.setDefaultBiome(world.getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME));
+                                }
+                            }
+
                             worldData.setDataSource(dataSource);
+                            worldData.setSpawn(spawn.toString().isEmpty() ? "0.5, 255, 0.5" : spawn.toString());
                             config.getWorlds().put(worldName, worldData);
                             config.save();
 
