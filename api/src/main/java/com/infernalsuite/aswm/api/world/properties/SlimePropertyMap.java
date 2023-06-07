@@ -33,6 +33,15 @@ public class SlimePropertyMap {
     }
 
     /**
+     * Return the properties (CompoundMap)
+     *
+     * @return The properties
+     */
+    public CompoundMap getProperties() {
+        return this.properties;
+    }
+
+    /**
      * Update the value of the given property
      *
      * @param property The slime property

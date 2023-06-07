@@ -66,11 +66,24 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             // World version
             int worldVersion = data.version;
 
+            SlimePropertyMap propertyMap = new SlimePropertyMap();
+
+            File environmentDir = new File(worldDir, "DIM-1");
+            propertyMap.setValue(SlimeProperties.ENVIRONMENT, "nether");
+            if (!environmentDir.isDirectory()) {
+                environmentDir = new File(worldDir, "DIM1");
+                propertyMap.setValue(SlimeProperties.ENVIRONMENT, "the_end");
+                if (!environmentDir.isDirectory()) {
+                    environmentDir = worldDir;
+                    propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
+                }
+            }
+
             // Chunks
-            File regionDir = new File(worldDir, "region");
+            File regionDir = new File(environmentDir, "region");
 
             if (!regionDir.exists() || !regionDir.isDirectory()) {
-                throw new InvalidWorldException(worldDir);
+                throw new InvalidWorldException(environmentDir);
             }
 
             Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
@@ -83,14 +96,14 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
             // Entity serialization
             {
-                File entityRegion = new File(worldDir, "entities");
+                File entityRegion = new File(environmentDir, "entities");
                 for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
                     loadEntities(file, worldVersion, chunks);
                 }
             }
 
             if (chunks.isEmpty()) {
-                throw new InvalidWorldException(worldDir);
+                throw new InvalidWorldException(environmentDir);
             }
 
             // World maps
@@ -109,8 +122,6 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
             // Extra Data
             CompoundMap extraData = new CompoundMap();
-
-            SlimePropertyMap propertyMap = new SlimePropertyMap();
 
             propertyMap.setValue(SlimeProperties.SPAWN_X, data.x);
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
