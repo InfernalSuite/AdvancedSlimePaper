@@ -5,9 +5,11 @@ import com.infernalsuite.aswm.api.SlimePlugin;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import org.bukkit.GameRule;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,6 +57,12 @@ public interface SlimeWorld {
      * @return A {@link CompoundTag} containing the extra data of the world.
      */
     CompoundTag getExtraData();
+
+    /**
+     * Returns the gamerules of the world.
+     * @return A {@link Map} containing the gamerules of the world.
+     */
+    Map<String, Object> getGameRules();
 
     /**
      * Returns a {@link Collection} with every world map, serialized

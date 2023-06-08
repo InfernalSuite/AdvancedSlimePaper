@@ -51,6 +51,11 @@ public record SkeletonSlimeWorld(
     }
 
     @Override
+    public Map<String, Object> getGameRules() {
+        return Map.of();
+    }
+
+    @Override
     public Collection<CompoundTag> getWorldMaps() {
         return List.of();
     }
