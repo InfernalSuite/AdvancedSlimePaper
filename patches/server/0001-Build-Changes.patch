@@ -5,7 +5,7 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 9cf389defdaeb887e9cad4f0fed3f3b95667b238..b73862eb68d4b6226975afb2332a50315c09d2b1 100644
+index 4f2fa65ade89c5703451dad4f80eeef162b277d1..732cccbd72872cd302ac5a090f2483d9e9be883a 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -7,8 +7,13 @@ plugins {
@@ -56,10 +56,10 @@ index 9f15d9dbdfa74a0640b1a2b4ff695609d4758a4c..1e36774a345366872ab014372bad2f3f
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index e90e7f32c81ac2ffdb7594fa3e4623061304409e..d376a275eb1db459c9bc520fb8a68c9cb68c0e2b 100644
+index 9f2536d9a73bdb15b5b3004d4da79ca32cee205b..ba51565a522e8987e78f2973993319b9fe33eac4 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -256,7 +256,7 @@ import javax.annotation.Nullable; // Paper
+@@ -262,7 +262,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {

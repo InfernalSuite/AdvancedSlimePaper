@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index b73862eb68d4b6226975afb2332a50315c09d2b1..55cbab27860f33e17c9da6ab03cd17aee9d72d2f 100644
+index 732cccbd72872cd302ac5a090f2483d9e9be883a..7d9182cfd2897adc80166ef7e930f3eccb6aab03 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -10,6 +10,7 @@ dependencies {
@@ -924,10 +924,10 @@ index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b74
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984693ebdf8
+index 0000000000000000000000000000000000000000..67909c873751e477f44e09589f8913643057bf95
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,98 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -939,10 +939,12 @@ index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984
 +import net.minecraft.SharedConstants;
 +import net.minecraft.server.level.ChunkHolder;
 +import net.minecraft.world.level.chunk.LevelChunk;
++import org.bukkit.GameRule;
 +
 +import java.io.IOException;
 +import java.util.Collection;
 +import java.util.List;
++import java.util.Map;
 +import java.util.Objects;
 +import java.util.stream.Collectors;
 +
@@ -987,6 +989,11 @@ index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984
 +    @Override
 +    public CompoundTag getExtraData() {
 +        return this.instance.slimeInstance.getExtraData();
++    }
++
++    @Override
++    public Map<String, Object> getGameRules() {
++        return this.instance.slimeInstance.getGameRules();
 +    }
 +
 +    @Override
@@ -1327,10 +1334,10 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75ae883220
+index 0000000000000000000000000000000000000000..20e18c96ae89e854688874d8c68fc5455e0e38c5
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,252 @@
+@@ -0,0 +1,266 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1350,6 +1357,7 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +import net.minecraft.world.level.chunk.UpgradeData;
 +import net.minecraft.world.level.material.Fluid;
 +import net.minecraft.world.ticks.LevelChunkTicks;
++import org.bukkit.GameRule;
 +import org.bukkit.World;
 +
 +import java.io.IOException;
@@ -1520,6 +1528,19 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +    @Override
 +    public CompoundTag getExtraData() {
 +        return this.extra;
++    }
++
++    @Override
++    public Map<String, Object> getGameRules() {
++        Map<String, Object> gameRules = new HashMap<>();
++        for(String gameRule : this.getBukkitWorld().getGameRules()) {
++            GameRule<?> gameRuleValue = GameRule.getByName(gameRule);
++            if(gameRuleValue != null) {
++                gameRules.put(gameRule, this.getBukkitWorld().getGameRuleValue(gameRuleValue));
++            }
++        }
++
++        return gameRules;
 +    }
 +
 +    @Override
@@ -1842,7 +1863,7 @@ index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f
 +    }
 +}
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..f24506ef4a1f014929ec445b532867d7cfc42057 100644
+index ad3560284ae79b9c6bbc8752be7d9d14b18e226e..ccbd133c5af8af2e9199e490169bb5fd16fafb4f 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 @@ -127,7 +127,8 @@ public final class ChunkHolderManager {
@@ -2013,7 +2034,7 @@ index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b93152979c3a 100644
+index 45804711255f04110e9509df8d60900314aa10b7..22d45a2f6f6a9ccfa3bfeaa080201cc7871b0fb8 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -130,12 +130,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
