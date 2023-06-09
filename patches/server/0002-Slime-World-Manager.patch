@@ -286,7 +286,7 @@ index 0000000000000000000000000000000000000000..1affe4c94b490a05184deccc9eb80530
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0ea82a69bea566b72914f995509d57c190b9723f
+index 0000000000000000000000000000000000000000..20f16757ba8b8da525ff17d51d4f7eb660c4d22b
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 @@ -0,0 +1,206 @@
@@ -406,7 +406,7 @@ index 0000000000000000000000000000000000000000..0ea82a69bea566b72914f995509d57c1
 +        String worldName = slimeWorld.getName();
 +
 +        if (Bukkit.getWorld(worldName) != null) {
-+            throw new IllegalArgumentException("World "  worldName  " already exists! Maybe it's an outdated SlimeWorld object?");
++            throw new IllegalArgumentException("World " + worldName + " already exists! Maybe it's an outdated SlimeWorld object?");
 +        }
 +
 +        SlimeLevelInstance server = createCustomWorld(slimeWorld, dimensionOverride);
@@ -499,7 +499,7 @@ index 0000000000000000000000000000000000000000..0ea82a69bea566b72914f995509d57c1
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d22cf6813be8a49d6f326ba3ef2b922d112f077c
+index 0000000000000000000000000000000000000000..41e652b568598926e838e81fdc338e51f8e97ef8
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -0,0 +1,121 @@
@@ -570,7 +570,7 @@ index 0000000000000000000000000000000000000000..d22cf6813be8a49d6f326ba3ef2b922d
 +    protected ChunkAccess runOnMain(final SlimeChunk data) {
 +        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
 +        if (poiChunk == null) {
-+            LOGGER.error("Expected poi chunk to be loaded with chunk for task "  this.toString());
++            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
 +        } else {
 +            poiChunk.load();
 +        }
@@ -589,7 +589,7 @@ index 0000000000000000000000000000000000000000..d22cf6813be8a49d6f326ba3ef2b922d
 +        } catch (final ThreadDeath death) {
 +            throw death;
 +        } catch (final Throwable thr2) {
-+            LOGGER.error("Failed to parse main tasks for task "  this.toString()  ", chunk data will be lost", thr2);
++            LOGGER.error("Failed to parse main tasks for task " + this.toString() + ", chunk data will be lost", thr2);
 +            return this.getEmptyChunk();
 +        }
 +    }
@@ -718,7 +718,7 @@ index 0000000000000000000000000000000000000000..c0e47f25e9be33da374dc737c96d8d3c
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..169fe82a87878bd17939320499bfdcf80a15f7f1
+index 0000000000000000000000000000000000000000..f1db2fe121bb3aabfad727a8133b645524b8f19a
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 @@ -0,0 +1,203 @@
@@ -816,7 +816,7 @@ index 0000000000000000000000000000000000000000..169fe82a87878bd17939320499bfdcf8
 +        // Ignore deprecation, spigot only method
 +        Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
 +
-+        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId) {
++        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
 +            LevelChunkSection section = chunk.getSections()[sectionId];
 +            // Sections CANNOT be null in 1.18
 +
@@ -1131,7 +1131,7 @@ index 0000000000000000000000000000000000000000..8853088c5c6306511716bbffac9bf73c
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1f66f1c6e6ae43a11aa62f995846b39b040cfa9f
+index 0000000000000000000000000000000000000000..d23c706844fbd977df92e8a1f22117c2283264c4
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -0,0 +1,164 @@
@@ -1194,7 +1194,7 @@ index 0000000000000000000000000000000000000000..1f66f1c6e6ae43a11aa62f995846b39b
 +
 +        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS), null);
 +
-+        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId) {
++        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
 +            SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
 +
 +            if (slimeSection != null) {
@@ -1211,7 +1211,7 @@ index 0000000000000000000000000000000000000000..1f66f1c6e6ae43a11aa62f995846b39b
 +                PalettedContainer<BlockState> blockPalette;
 +                if (slimeSection.getBlockStatesTag() != null) {
 +                    DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
-+                        System.out.println("Recoverable error when parsing section "  x  ","  z  ": "  s); // todo proper logging
++                        System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
 +                    });
 +                    blockPalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
 +                } else {
@@ -1222,7 +1222,7 @@ index 0000000000000000000000000000000000000000..1f66f1c6e6ae43a11aa62f995846b39b
 +
 +                if (slimeSection.getBiomeTag() != null) {
 +                    DataResult<PalettedContainer<Holder<Biome>>> dataresult = codec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBiomeTag())).promotePartial((s) -> {
-+                        System.out.println("Recoverable error when parsing section "  x  ","  z  ": "  s); // todo proper logging
++                        System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
 +                    });
 +                    biomePalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
 +                } else {
@@ -1639,7 +1639,7 @@ index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372c
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8fea2f13f
+index 0000000000000000000000000000000000000000..a9c2ad437e10f5bc165e9b1a63979e0b805fce30
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 @@ -0,0 +1,192 @@
@@ -1701,7 +1701,7 @@ index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8
 +
 +    static {
 +        try {
-+            Path path = Files.createTempDirectory("swm-"  UUID.randomUUID().toString().substring(0, 5)).toAbsolutePath();
++            Path path = Files.createTempDirectory("swm-" + UUID.randomUUID().toString().substring(0, 5)).toAbsolutePath();
 +            CUSTOM_LEVEL_STORAGE = new LevelStorageSource(path, path, DataFixers.getDataFixer());
 +
 +            FileUtils.forceDeleteOnExit(path.toFile());
@@ -1725,7 +1725,7 @@ index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8
 +                              org.bukkit.World.Environment environment) throws IOException {
 +
 +        super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
-+                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName()  UUID.randomUUID(), dimensionKey),
++                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
 +                primaryLevelData, worldKey, worldDimension,
 +                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
 +                Collections.emptyList(), true, environment, null, null);
@@ -1788,7 +1788,7 @@ index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8
 +    private Future<?> save() {
 +        synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
 +            SlimeWorldInstance slimeWorld = this.slimeInstance;
-+            Bukkit.getLogger().log(Level.INFO, "Saving world "  this.slimeInstance.getName()  "...");
++            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
 +            long start = System.currentTimeMillis();
 +
 +            Bukkit.getLogger().log(Level.INFO, "CONVERTING NMS -> SKELETON");
@@ -1799,7 +1799,7 @@ index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8
 +                    byte[] serializedWorld = SlimeSerializer.serialize(world);
 +                    long saveStart = System.currentTimeMillis();
 +                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
-+                    Bukkit.getLogger().log(Level.INFO, "World "  slimeWorld.getName()  " serialized in "  (saveStart - start)  "ms and saved in "  (System.currentTimeMillis() - saveStart)  "ms.");
++                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
 +                } catch (IOException | IllegalStateException ex) {
 +                    ex.printStackTrace();
 +                }
