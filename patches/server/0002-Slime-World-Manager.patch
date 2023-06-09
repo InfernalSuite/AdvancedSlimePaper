@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
-Date: Mon, 26 Dec 2022 12:08:05 -0500
-Subject: [PATCH] Slime World Manager
+From: Paul19988 <paul@paulcodes.co.uk>
+Date: Fri, 9 Jun 2023 14:22:48 +0100
+Subject: [PATCH] Slime-World-Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index b73862eb68d4b6226975afb2332a50315c09d2b1..55cbab27860f33e17c9da6ab03cd17aee9d72d2f 100644
+index 0c8fa9234f9a4ac67fb658856c413dbcf0dd08db..dd0659c62706998de9cdf59a1eaac75d7eb676c8 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -10,6 +10,7 @@ dependencies {
@@ -18,12 +18,12 @@ index b73862eb68d4b6226975afb2332a50315c09d2b1..55cbab27860f33e17c9da6ab03cd17ae
      }
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b8898d3651e
+index 0000000000000000000000000000000000000000..7d1753c0b7e89bbf0c245a0231b62773eca2779e
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/Converter.java
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,118 @@
 +package com.infernalsuite.aswm;
-+
++        
 +import com.flowpowered.nbt.CompoundMap;
 +import com.flowpowered.nbt.TagType;
 +import com.infernalsuite.aswm.api.utils.NibbleArray;
@@ -44,7 +44,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +    }
 +
 +    public static NibbleArray convertArray(DataLayer array) {
-+        if (array == null) {
++        if(array == null) {
 +            return null;
 +        }
 +
@@ -53,7 +53,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +
 +    public static Tag convertTag(com.flowpowered.nbt.Tag tag) {
 +        try {
-+            switch (tag.getType()) {
++            switch(tag.getType()) {
 +                case TAG_BYTE:
 +                    return ByteTag.valueOf(((com.flowpowered.nbt.ByteTag) tag).getValue());
 +                case TAG_SHORT:
@@ -87,7 +87,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +                default:
 +                    throw new IllegalArgumentException("Invalid tag type " + tag.getType().name());
 +            }
-+        } catch (Exception ex) {
++        } catch(Exception ex) {
 +            LOGGER.error("Failed to convert NBT object:");
 +            LOGGER.error(tag.toString());
 +
@@ -96,7 +96,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +    }
 +
 +    public static com.flowpowered.nbt.Tag convertTag(String name, Tag base) {
-+        switch (base.getId()) {
++        switch(base.getId()) {
 +            case Tag.TAG_BYTE:
 +                return new com.flowpowered.nbt.ByteTag(name, ((ByteTag) base).getAsByte());
 +            case Tag.TAG_SHORT:
@@ -117,7 +117,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +                List<com.flowpowered.nbt.Tag> list = new ArrayList<>();
 +                ListTag originalList = ((ListTag) base);
 +
-+                for (Tag entry : originalList) {
++                for(Tag entry : originalList) {
 +                    list.add(convertTag("", entry));
 +                }
 +
@@ -126,7 +126,7 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +                CompoundTag originalCompound = ((CompoundTag) base);
 +                com.flowpowered.nbt.CompoundTag compound = new com.flowpowered.nbt.CompoundTag(name, new CompoundMap());
 +
-+                for (String key : originalCompound.getAllKeys()) {
++                for(String key : originalCompound.getAllKeys()) {
 +                    compound.getValue().put(key, convertTag(key, originalCompound.get(key)));
 +                }
 +
@@ -139,12 +139,11 @@ index 0000000000000000000000000000000000000000..67d17c9ddaa835026e5ee19657ed1b88
 +                throw new IllegalArgumentException("Invalid tag type " + base.getId());
 +        }
 +    }
-+
 +}
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b6542a885
+index 0000000000000000000000000000000000000000..61518ab2b68e7a41500f3c8c8a5ec1230597f0e5
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
 @@ -0,0 +1,28 @@
@@ -176,12 +175,13 @@ index 0000000000000000000000000000000000000000..3ce7ea15a11abe537edb0aafa8e12e9b
 +    }
 +
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..2f7787178fb41a7e892b1e6ceff371b022f5d423
+index 0000000000000000000000000000000000000000..1affe4c94b490a05184deccc9eb80530f67fd5ea
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,101 @@
 +package com.infernalsuite.aswm;
 +
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
@@ -204,7 +204,6 @@ index 0000000000000000000000000000000000000000..2f7787178fb41a7e892b1e6ceff371b0
 +import java.util.function.Consumer;
 +
 +class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
-+
 +
 +    @Override
 +    public SlimeWorld readFromData(SlimeWorld data) {
@@ -284,9 +283,10 @@ index 0000000000000000000000000000000000000000..2f7787178fb41a7e892b1e6ceff371b0
 +        return (com.flowpowered.nbt.CompoundTag) Converter.convertTag(value.getName(), converted);
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a9902afe7c5d3387153609b808834e093e12b9e9
+index 0000000000000000000000000000000000000000..0ea82a69bea566b72914f995509d57c190b9723f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 @@ -0,0 +1,206 @@
@@ -406,7 +406,7 @@ index 0000000000000000000000000000000000000000..a9902afe7c5d3387153609b808834e09
 +        String worldName = slimeWorld.getName();
 +
 +        if (Bukkit.getWorld(worldName) != null) {
-+            throw new IllegalArgumentException("World " + worldName + " already exists! Maybe it's an outdated SlimeWorld object?");
++            throw new IllegalArgumentException("World "  worldName  " already exists! Maybe it's an outdated SlimeWorld object?");
 +        }
 +
 +        SlimeLevelInstance server = createCustomWorld(slimeWorld, dimensionOverride);
@@ -496,9 +496,10 @@ index 0000000000000000000000000000000000000000..a9902afe7c5d3387153609b808834e09
 +    }
 +
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9c76d8334f5c4a81586e4836675c1b923c65ebc5
+index 0000000000000000000000000000000000000000..d22cf6813be8a49d6f326ba3ef2b922d112f077c
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -0,0 +1,121 @@
@@ -569,18 +570,18 @@ index 0000000000000000000000000000000000000000..9c76d8334f5c4a81586e4836675c1b92
 +    protected ChunkAccess runOnMain(final SlimeChunk data) {
 +        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
 +        if (poiChunk == null) {
-+            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
++            LOGGER.error("Expected poi chunk to be loaded with chunk for task "  this.toString());
 +        } else {
 +            poiChunk.load();
 +        }
 +
 +        // have tasks to run (at this point, it's just the POI consistency checking)
 +        try {
-+//                if (data.tasks != null) {
-+//                    for (int i = 0, len = data.tasks.size(); i < len; ++i) {
-+//                        data.tasks.poll().run();
-+//                    }
-+//                }
++            //                if (data.tasks != null) {
++            //                    for (int i = 0, len = data.tasks.size(); i < len; i) {
++            //                        data.tasks.poll().run();
++            //                    }
++            //                }
 +
 +            LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
 +
@@ -588,7 +589,7 @@ index 0000000000000000000000000000000000000000..9c76d8334f5c4a81586e4836675c1b92
 +        } catch (final ThreadDeath death) {
 +            throw death;
 +        } catch (final Throwable thr2) {
-+            LOGGER.error("Failed to parse main tasks for task " + this.toString() + ", chunk data will be lost", thr2);
++            LOGGER.error("Failed to parse main tasks for task "  this.toString()  ", chunk data will be lost", thr2);
 +            return this.getEmptyChunk();
 +        }
 +    }
@@ -626,7 +627,7 @@ index 0000000000000000000000000000000000000000..9c76d8334f5c4a81586e4836675c1b92
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6c6333a326196be1516510f0b5f53cef260ade51
+index 0000000000000000000000000000000000000000..fc6e46972bcc77134ed718c8c157ec3893d4bcdf
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
 @@ -0,0 +1,18 @@
@@ -648,9 +649,10 @@ index 0000000000000000000000000000000000000000..6c6333a326196be1516510f0b5f53cef
 +
 +    void setPriority(PrioritisedExecutor.Priority priority);
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0ab08b9b8b5582b90a7d63bf7403dc255d358a8d
+index 0000000000000000000000000000000000000000..c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
 @@ -0,0 +1,59 @@
@@ -713,9 +715,10 @@ index 0000000000000000000000000000000000000000..0ab08b9b8b5582b90a7d63bf7403dc25
 +        return true;
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b749825cbcb
+index 0000000000000000000000000000000000000000..169fe82a87878bd17939320499bfdcf80a15f7f1
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 @@ -0,0 +1,203 @@
@@ -813,7 +816,7 @@ index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b74
 +        // Ignore deprecation, spigot only method
 +        Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
 +
-+        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
++        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId) {
 +            LevelChunkSection section = chunk.getSections()[sectionId];
 +            // Sections CANNOT be null in 1.18
 +
@@ -922,9 +925,10 @@ index 0000000000000000000000000000000000000000..ae46c333f934ca2d7ad58b80440e8b74
 +    }
 +
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984693ebdf8
+index 0000000000000000000000000000000000000000..9a27369c00345bbb94aa19f77687269dc94c0b0a
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 @@ -0,0 +1,91 @@
@@ -1019,9 +1023,10 @@ index 0000000000000000000000000000000000000000..a62dcbec2c46bd12fc5f4a875c347984
 +        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a0e617bdc1a460e0c889799bdd356eef85a8430a
+index 0000000000000000000000000000000000000000..b20a037679182e3c4a8bf31f084078f6d7e4ff46
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
 @@ -0,0 +1,83 @@
@@ -1090,12 +1095,12 @@ index 0000000000000000000000000000000000000000..a0e617bdc1a460e0c889799bdd356eef
 +    }
 +
 +    /*
-+    Slime chunks can still be requested but not actually loaded, this caused
-+    some things to not properly save because they are not "loaded" into the chunk.
-+    See ChunkMap#protoChunkToFullChunk
-+    anything in the if statement will not be loaded and is stuck inside the runnable.
-+    Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
-+     */
++Slime chunks can still be requested but not actually loaded, this caused
++some things to not properly save because they are not "loaded" into the chunk.
++See ChunkMap#protoChunkToFullChunk
++anything in the if statement will not be loaded and is stuck inside the runnable.
++Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
++*/
 +    public boolean shouldDefaultBackToSlimeChunk() {
 +        return this.safety != null && !this.wrapper.getChunk().loaded;
 +    }
@@ -1108,9 +1113,10 @@ index 0000000000000000000000000000000000000000..a0e617bdc1a460e0c889799bdd356eef
 +        return safety;
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4e09a4d62b1a6a5e62790af400fea0d83b7ddfb4
+index 0000000000000000000000000000000000000000..8853088c5c6306511716bbffac9bf73c633b61bb
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
 @@ -0,0 +1,8 @@
@@ -1122,9 +1128,10 @@ index 0000000000000000000000000000000000000000..4e09a4d62b1a6a5e62790af400fea0d8
 +        SlimeWorld initial
 +) {
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408abd0568ca
+index 0000000000000000000000000000000000000000..1f66f1c6e6ae43a11aa62f995846b39b040cfa9f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -0,0 +1,164 @@
@@ -1187,7 +1194,7 @@ index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408a
 +
 +        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS), null);
 +
-+        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
++        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId) {
 +            SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
 +
 +            if (slimeSection != null) {
@@ -1204,7 +1211,7 @@ index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408a
 +                PalettedContainer<BlockState> blockPalette;
 +                if (slimeSection.getBlockStatesTag() != null) {
 +                    DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
-+                        System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
++                        System.out.println("Recoverable error when parsing section "  x  ","  z  ": "  s); // todo proper logging
 +                    });
 +                    blockPalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
 +                } else {
@@ -1215,7 +1222,7 @@ index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408a
 +
 +                if (slimeSection.getBiomeTag() != null) {
 +                    DataResult<PalettedContainer<Holder<Biome>>> dataresult = codec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBiomeTag())).promotePartial((s) -> {
-+                        System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
++                        System.out.println("Recoverable error when parsing section "  x  ","  z  ": "  s); // todo proper logging
 +                    });
 +                    biomePalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
 +                } else {
@@ -1232,7 +1239,7 @@ index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408a
 +        // Keep the chunk loaded at level 33 to avoid light glitches
 +        // Such a high level will let the server not tick the chunk,
 +        // but at the same time it won't be completely unloaded from memory
-+//        getChunkProvider().addTicket(SWM_TICKET, pos, 33, Unit.INSTANCE);
++        //        getChunkProvider().addTicket(SWM_TICKET, pos, 33, Unit.INSTANCE);
 +
 +
 +        LevelChunk.PostLoadProcessor loadEntities = (nmsChunk) -> {
@@ -1292,9 +1299,10 @@ index 0000000000000000000000000000000000000000..eae8dbaf0a30ce89c24a829da307408a
 +        return nmsChunk;
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b55dbb9d00
+index 0000000000000000000000000000000000000000..b159fc8751e9840b311cc1eda01e496e2dbc5f2e
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
 @@ -0,0 +1,27 @@
@@ -1325,12 +1333,13 @@ index 0000000000000000000000000000000000000000..e85fd58bbe4fb53ad6e8fed13df8c1b5
 +        this.inMemoryWorld.unload(this);
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75ae883220
+index 0000000000000000000000000000000000000000..fd4cfb9cceb4f23265cb3cce7f1f251051bfba92
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -0,0 +1,252 @@
+@@ -0,0 +1,251 @@
 +package com.infernalsuite.aswm.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
@@ -1359,7 +1368,6 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +import java.util.List;
 +import java.util.Map;
 +
-+
 +/*
 +The concept of this is a bit flawed, since ideally this should be a 1:1 representation of the MC world.
 +However, due to the complexity of the chunk system we essentially need to wrap around it.
@@ -1376,7 +1384,7 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +
 +    private final Map<ChunkPos, SlimeChunk> chunkStorage = new HashMap<>();
 +    private boolean readOnly;
-+   // private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
++    // private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
 +
 +    public SlimeInMemoryWorld(SlimeBootstrap bootstrap, SlimeLevelInstance instance) {
 +        this.instance = instance;
@@ -1389,7 +1397,7 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +            ChunkPos pos = new ChunkPos(initial.getX(), initial.getZ());
 +            List<CompoundTag> tags = new ArrayList<>(initial.getEntities());
 +
-+          //  this.entityStorage.put(pos, tags);
++            //  this.entityStorage.put(pos, tags);
 +            this.chunkStorage.put(pos, initial);
 +        }
 +
@@ -1441,8 +1449,8 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +        }
 +
 +        this.chunkStorage.put(new ChunkPos(x, z),
-+            new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
-+                chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
++                new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
++                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
 +    }
 +
 +    @Override
@@ -1527,9 +1535,9 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +        return List.of();
 +    }
 +
-+//    public Map<ChunkPos, List<CompoundTag>> getEntityStorage() {
-+//        return entityStorage;
-+//    }
++    //    public Map<ChunkPos, List<CompoundTag>> getEntityStorage() {
++    //        return entityStorage;
++    //    }
 +
 +    public SlimeWorld getForSerialization() {
 +        SlimeWorld world = SkeletonCloning.weakCopy(this);
@@ -1585,7 +1593,7 @@ index 0000000000000000000000000000000000000000..4c9d24cf08d1c320f54f7bbf6169bd75
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..561f4bc218dee9940d35ad616cf2164b604c09e7
+index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372cb117003f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
 @@ -0,0 +1,39 @@
@@ -1628,9 +1636,10 @@ index 0000000000000000000000000000000000000000..561f4bc218dee9940d35ad616cf2164b
 +        };
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c46e7d200
+index 0000000000000000000000000000000000000000..1c652e453e020357fbe63e810e76aed8fea2f13f
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 @@ -0,0 +1,192 @@
@@ -1692,7 +1701,7 @@ index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c
 +
 +    static {
 +        try {
-+            Path path = Files.createTempDirectory("swm-" + UUID.randomUUID().toString().substring(0, 5)).toAbsolutePath();
++            Path path = Files.createTempDirectory("swm-"  UUID.randomUUID().toString().substring(0, 5)).toAbsolutePath();
 +            CUSTOM_LEVEL_STORAGE = new LevelStorageSource(path, path, DataFixers.getDataFixer());
 +
 +            FileUtils.forceDeleteOnExit(path.toFile());
@@ -1716,7 +1725,7 @@ index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c
 +                              org.bukkit.World.Environment environment) throws IOException {
 +
 +        super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
-+                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
++                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName()  UUID.randomUUID(), dimensionKey),
 +                primaryLevelData, worldKey, worldDimension,
 +                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
 +                Collections.emptyList(), true, environment, null, null);
@@ -1779,7 +1788,7 @@ index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c
 +    private Future<?> save() {
 +        synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
 +            SlimeWorldInstance slimeWorld = this.slimeInstance;
-+            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
++            Bukkit.getLogger().log(Level.INFO, "Saving world "  this.slimeInstance.getName()  "...");
 +            long start = System.currentTimeMillis();
 +
 +            Bukkit.getLogger().log(Level.INFO, "CONVERTING NMS -> SKELETON");
@@ -1790,7 +1799,7 @@ index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c
 +                    byte[] serializedWorld = SlimeSerializer.serialize(world);
 +                    long saveStart = System.currentTimeMillis();
 +                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
-+                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
++                    Bukkit.getLogger().log(Level.INFO, "World "  slimeWorld.getName()  " serialized in "  (saveStart - start)  "ms and saved in "  (System.currentTimeMillis() - saveStart)  "ms.");
 +                } catch (IOException | IllegalStateException ex) {
 +                    ex.printStackTrace();
 +                }
@@ -1820,15 +1829,16 @@ index 0000000000000000000000000000000000000000..44b540b924f35ca3e535035b3539793c
 +        }
 +    }
 +
-+//    @Override
-+//    public void unload(LevelChunk chunk) {
-+//        this.slimeInstance.unload(chunk);
-+//        super.unload(chunk);
-+//    }
++    //    @Override
++    //    public void unload(LevelChunk chunk) {
++    //        this.slimeInstance.unload(chunk);
++    //        super.unload(chunk);
++    //    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f819200d7
+index 0000000000000000000000000000000000000000..3500005bb09dc484bc333f1e0799613d097a37d3
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
 @@ -0,0 +1,9 @@
@@ -1841,42 +1851,38 @@ index 0000000000000000000000000000000000000000..b3dc43c74010bb694b82f5f857cb556f
 +        //return (long)chunkX & 4294967295L | ((long)chunkZ & 4294967295L) << 32;
 +    }
 +}
-diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-index e5d9c6f2cbe11c2ded6d8ad111fa6a8b2086dfba..f24506ef4a1f014929ec445b532867d7cfc42057 100644
---- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-+++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
-@@ -127,7 +127,8 @@ public final class ChunkHolderManager {
-         return this.chunkHolders.size();
-     }
- 
--    public void close(final boolean save, final boolean halt) {
-+    public void close(boolean save, final boolean halt) { // ASWM
-+        if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) save = false; // ASWM
-         TickThread.ensureTickThread("Closing world off-main");
-         if (halt) {
-             LOGGER.info("Waiting 60s for chunk system to halt for world '" + this.world.getWorld().getName() + "'");
+\ No newline at end of file
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
-index be6f3f6a57668a9bd50d0ea5f2dd2335355b69d6..b2460fe64b632e6c7b107ba50aae9f5a806390d1 100644
+index e7fb084ddb88ab62f1d493a999cc82b9258d275e..943cdd570c9e5c87ee9f3984404e08b4cdffeca0 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkLoadTask.java
-@@ -31,8 +31,8 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+@@ -6,6 +6,7 @@ import ca.spottedleaf.concurrentutil.lock.ReentrantAreaLock;
+ import ca.spottedleaf.concurrentutil.util.ConcurrentUtil;
+ import ca.spottedleaf.dataconverter.minecraft.MCDataConverter;
+ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
++import com.infernalsuite.aswm.level.CommonLoadTask;
+ import com.mojang.logging.LogUtils;
+ import io.papermc.paper.chunk.system.io.RegionFileIOThread;
+ import io.papermc.paper.chunk.system.poi.PoiChunk;
+@@ -32,8 +33,8 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
  
      private static final Logger LOGGER = LogUtils.getClassLogger();
  
 -    private final NewChunkHolder chunkHolder;
 -    private final ChunkDataLoadTask loadTask;
 +    public final NewChunkHolder chunkHolder; // ASWM
-+    private final com.infernalsuite.aswm.level.CommonLoadTask loadTask; // ASWM
++    private final CommonLoadTask loadTask;
  
-     private boolean cancelled;
+     private volatile boolean cancelled;
      private NewChunkHolder.GenericDataLoadTaskCallback entityLoadTask;
-@@ -42,10 +42,20 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+@@ -45,11 +46,20 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
                              final NewChunkHolder chunkHolder, final PrioritisedExecutor.Priority priority) {
          super(scheduler, world, chunkX, chunkZ);
          this.chunkHolder = chunkHolder;
 -        this.loadTask = new ChunkDataLoadTask(scheduler, world, chunkX, chunkZ, priority);
 -        this.loadTask.addCallback((final GenericDataLoadTask.TaskResult<ChunkAccess, Throwable> result) -> {
--            ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
+-            ChunkLoadTask.this.loadResult = result; // must be before getAndDecrement
+-            ChunkLoadTask.this.tryCompleteLoad();
 -        });
 +        // ASWM start
 +        if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance levelInstance) {
@@ -1894,62 +1900,48 @@ index be6f3f6a57668a9bd50d0ea5f2dd2335355b69d6..b2460fe64b632e6c7b107ba50aae9f5a
 +        // ASWM end
      }
  
-     @Override
-@@ -249,7 +259,7 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
+     private void tryCompleteLoad() {
+@@ -274,7 +284,7 @@ public final class ChunkLoadTask extends ChunkProgressionTask {
          }
      }
  
--    public final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkSerializer.InProgressChunkHolder, ChunkAccess> {
-+    public final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkSerializer.InProgressChunkHolder, ChunkAccess> implements com.infernalsuite.aswm.level.CommonLoadTask { // ASWM
+-    public static final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkAccess, ChunkAccess> {
++    public static final class ChunkDataLoadTask extends CallbackDataLoadTask<ChunkAccess, ChunkAccess> implements CommonLoadTask { // ASWM
          protected ChunkDataLoadTask(final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
                                      final int chunkZ, final PrioritisedExecutor.Priority priority) {
              super(scheduler, world, chunkX, chunkZ, RegionFileIOThread.RegionFileType.CHUNK_DATA, priority);
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
-index 8013dd333e27aa5fd0beb431fa32491eec9f5246..26fb83169cfd98adc0ffc8131e31ba85de09e0b6 100644
+index 51304c5cf4b0ac7646693ef97ef4a3847d3342b5..376a64344720a31f89c863bcdcdc36666502d66b 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
-@@ -110,7 +110,12 @@ public final class NewChunkHolder {
+@@ -112,7 +112,11 @@ public final class NewChunkHolder {
          }
  
          if (!transientChunk) {
 -            if (entityChunk != null) {
 +            // ASWM start
-+            if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance world) {
++            if(this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance world) {
 +                world.loadEntities(this.chunkX, this.chunkZ);
-+            }
-+            else if (entityChunk != null) {
-+            // ASWM end
++            }else if(entityChunk != null) {
++                // ASWM end
                  final List<Entity> entities = EntityStorage.readEntities(this.world, entityChunk);
  
                  this.world.getEntityLookup().addEntityChunkEntities(entities);
-@@ -138,6 +143,12 @@ public final class NewChunkHolder {
-     // returns only if the data has been loaded from disk, DOES NOT relate to whether it has been deserialized
-     // or added into the world (or even into entityChunk)
-     public boolean isEntityChunkNBTLoaded() {
-+        // ASWM START
-+        if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) {
-+            this.pendingEntityChunk = EMPTY_ENTITY_CHUNK;
-+            return true; // ASWM
-+        }
-+        // ASWM END
-         return (this.entityChunk != null && !this.entityChunk.isTransient()) || this.pendingEntityChunk != null;
-     }
- 
 diff --git a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
-index f597d65d56964297eeeed6c7e77703764178fee0..3bdad76344fa2e417eb544fad48968ed514d1ec7 100644
+index ce449b7b6f615f2c8240e4207f06d4e54ae0083e..a94e41a2315c17fb7c387efd9ee5db7f8313d42c 100644
 --- a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
 +++ b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
-@@ -35,7 +35,7 @@ public final class ChunkEntitySlices {
+@@ -36,7 +36,7 @@ public final class ChunkEntitySlices {
      protected final EntityCollectionBySection allEntities;
      protected final EntityCollectionBySection hardCollidingEntities;
      protected final Reference2ObjectOpenHashMap<Class<? extends Entity>, EntityCollectionBySection> entitiesByClass;
 -    protected final EntityList entities = new EntityList();
 +    public final EntityList entities = new EntityList(); // ASWM
  
-     public ChunkHolder.FullChunkStatus status;
+     public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 1e36774a345366872ab014372bad2f3f8737d716..69d7e72724c400a2fbef3ae3b8df8b1e2f96a373 100644
+index 874b6cace296a14ca4388e257e1affb79e8e2088..b752bd3963d78963532c308df66161175fd9f84b 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -274,7 +274,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -1961,45 +1953,206 @@ index 1e36774a345366872ab014372bad2f3f8737d716..69d7e72724c400a2fbef3ae3b8df8b1e
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private final FrameTimer frameTimer;
-@@ -464,18 +464,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
-             if (dimensionKey == LevelStem.NETHER) {
-                 if (this.isNetherEnabled()) {
+@@ -455,60 +455,75 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         LevelStorageSource.LevelStorageAccess worldSession = this.storageSource;
+ 
+         Registry<LevelStem> dimensions = this.registries.compositeAccess().registryOrThrow(Registries.LEVEL_STEM);
+-        for (LevelStem worldDimension : dimensions) {
++        for(LevelStem worldDimension : dimensions) {
+             ResourceKey<LevelStem> dimensionKey = dimensions.getResourceKey(worldDimension).get();
+ 
+             ServerLevel world;
+             int dimension = 0;
+ 
+-            if (dimensionKey == LevelStem.NETHER) {
+-                if (this.isNetherEnabled()) {
++            if(dimensionKey == LevelStem.NETHER) {
++                if(this.isNetherEnabled()) {
                      dimension = -1;
+-                } else {
 +                    // ASWM START
-+                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
++                    if(com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
 +                        continue;
 +                    }
 +                    // ASWM END
-                 } else {
++                }else{
                      continue;
                  }
-             } else if (dimensionKey == LevelStem.END) {
-                 if (this.server.getAllowEnd()) {
+-            } else if (dimensionKey == LevelStem.END) {
+-                if (this.server.getAllowEnd()) {
++            }else if(dimensionKey == LevelStem.END) {
++                if(this.server.getAllowEnd()) {
                      dimension = 1;
+-                } else {
 +                    // ASWM START
-+                    if (com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
++                    if(com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
 +                        continue;
 +                    }
 +                    // ASWM END
-                 } else {
++                }else{
                      continue;
                  }
-             } else if (dimensionKey != LevelStem.OVERWORLD) {
+-            } else if (dimensionKey != LevelStem.OVERWORLD) {
++            }else if(dimensionKey != LevelStem.OVERWORLD) {
                  dimension = -999;
              }
 +            // ASWM START
-+            else if (dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
++            else if(dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
 +                continue;
 +            }
 +            // ASWM END
  
              String worldType = (dimension == -999) ? dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath() : org.bukkit.World.Environment.getEnvironment(dimension).toString().toLowerCase();
              String name = (dimensionKey == LevelStem.OVERWORLD) ? s : s + "_" + worldType;
+-            if (dimension != 0) {
++            if(dimension != 0) {
+                 File newWorld = LevelStorageSource.getStorageFolder(new File(name).toPath(), dimensionKey).toFile();
+                 File oldWorld = LevelStorageSource.getStorageFolder(new File(s).toPath(), dimensionKey).toFile();
+                 File oldLevelDat = new File(new File(s), "level.dat"); // The data folders exist on first run as they are created in the PersistentCollection constructor above, but the level.dat won't
+ 
+-                if (!newWorld.isDirectory() && oldWorld.isDirectory() && oldLevelDat.isFile()) {
++                if(!newWorld.isDirectory() && oldWorld.isDirectory() && oldLevelDat.isFile()) {
+                     MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder required ----");
+                     MinecraftServer.LOGGER.info("Unfortunately due to the way that Minecraft implemented multiworld support in 1.6, Bukkit requires that you move your " + worldType + " folder to a new location in order to operate correctly.");
+                     MinecraftServer.LOGGER.info("We will move this folder for you, but it will mean that you need to move it back should you wish to stop using Bukkit in the future.");
+                     MinecraftServer.LOGGER.info("Attempting to move " + oldWorld + " to " + newWorld + "...");
+ 
+-                    if (newWorld.exists()) {
++                    if(newWorld.exists()) {
+                         MinecraftServer.LOGGER.warn("A file or folder already exists at " + newWorld + "!");
+                         MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
+-                    } else if (newWorld.getParentFile().mkdirs()) {
+-                        if (oldWorld.renameTo(newWorld)) {
++                    }else if(newWorld.getParentFile().mkdirs()) {
++                        if(oldWorld.renameTo(newWorld)) {
+                             MinecraftServer.LOGGER.info("Success! To restore " + worldType + " in the future, simply move " + newWorld + " to " + oldWorld);
+                             // Migrate world data too.
+                             try {
+                                 com.google.common.io.Files.copy(oldLevelDat, new File(new File(name), "level.dat"));
+                                 org.apache.commons.io.FileUtils.copyDirectory(new File(new File(s), "data"), new File(new File(name), "data"));
+-                            } catch (IOException exception) {
++                            } catch(IOException exception) {
+                                 MinecraftServer.LOGGER.warn("Unable to migrate world data.");
+                             }
+                             MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder complete ----");
+-                        } else {
++                        }else{
+                             MinecraftServer.LOGGER.warn("Could not move folder " + oldWorld + " to " + newWorld + "!");
+                             MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
+                         }
+-                    } else {
++                    }else{
+                         MinecraftServer.LOGGER.warn("Could not create path for " + newWorld + "!");
+                         MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
+                     }
+@@ -516,7 +531,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+                 try {
+                     worldSession = LevelStorageSource.createDefault(this.server.getWorldContainer().toPath()).validateAndCreateAccess(name, dimensionKey);
+-                } catch (IOException | ContentValidationException ex) {
++                } catch(IOException | ContentValidationException ex) {
+                     throw new RuntimeException(ex);
+                 }
+             }
+@@ -530,18 +545,18 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, (HolderLookup.Provider) worldloader_a.datapackWorldgen());
+             Pair<WorldData, WorldDimensions.Complete> pair = worldSession.getDataTag(dynamicops, worldloader_a.dataConfiguration(), iregistry, worldloader_a.datapackWorldgen().allRegistriesLifecycle());
+ 
+-            if (pair != null) {
++            if(pair != null) {
+                 worlddata = (PrimaryLevelData) pair.getFirst();
+-            } else {
++            }else{
+                 LevelSettings worldsettings;
+                 WorldOptions worldoptions;
+                 WorldDimensions worlddimensions;
+ 
+-                if (this.isDemo()) {
++                if(this.isDemo()) {
+                     worldsettings = MinecraftServer.DEMO_SETTINGS;
+                     worldoptions = WorldOptions.DEMO_OPTIONS;
+                     worlddimensions = WorldPresets.createNormalWorldDimensions(worldloader_a.datapackWorldgen());
+-                } else {
++                }else{
+                     DedicatedServerProperties dedicatedserverproperties = ((DedicatedServer) this).getProperties();
+ 
+                     worldsettings = new LevelSettings(dedicatedserverproperties.levelName, dedicatedserverproperties.gamemode, dedicatedserverproperties.hardcore, dedicatedserverproperties.difficulty, false, new GameRules(), worldloader_a.dataConfiguration());
+@@ -566,20 +581,20 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             LevelStem worlddimension = (LevelStem) dimensions.get(dimensionKey);
+ 
+             org.bukkit.generator.WorldInfo worldInfo = new org.bukkit.craftbukkit.generator.CraftWorldInfo(iworlddataserver, worldSession, org.bukkit.World.Environment.getEnvironment(dimension), worlddimension.type().value(), worlddimension.generator(), this.registryAccess()); // Paper
+-            if (biomeProvider == null && gen != null) {
++            if(biomeProvider == null && gen != null) {
+                 biomeProvider = gen.getDefaultBiomeProvider(worldInfo);
+             }
+ 
+             // Paper start - fix and optimise world upgrading
+-            if (options.has("forceUpgrade")) {
++            if(options.has("forceUpgrade")) {
+                 net.minecraft.server.Main.convertWorldButItWorks(
+-                    dimensionKey, worldSession, DataFixers.getDataFixer(), worlddimension.generator().getTypeNameForDataFixer(), options.has("eraseCache")
++                        dimensionKey, worldSession, DataFixers.getDataFixer(), worlddimension.generator().getTypeNameForDataFixer(), options.has("eraseCache")
+                 );
+             }
+             // Paper end - fix and optimise world upgrading
+             ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, dimensionKey.location());
+ 
+-            if (dimensionKey == LevelStem.OVERWORLD) {
++            if(dimensionKey == LevelStem.OVERWORLD) {
+                 this.worldData = worlddata;
+                 this.worldData.setGameType(((DedicatedServer) this).getProperties().gamemode); // From DedicatedServer.init
+ 
+@@ -590,13 +605,13 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 this.readScoreboard(worldpersistentdata);
+                 this.server.scoreboardManager = new org.bukkit.craftbukkit.scoreboard.CraftScoreboardManager(this, world.getScoreboard());
+                 this.commandStorage = new CommandStorage(worldpersistentdata);
+-            } else {
++            }else{
+                 ChunkProgressListener worldloadlistener = this.progressListenerFactory.create(11);
+                 // Paper start - option to use the dimension_type to check if spawners should be added. I imagine mojang will add some datapack-y way of managing this in the future.
+                 final List<CustomSpawner> spawners;
+-                if (io.papermc.paper.configuration.GlobalConfiguration.get().misc.useDimensionTypeForCustomSpawners && this.registryAccess().registryOrThrow(Registries.DIMENSION_TYPE).getResourceKey(worlddimension.type().value()).orElseThrow() == net.minecraft.world.level.dimension.BuiltinDimensionTypes.OVERWORLD) {
++                if(io.papermc.paper.configuration.GlobalConfiguration.get().misc.useDimensionTypeForCustomSpawners && this.registryAccess().registryOrThrow(Registries.DIMENSION_TYPE).getResourceKey(worlddimension.type().value()).orElseThrow() == net.minecraft.world.level.dimension.BuiltinDimensionTypes.OVERWORLD) {
+                     spawners = list;
+-                } else {
++                }else{
+                     spawners = Collections.emptyList();
+                 }
+                 world = new ServerLevel(this, this.executor, worldSession, iworlddataserver, worldKey, worlddimension, worldloadlistener, flag, j, spawners, true, this.overworld().getRandomSequences(), org.bukkit.World.Environment.getEnvironment(dimension), gen, biomeProvider);
+@@ -610,12 +625,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             // Paper - move up
+             this.getPlayerList().addWorldborderListener(world);
+ 
+-            if (worlddata.getCustomBossEvents() != null) {
++            if(worlddata.getCustomBossEvents() != null) {
+                 this.getCustomBossEvents().load(worlddata.getCustomBossEvents());
+             }
+         }
+         this.forceDifficulty();
+-        for (ServerLevel worldserver : this.getAllLevels()) {
++        for(ServerLevel worldserver : this.getAllLevels()) {
+             this.prepareLevels(worldserver.getChunkSource().chunkMap.progressListener, worldserver);
+             //worldserver.entityManager.tick(); // SPIGOT-6526: Load pending entities so they are available to the API // Paper - rewrite chunk system, not required to "tick" anything
+             this.server.getPluginManager().callEvent(new org.bukkit.event.world.WorldLoadEvent(worldserver.getWorld()));
+@@ -624,11 +639,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         // Paper start - Handle collideRule team for player collision toggle
+         final ServerScoreboard scoreboard = this.getScoreboard();
+         final java.util.Collection<String> toRemove = scoreboard.getPlayerTeams().stream().filter(team -> team.getName().startsWith("collideRule_")).map(net.minecraft.world.scores.PlayerTeam::getName).collect(java.util.stream.Collectors.toList());
+-        for (String teamName : toRemove) {
++        for(String teamName : toRemove) {
+             scoreboard.removePlayerTeam(scoreboard.getPlayerTeam(teamName)); // Clean up after ourselves
+         }
+ 
+-        if (!io.papermc.paper.configuration.GlobalConfiguration.get().collisions.enablePlayerCollisions) {
++        if(!io.papermc.paper.configuration.GlobalConfiguration.get().collisions.enablePlayerCollisions) {
+             this.getPlayerList().collideRuleTeamName = org.apache.commons.lang3.StringUtils.left("collideRule_" + java.util.concurrent.ThreadLocalRandom.current().nextInt(), 16);
+             net.minecraft.world.scores.PlayerTeam collideTeam = scoreboard.addPlayerTeam(this.getPlayerList().collideRuleTeamName);
+             collideTeam.setSeeFriendlyInvisibles(false); // Because we want to mimic them not being on a team at all
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005800b1fb4 100644
+index 488a253e218409b5f0b4a872cee0928578fa7582..9d69c2f410078751497954ba16405b0c9aff0ff7 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 +++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-@@ -297,7 +297,11 @@ public class ServerChunkCache extends ChunkSource {
+@@ -168,7 +168,11 @@ public class ServerChunkCache extends ChunkSource {
      public final io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet<LevelChunk> entityTickingChunks = new io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet<>(4096, 0.75f, 4096, 0.15, true);
      // Paper end
  
@@ -2008,56 +2161,30 @@ index ca84eddbdb1e198b899750e5f6b3eafd25ce970f..475be20382d0d091a2fad93fd754b005
 +    public final com.infernalsuite.aswm.level.SlimeBootstrap bootstrap;
 +    public ServerChunkCache(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) { // ASWM
 +        this.bootstrap = bootstrap;
-+    // ASWM end
++        // ASWM end
          this.level = world;
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b93152979c3a 100644
+index 2ac23779222369ace69f1e3f7fb12184865b7a43..7aad1ea95f07318e06a3f95e94d66d2066170884 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -130,12 +130,10 @@ import net.minecraft.world.level.chunk.storage.EntityStorage;
- import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
- import net.minecraft.world.level.dimension.LevelStem;
- import net.minecraft.world.level.dimension.end.EndDragonFight;
--import net.minecraft.world.level.entity.EntityPersistentStorage;
- import net.minecraft.world.level.entity.EntityTickList;
- import net.minecraft.world.level.entity.EntityTypeTest;
- import net.minecraft.world.level.entity.LevelCallback;
- import net.minecraft.world.level.entity.LevelEntityGetter;
--import net.minecraft.world.level.entity.PersistentEntitySectionManager;
- import net.minecraft.world.level.gameevent.DynamicGameEventListener;
- import net.minecraft.world.level.gameevent.GameEvent;
- import net.minecraft.world.level.gameevent.GameEventDispatcher;
-@@ -166,12 +164,10 @@ import org.bukkit.Location;
- import org.bukkit.WeatherType;
- import org.bukkit.craftbukkit.event.CraftEventFactory;
- import org.bukkit.craftbukkit.generator.CustomWorldChunkManager;
--import org.bukkit.craftbukkit.util.CraftNamespacedKey;
- import org.bukkit.craftbukkit.util.WorldUUID;
- import org.bukkit.event.entity.CreatureSpawnEvent;
- import org.bukkit.event.server.MapInitializeEvent;
- import org.bukkit.event.weather.LightningStrikeEvent;
--import org.bukkit.event.world.GenericGameEvent;
- import org.bukkit.event.world.TimeSkipEvent;
- // CraftBukkit end
- import it.unimi.dsi.fastutil.ints.IntArrayList; // Paper
-@@ -523,6 +519,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -643,6 +643,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
  
      // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
-     public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
-+    // ASWM START
+     public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
++        // ASWM START
 +        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, i, list, flag1, env, gen, biomeProvider);
 +    }
 +
 +    public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance;
 +
 +    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
-+    // ASWM END
++        // ASWM END
          // IRegistryCustom.Dimension iregistrycustom_dimension = minecraftserver.registryAccess(); // CraftBukkit - decompile error
          // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
  
-@@ -561,6 +565,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -681,6 +689,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
              chunkgenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkgenerator, gen);
          }
          // CraftBukkit end
@@ -2070,7 +2197,7 @@ index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b931
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          this.entityStorage = new EntityRegionFileStorage(convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), flag2); // Paper - rewrite chunk system  //EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, minecraftserver);
-@@ -572,7 +582,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -692,7 +706,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
          //PersistentEntitySectionManager persistententitysectionmanager = this.entityManager; // Paper - rewrite chunk system
  
          //Objects.requireNonNull(this.entityManager); // Paper - rewrite chunk system
@@ -2079,8 +2206,8 @@ index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b931
              return minecraftserver.overworld().getDataStorage();
          });
          this.chunkSource.getGeneratorState().ensureStructuresGenerated();
-@@ -607,6 +617,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
-         this.entityLookup = new io.papermc.paper.chunk.system.entity.EntityLookup(this, new EntityCallbacks()); // Paper - rewrite chunk system
+@@ -748,6 +762,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
+         this.dragonFight = enderDragonFight;
      }
  
 +    // ASWM START
@@ -2093,19 +2220,19 @@ index 3bb63a652aca3c23f5f1bbf9cb70fce6540f2e33..250f187ae77fe9f2f15bd5784027b931
          this.serverLevelData.setClearWeatherTime(clearDuration);
          this.serverLevelData.setRainTime(rainDuration);
 diff --git a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-index 7c770d131d39da6900fdd22df36707d5f43e8cd0..5d1fab1e9ec45e4da6304d02c4e8604b091fb190 100644
+index f4658eea741bed1c80f8aca7dc365b897b698cd4..86d13a574e8f137cd162524f0ec060faa5e74d8a 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-@@ -30,7 +30,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+@@ -29,7 +29,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+         return 0;
      };
      public final IdMap<T> registry;
-     private final T @org.jetbrains.annotations.Nullable [] presetValues; // Paper - Anti-Xray - Add preset values
 -    private volatile PalettedContainer.Data<T> data;
 +    public volatile PalettedContainer.Data<T> data; // ASWM
      private final PalettedContainer.Strategy strategy;
      // private final ThreadingDetector threadingDetector = new ThreadingDetector("PalettedContainer"); // Paper - unused
  
-@@ -400,7 +400,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+@@ -328,7 +328,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
          void accept(T object, int count);
      }
  
@@ -2115,10 +2242,10 @@ index 7c770d131d39da6900fdd22df36707d5f43e8cd0..5d1fab1e9ec45e4da6304d02c4e8604b
              for(int i = 0; i < storage.getSize(); ++i) {
                  T object = palette.valueFor(storage.get(i));
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index 0ec80b83a99bfdb1f985045d98a81905a8a5a3ac..c1b363f8c56ba619bdeda1553d13aa54d9f8ffa0 100644
+index ebcc7ece0654abd368fc759029f87a7cec9ed036..d7532d495919e557af3a8b66ae8b1410b6f5bb0e 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-@@ -486,7 +486,7 @@ public class ChunkSerializer {
+@@ -430,7 +430,7 @@ public class ChunkSerializer {
          ChunkSerializer.LOGGER.error("Recoverable errors when loading section [" + chunkPos.x + ", " + y + ", " + chunkPos.z + "]: " + message);
      }
  
@@ -2127,31 +2254,11 @@ index 0ec80b83a99bfdb1f985045d98a81905a8a5a3ac..c1b363f8c56ba619bdeda1553d13aa54
          return PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
      }
  
-diff --git a/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java b/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java
-index f212a78d9d32e9b59f16f03e07d2dd4789ad8080..bfe18dd454abfd4d38ef5d56453a0eba42eacdc1 100644
---- a/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java
-+++ b/src/main/java/net/minecraft/world/level/storage/LevelStorageSource.java
-@@ -405,6 +405,16 @@ public class LevelStorageSource {
-         // CraftBukkit start
-         public final ResourceKey<LevelStem> dimensionType;
- 
-+//        // ASWM START
-+//        public LevelStorageAccess() throws IOException {
-+//            this.dimensionType = dimensionType;
-+//            // CraftBukkit end
-+//            this.levelId = s;
-+//            this.levelDirectory = new LevelStorageSource.LevelDirectory(LevelStorageSource.this.baseDir.resolve(s));
-+//            this.lock = DirectoryLock.create(this.levelDirectory.path());
-+//        }
-+//        // ASWM END
-+
-         public LevelStorageAccess(String s, ResourceKey<LevelStem> dimensionType) throws IOException {
-             this.dimensionType = dimensionType;
-             // CraftBukkit end
-diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
+diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl
 new file mode 100644
-index 0000000000000000000000000000000000000000..916b4d2edba2f2a8a0fc1fdb6ab6a57e2a16f938
+index 0000000000000000000000000000000000000000..d07947f0b42fe491617151e2aa7b0f02ff3ce610
 --- /dev/null
-+++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
++++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl
 @@ -0,0 +1 @@
 +com.infernalsuite.aswm.SlimeNMSBridgeImpl
+\ No newline at end of file
