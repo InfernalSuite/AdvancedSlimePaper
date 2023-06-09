@@ -2,11 +2,12 @@ package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.Map;
 public record SkeletonSlimeWorld(
         String name,
         @Nullable SlimeLoader loader,
+        boolean readOnly,
         Map<ChunkPos, SlimeChunk> chunkStorage,
         CompoundTag extraSerialized,
         SlimePropertyMap slimePropertyMap,
@@ -60,7 +62,7 @@ public record SkeletonSlimeWorld(
 
     @Override
     public boolean isReadOnly() {
-        return this.loader == null;
+        return this.readOnly || this.loader == null;
     }
 
     @Override
@@ -86,14 +88,18 @@ public record SkeletonSlimeWorld(
         if (worldName == null) {
             throw new IllegalArgumentException("The world name cannot be null!");
         }
-
         if (loader != null) {
             if (loader.worldExists(worldName)) {
                 throw new WorldAlreadyExistsException(worldName);
             }
         }
 
-        return SkeletonCloning.fullClone(worldName, this);
+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
+        if (loader != null) {
+            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
+        }
+
+        return cloned;
     }
 
 }

@@ -1,12 +1,12 @@
 package com.grinderwolf.swm.plugin.config;
 
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-import static com.infernalsuite.aswm.world.properties.SlimeProperties.*;
+import static com.infernalsuite.aswm.api.world.properties.SlimeProperties.*;
 
 @ConfigSerializable
 public class WorldData {
@@ -82,7 +82,9 @@ public class WorldData {
 
         SlimePropertyMap propertyMap = new SlimePropertyMap();
 
-        propertyMap.setValue(SPAWN_X, (int) spawnX);
+        propertyMap.setValue
+
+                (SPAWN_X, (int) spawnX);
         propertyMap.setValue(SPAWN_Y, (int) spawnY);
         propertyMap.setValue(SPAWN_Z, (int) spawnZ);
 

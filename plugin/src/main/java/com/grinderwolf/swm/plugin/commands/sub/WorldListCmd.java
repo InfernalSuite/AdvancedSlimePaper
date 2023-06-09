@@ -2,7 +2,7 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.SlimeNMSBridge;
+import com.infernalsuite.aswm.api.SlimeNMSBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;

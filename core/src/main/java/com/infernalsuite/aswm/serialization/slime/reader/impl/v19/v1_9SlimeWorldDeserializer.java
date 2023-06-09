@@ -11,11 +11,11 @@ import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.SlimeLogger;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
-import com.infernalsuite.aswm.utils.NibbleArray;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.utils.NibbleArray;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -33,7 +33,7 @@ import java.util.Optional;
 class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9SlimeWorld> {
 
     @Override
-    public v1_9SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap)
+    public v1_9SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
             throws IOException, CorruptedWorldException {
 
         try {
@@ -219,7 +219,8 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                     loader,
                     chunks,
                     extraCompound,
-                    propertyMap
+                    propertyMap,
+                    readOnly
             );
         } catch (EOFException ex) {
             throw new CorruptedWorldException(worldName, ex);

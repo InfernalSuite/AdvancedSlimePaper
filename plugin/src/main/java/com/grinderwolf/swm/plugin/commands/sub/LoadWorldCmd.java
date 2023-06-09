@@ -7,12 +7,12 @@ import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.exceptions.NewerFormatException;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldLockedException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -86,7 +86,7 @@ public class LoadWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(loader, worldName, worldData.isReadOnly(), worldData.toPropertyMap());
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
                         } catch (IllegalArgumentException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 

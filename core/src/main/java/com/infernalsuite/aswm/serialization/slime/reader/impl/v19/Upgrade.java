@@ -398,6 +398,31 @@ class v118WorldUpgrade implements Upgrade {
             System.arraycopy(sections, 0, shiftedSections, 4, sections.length);
 
             chunk.sections = shiftedSections; // Shift all sections up 4
+
+
+            v1_9SlimeChunkSection[] sectionArray = chunk.sections;
+
+            CompoundMap emptyBiomes = new CompoundMap();
+            emptyBiomes.put("palette", new ListTag<>("palette", TagType.TAG_STRING, List.of(new StringTag("", "minecraft:plains"))));
+
+            CompoundMap blocks = new CompoundMap();
+            emptyBiomes.put("palette", new ListTag<>("palette", TagType.TAG_STRING, List.of(new StringTag("", "minecraft:air"))));
+
+            CompoundTag blockTag = new CompoundTag("", blocks);
+            CompoundTag emptyBiomesTag = new CompoundTag("", emptyBiomes);
+            for (int i = 0; i < sectionArray.length; i++) {
+                v1_9SlimeChunkSection section = sectionArray[i];
+                if (section == null) {
+                    sectionArray[i] = new v1_9SlimeChunkSection(
+                            null,
+                            null,
+                            blockTag,
+                            emptyBiomesTag,
+                            null,
+                            null
+                    );
+                }
+            }
         }
     }
 

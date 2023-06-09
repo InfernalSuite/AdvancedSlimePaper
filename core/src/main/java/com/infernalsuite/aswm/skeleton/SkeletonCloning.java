@@ -2,10 +2,11 @@ package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
-import com.infernalsuite.aswm.utils.NibbleArray;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeChunkSection;
-import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.utils.NibbleArray;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,9 +16,10 @@ import java.util.Map;
 
 public class SkeletonCloning {
 
-    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world) {
+    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
         return new SkeletonSlimeWorld(worldName,
-                world.getLoader(),
+                loader == null ? world.getLoader() : loader,
+                world.isReadOnly(),
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
                 world.getPropertyMap().clone(),
@@ -34,6 +36,7 @@ public class SkeletonCloning {
 
         return new SkeletonSlimeWorld(world.getName(),
                 world.getLoader(),
+                world.isReadOnly(),
                 cloned,
                 world.getExtraData().clone(),
                 world.getPropertyMap().clone(),

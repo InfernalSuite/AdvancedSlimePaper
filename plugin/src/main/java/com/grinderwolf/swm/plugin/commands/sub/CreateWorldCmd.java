@@ -7,10 +7,10 @@ import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -94,7 +94,7 @@ public class CreateWorldCmd implements Subcommand {
 
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
 
                             // Bedrock block
                             Location location = new Location(Bukkit.getWorld(worldName), 0, 61, 0);

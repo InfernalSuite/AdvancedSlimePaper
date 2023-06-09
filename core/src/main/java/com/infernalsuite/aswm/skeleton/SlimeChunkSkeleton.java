@@ -1,8 +1,8 @@
 package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeChunkSection;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 
 import java.util.List;
 

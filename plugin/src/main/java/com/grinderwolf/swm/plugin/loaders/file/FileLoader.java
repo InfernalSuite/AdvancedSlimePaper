@@ -1,9 +1,9 @@
 package com.grinderwolf.swm.plugin.loaders.file;
 
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldLockedException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;

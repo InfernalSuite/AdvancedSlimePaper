@@ -8,13 +8,13 @@ import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.exceptions.NewerFormatException;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.exceptions.WorldLockedException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.world.SlimeWorld;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -101,7 +101,7 @@ public class CloneWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(initLoader, templateWorldName, true, worldData.toPropertyMap()).clone(worldName, loader);
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().generateWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld);
 
                             config.getWorlds().put(worldName, worldData);
                             config.save();

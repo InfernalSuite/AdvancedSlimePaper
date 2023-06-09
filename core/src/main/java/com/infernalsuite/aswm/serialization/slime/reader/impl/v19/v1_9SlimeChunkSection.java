@@ -2,7 +2,7 @@ package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.ListTag;
-import com.infernalsuite.aswm.utils.NibbleArray;
+import com.infernalsuite.aswm.api.utils.NibbleArray;
 
 class v1_9SlimeChunkSection {
 

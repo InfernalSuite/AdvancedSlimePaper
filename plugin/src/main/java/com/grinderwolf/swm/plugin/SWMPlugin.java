@@ -7,27 +7,28 @@ import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
+import com.grinderwolf.swm.plugin.listeners.WorldUnlocker;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.SlimeNMSBridge;
-import com.infernalsuite.aswm.SlimePlugin;
-import com.infernalsuite.aswm.events.PostGenerateWorldEvent;
-import com.infernalsuite.aswm.events.PreGenerateWorldEvent;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.exceptions.InvalidWorldException;
-import com.infernalsuite.aswm.exceptions.NewerFormatException;
-import com.infernalsuite.aswm.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.exceptions.WorldAlreadyExistsException;
-import com.infernalsuite.aswm.exceptions.WorldLoadedException;
-import com.infernalsuite.aswm.exceptions.WorldLockedException;
-import com.infernalsuite.aswm.exceptions.WorldTooBigException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.SlimeNMSBridge;
+import com.infernalsuite.aswm.api.SlimePlugin;
+import com.infernalsuite.aswm.api.events.LoadSlimeWorldEvent;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.exceptions.InvalidWorldException;
+import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+import com.infernalsuite.aswm.api.exceptions.WorldLoadedException;
+import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.exceptions.WorldTooBigException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -131,10 +132,10 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         loadedWorlds.values().stream()
                 .filter(slimeWorld -> Objects.isNull(Bukkit.getWorld(slimeWorld.getName())))
-                .forEach(this::generateWorld);
+                .forEach(this::loadWorld);
 
         this.getServer().getPluginManager().registerEvents(this, this);
-
+        this.getServer().getPluginManager().registerEvents(new WorldUnlocker(), this);
         //loadedWorlds.clear // - Commented out because not sure why this would be cleared. Needs checking
     }
 
@@ -238,16 +239,12 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
 
-        if (readOnly) {
-            loader.acquireLock(worldName);
-        }
-
         long start = System.currentTimeMillis();
 
         Logging.info("Loading world " + worldName + ".");
         byte[] serializedWorld = loader.loadWorld(worldName);
 
-        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap);
+        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
         Logging.info("Applying datafixers for " + worldName + ".");
         SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
 
@@ -278,7 +275,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         Logging.info("Creating empty world " + worldName + ".");
         long start = System.currentTimeMillis();
-        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, readOnly ? null : loader, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+        SlimeWorld blackhole = new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
 
         loader.saveWorld(worldName, SlimeSerializer.serialize(blackhole));
 
@@ -307,20 +304,24 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public void generateWorld(SlimeWorld slimeWorld) {
+    public SlimeWorld loadWorld(SlimeWorld slimeWorld) {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
-        var preEvent = new PreGenerateWorldEvent(slimeWorld);
-        Bukkit.getPluginManager().callEvent(preEvent);
+        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
 
-        if (preEvent.isCancelled()) {
-            return;
+        SlimeWorld mirror = instance.getSlimeWorldMirror();
+        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
+        registerWorld(mirror);
+
+        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
+            try {
+                slimeWorld.getLoader().acquireLock(slimeWorld.getName());
+            } catch (UnknownWorldException | WorldLockedException | IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        BRIDGE_INSTANCE.loadInstance(slimeWorld);
-
-        var postEvent = new PostGenerateWorldEvent(slimeWorld);
-        Bukkit.getPluginManager().callEvent(postEvent);
+        return mirror;
     }
 
     @Override
@@ -356,6 +357,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public void importWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
+        this.importVanillaWorld(worldDir, worldName, loader);
+    }
+
+    @Override
+    public SlimeWorld importVanillaWorld(File worldDir, String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(loader, "Loader cannot be null");
@@ -370,7 +376,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
             throw new WorldLoadedException(worldDir.getName());
         }
 
-        SlimeWorld world = AnvilWorldReader.readFromDirectory(worldDir);
+        SlimeWorld world = AnvilWorldReader.INSTANCE.readFromData(worldDir);
 
         byte[] serializedWorld;
 
@@ -381,6 +387,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         }
 
         loader.saveWorld(worldName, serializedWorld);
+        return world;
     }
 
 

@@ -1,11 +1,11 @@
 package com.infernalsuite.aswm.serialization.slime;
 
 import com.flowpowered.nbt.CompoundTag;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeChunkSection;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimeProperties;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 public class ChunkPruner {
 

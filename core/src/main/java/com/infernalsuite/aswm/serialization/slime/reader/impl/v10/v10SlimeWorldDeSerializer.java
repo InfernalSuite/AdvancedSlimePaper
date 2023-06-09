@@ -8,18 +8,18 @@ import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.aswm.ChunkPos;
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
-import com.infernalsuite.aswm.utils.NibbleArray;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeChunkSection;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimeProperties;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.utils.NibbleArray;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -39,7 +39,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
 
     @SuppressWarnings("unchecked")
     @Override
-    public SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap)
+    public SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
             throws IOException, CorruptedWorldException {
 
         // World version
@@ -99,7 +99,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
             worldPropertyMap.merge(propertyMap); // Override world properties
         }
 
-        return new SkeletonSlimeWorld(worldName, loader, chunks,
+        return new SkeletonSlimeWorld(worldName, loader, readOnly, chunks,
                 extraCompound,
                 worldPropertyMap,
                 worldVersion

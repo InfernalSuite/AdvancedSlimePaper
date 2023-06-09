@@ -2,7 +2,7 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.plugin.SWMPlugin;
 import com.grinderwolf.swm.plugin.log.Logging;
-import com.infernalsuite.aswm.utils.SlimeFormat;
+import com.infernalsuite.aswm.api.utils.SlimeFormat;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

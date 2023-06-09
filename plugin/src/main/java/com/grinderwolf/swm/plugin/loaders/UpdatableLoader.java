@@ -1,6 +1,6 @@
 package com.grinderwolf.swm.plugin.loaders;
 
-import com.infernalsuite.aswm.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 
 import java.io.IOException;
 

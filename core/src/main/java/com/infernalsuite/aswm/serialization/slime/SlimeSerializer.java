@@ -7,22 +7,17 @@ import com.flowpowered.nbt.TagType;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 import com.github.luben.zstd.Zstd;
-import com.infernalsuite.aswm.utils.SlimeFormat;
-import com.infernalsuite.aswm.world.SlimeChunk;
-import com.infernalsuite.aswm.world.SlimeChunkSection;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.SlimeLogger;
+import com.infernalsuite.aswm.api.utils.SlimeFormat;
+import com.infernalsuite.aswm.api.world.SlimeChunk;
+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class SlimeSerializer {
 
@@ -126,7 +121,7 @@ public class SlimeSerializer {
             outStream.write(heightMaps);
 
             // Chunk sections
-            SlimeChunkSection[] sections = chunk.getSections();
+            SlimeChunkSection[] sections = Arrays.stream(chunk.getSections()).filter(Objects::nonNull).toList().toArray(new SlimeChunkSection[0]);
 
             outStream.writeInt(sections.length);
             for (SlimeChunkSection slimeChunkSection : sections) {

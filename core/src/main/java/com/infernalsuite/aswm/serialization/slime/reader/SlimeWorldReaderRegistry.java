@@ -1,11 +1,11 @@
 package com.infernalsuite.aswm.serialization.slime.reader;
 
-import com.infernalsuite.aswm.exceptions.CorruptedWorldException;
-import com.infernalsuite.aswm.exceptions.NewerFormatException;
-import com.infernalsuite.aswm.loaders.SlimeLoader;
-import com.infernalsuite.aswm.utils.SlimeFormat;
-import com.infernalsuite.aswm.world.SlimeWorld;
-import com.infernalsuite.aswm.world.properties.SlimePropertyMap;
+import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
+import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.utils.SlimeFormat;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v19.v1_9WorldFormat;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v10.v10WorldFormat;
 
@@ -31,7 +31,7 @@ public class SlimeWorldReaderRegistry {
         }
     }
 
-    public static SlimeWorld readWorld(SlimeLoader loader, String worldName, byte[] serializedWorld, SlimePropertyMap propertyMap) throws IOException, CorruptedWorldException, NewerFormatException {
+    public static SlimeWorld readWorld(SlimeLoader loader, String worldName, byte[] serializedWorld, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException {
         DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(serializedWorld));
         byte[] fileHeader = new byte[SlimeFormat.SLIME_HEADER.length];
         dataStream.read(fileHeader);
@@ -48,7 +48,7 @@ public class SlimeWorldReaderRegistry {
         }
 
         VersionedByteSlimeWorldReader<SlimeWorld> reader = FORMATS.get(version);
-        return reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap);
+        return reader.deserializeWorld(version, loader, worldName, dataStream, propertyMap, readOnly);
     }
 
 }
