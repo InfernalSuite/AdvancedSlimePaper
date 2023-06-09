@@ -2343,11 +2343,11 @@ index 774556a62eb240da42e84db4502e2ed43495be17..29e29fb2228f08dff3edd8bf651220b8
          Properties properties = new Properties();
  
          if (stream != null) {
-diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl
+diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
 new file mode 100644
 index 0000000000000000000000000000000000000000..d07947f0b42fe491617151e2aa7b0f02ff3ce610
 --- /dev/null
-+++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.SlimeNMSBridgeImpl
++++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
 @@ -0,0 +1 @@
 +com.infernalsuite.aswm.SlimeNMSBridgeImpl
 \ No newline at end of file
