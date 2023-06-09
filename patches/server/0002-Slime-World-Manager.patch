@@ -5,17 +5,19 @@ Subject: [PATCH] Slime-World-Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 0c8fa9234f9a4ac67fb658856c413dbcf0dd08db..dd0659c62706998de9cdf59a1eaac75d7eb676c8 100644
+index 0c8fa9234f9a4ac67fb658856c413dbcf0dd08db..04adcb284a24aac15697283967a476563130aee8 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -10,6 +10,7 @@ dependencies {
+@@ -10,7 +10,8 @@ dependencies {
  
      // ASWM start
      implementation(project(":slimeworldmanager-api"))
+-    implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
 +    implementation(project(":core"))
-     implementation("io.papermc.paper:paper-mojangapi:1.19.3-R0.1-SNAPSHOT") {
++    implementation("io.papermc.paper:paper-mojangapi:1.20-R0.1-SNAPSHOT") {
          exclude("io.papermc.paper", "paper-api")
      }
+     // ASWM end
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..7d1753c0b7e89bbf0c245a0231b62773eca2779e
