@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul19988 <paul@paulcodes.co.uk>
+Date: Sun, 11 Jun 2023 17:19:05 +0100
+Subject: [PATCH] poi data loader
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+index 41e652b568598926e838e81fdc338e51f8e97ef8..ec162d8fb6ef50384b720f2db395ffd88106cd41 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+@@ -14,6 +14,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
+ import net.minecraft.world.level.chunk.ImposterProtoChunk;
+ import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.chunk.UpgradeData;
++import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.material.Fluid;
+ import net.minecraft.world.ticks.LevelChunkTicks;
+ import org.slf4j.Logger;
+@@ -64,6 +65,11 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+ 
+     protected ChunkAccess runOnMain(final SlimeChunk data) {
+         final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
++        this.chunkLoadTask.chunkHolder.getOrLoadPoiData(poiChunkThrowableTaskResult -> {
++            if (poiChunkThrowableTaskResult.right() != null) {
++                LOGGER.error("Failed to load POI data for task " + this.toString(), poiChunkThrowableTaskResult.right());
++            }
++        });
+         if (poiChunk == null) {
+             LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
+         } else {
