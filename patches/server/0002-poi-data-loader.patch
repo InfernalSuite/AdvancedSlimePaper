@@ -5,7 +5,7 @@ Subject: [PATCH] poi data loader
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index 41e652b568598926e838e81fdc338e51f8e97ef8..935c21e627fc717d07d7d77fc6662b067d2e3045 100644
+index 41e652b568598926e838e81fdc338e51f8e97ef8..3980d993f5d441587675a0f07cda6416aebab96d 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -14,6 +14,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
@@ -16,18 +16,12 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..935c21e627fc717d07d7d77fc6662b06
  import net.minecraft.world.level.material.Fluid;
  import net.minecraft.world.ticks.LevelChunkTicks;
  import org.slf4j.Logger;
-@@ -65,7 +66,13 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+@@ -63,7 +64,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+     }
+ 
      protected ChunkAccess runOnMain(final SlimeChunk data) {
-         final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
+-        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
++        final PoiChunk poiChunk = this.world.chunkTaskScheduler.chunkHolderManager.getPoiChunkIfLoaded(this.chunkX, this.chunkZ, true);
          if (poiChunk == null) {
--            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
-+            LOGGER.info("Loading POI data for task " + this.toString() + " (chunk " + this.chunkX + ", " + this.chunkZ + ") as it did not load before.");
-+            this.chunkLoadTask.chunkHolder.getOrLoadPoiData(poiChunkThrowableTaskResult -> {
-+                if (poiChunkThrowableTaskResult.right() != null) {
-+                    LOGGER.error("Failed to load POI data for task " + this.toString(), poiChunkThrowableTaskResult.right());
-+                }
-+            });
-+//            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
+             LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
          } else {
-             poiChunk.load();
-         }
