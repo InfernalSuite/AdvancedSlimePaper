@@ -19,12 +19,8 @@ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -88,10 +84,13 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
             Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
 
-            for (File file : regionDir.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                chunks.putAll(
-                        loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
-                );
+            for (File file : Objects.requireNonNull(regionDir.listFiles((dir, name) -> name.endsWith(".mca")))) {
+                System.out.println("Loading region file: " + file.getName() + "...");
+                if(file.exists()) {
+                    chunks.putAll(
+                            loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
+                    );
+                }
             }
 
             // Entity serialization
