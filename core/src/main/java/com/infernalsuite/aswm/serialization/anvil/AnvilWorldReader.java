@@ -99,7 +99,9 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
                 File entityRegion = new File(environmentDir, "entities");
                 if(entityRegion.exists()) {
                     for(File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                        loadEntities(file, worldVersion, chunks);
+                        if(file != null && file.exists()) {
+                            loadEntities(file, worldVersion, chunks);
+                        }
                     }
                 }
             }
