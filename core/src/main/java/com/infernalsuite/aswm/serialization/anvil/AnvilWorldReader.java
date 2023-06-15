@@ -97,8 +97,10 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             // Entity serialization
             {
                 File entityRegion = new File(environmentDir, "entities");
-                for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                    loadEntities(file, worldVersion, chunks);
+                if(entityRegion.exists()) {
+                    for(File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
+                        loadEntities(file, worldVersion, chunks);
+                    }
                 }
             }
 
