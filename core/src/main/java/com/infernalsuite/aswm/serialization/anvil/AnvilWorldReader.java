@@ -290,7 +290,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
         Optional<String> status = compound.getStringValue("Status");
 
-        if (status.isPresent() && !status.get().equals("postprocessed") && !status.get().startsWith("full")) {
+        if (status.isPresent() && !status.get().equals("postprocessed") && !status.get().startsWith("full") && !status.get().startsWith("minecraft:full")) {
             // It's a protochunk
             return null;
         }
