@@ -43,6 +43,10 @@ public class SWMImporter {
             }
         }
 
+        importWorld(worldDir, outputFile, printErrors);
+    }
+
+    public static void importWorld(File worldDir, File outputFile, boolean printErrors) {
         try {
             outputFile.createNewFile();
             Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.INSTANCE.readFromData(worldDir)));
