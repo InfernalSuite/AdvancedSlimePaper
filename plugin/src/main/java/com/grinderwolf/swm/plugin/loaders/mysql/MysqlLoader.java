@@ -45,7 +45,7 @@ public class MysqlLoader extends UpdatableLoader {
     private static final String CREATE_WORLDS_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `worlds` (`id` INT NOT NULL AUTO_INCREMENT, " +
             "`name` VARCHAR(255) UNIQUE, `world` MEDIUMBLOB, `locked` BIGINT, PRIMARY KEY(id));";
     private static final String SELECT_WORLD_QUERY = "SELECT `world`, `locked` FROM `worlds` WHERE `name` = ?;";
-    private static final String UPDATE_WORLD_QUERY = "INSERT INTO `worlds` (`name`, `world`, `locked`) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE `world` = ?;";
+    private static final String UPDATE_WORLD_QUERY = "INSERT INTO `worlds` (`name`, `world`, `locked`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `world` = ?, `locked` = ?;";
     private static final String UPDATE_LOCK_QUERY = "UPDATE `worlds` SET `locked` = ? WHERE `name` = ?;";
     private static final String DELETE_WORLD_QUERY = "DELETE FROM `worlds` WHERE `name` = ?;";
     private static final String LIST_WORLDS_QUERY = "SELECT `name` FROM `worlds`;";
@@ -191,6 +191,8 @@ public class MysqlLoader extends UpdatableLoader {
             statement.setString(1, worldName);
             statement.setBytes(2, serializedWorld);
             statement.setBoolean(3, !releaseLock);
+            statement.setBytes(4, serializedWorld);
+            statement.setBoolean(5, !releaseLock);
             statement.executeUpdate();
 
         } catch (SQLException ex) {
