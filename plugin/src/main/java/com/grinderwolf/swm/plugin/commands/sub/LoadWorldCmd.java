@@ -91,6 +91,9 @@ public class LoadWorldCmd implements Subcommand {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 
                             return;
+                        } catch(WorldLockedException | UnknownWorldException | IOException exception) {
+                            SWMPlugin.getInstance().getLogger().info("Failed to load world " + worldName + ": " + exception.getMessage());
+                            return;
                         }
 
                         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName
