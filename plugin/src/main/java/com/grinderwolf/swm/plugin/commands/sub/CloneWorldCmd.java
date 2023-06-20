@@ -110,7 +110,9 @@ public class CloneWorldCmd implements Subcommand {
 
                             return;
                         } catch(WorldLockedException | UnknownWorldException | IOException exception) {
+                            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world during clone " + worldName + ": " + exception.getMessage() + ".");
                             SWMPlugin.getInstance().getLogger().info("Failed to load world during clone " + worldName + ": " + exception.getMessage());
+                            return;
                         }
 
                         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName

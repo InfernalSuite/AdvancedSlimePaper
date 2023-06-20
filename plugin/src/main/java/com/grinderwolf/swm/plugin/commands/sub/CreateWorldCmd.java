@@ -111,6 +111,7 @@ public class CreateWorldCmd implements Subcommand {
                         } catch (IllegalArgumentException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to create world " + worldName + ": " + ex.getMessage() + ".");
                         } catch(WorldLockedException | UnknownWorldException | IOException exception) {
+                            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to create world " + worldName + ": " + exception.getMessage() + ".");
                             SWMPlugin.getInstance().getLogger().info("Failed to load world " + worldName + ": " + exception.getMessage());
                         }
                     });
