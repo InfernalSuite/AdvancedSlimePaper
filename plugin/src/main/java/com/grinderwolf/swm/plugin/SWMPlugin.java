@@ -312,21 +312,18 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public SlimeWorld loadWorld(SlimeWorld slimeWorld) throws UnknownWorldException, WorldLockedException, IOException {
-        SlimeWorld mirror = getMirror(slimeWorld);
-        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
-
-        registerWorld(mirror);
-        return mirror;
-    }
-
-    @Override
     public SlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
-        SlimeWorld mirror = getMirror(slimeWorld);
+        Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
+
+        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
+            slimeWorld.getLoader().acquireLock(slimeWorld.getName());
+        }
+        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
+        SlimeWorld mirror = instance.getSlimeWorldMirror();
+
         Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
-        
         if(callWorldLoadEvent) {
-            World world = Bukkit.getWorld(mirror.getName());
+            World world = instance.getBukkitWorld();
             if(world != null) Bukkit.getPluginManager().callEvent(new WorldLoadEvent(world));
         }
 
@@ -406,15 +403,5 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     public static SWMPlugin getInstance() {
         return SWMPlugin.getPlugin(SWMPlugin.class);
-    }
-
-    private SlimeWorld getMirror(SlimeWorld slimeWorld) throws WorldLockedException, UnknownWorldException, IOException {
-        Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
-
-        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
-            slimeWorld.getLoader().acquireLock(slimeWorld.getName());
-        }
-        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
-        return instance.getSlimeWorldMirror();
     }
 }

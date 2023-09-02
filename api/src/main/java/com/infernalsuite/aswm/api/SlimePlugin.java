@@ -81,7 +81,9 @@ public interface SlimePlugin {
      * @param world {@link SlimeWorld} world to be added to the server's world list
      * @return Returns a slime world representing a live minecraft world
      */
-    SlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException;
+    default SlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException {
+        return loadWorld(world, false);
+    }
 
     /**
      * Generates a Minecraft World from a {@link SlimeWorld} and
