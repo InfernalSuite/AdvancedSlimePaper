@@ -135,7 +135,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 .filter(slimeWorld -> Objects.isNull(Bukkit.getWorld(slimeWorld.getName())))
                 .forEach(slimeWorld -> {
                     try {
-                        loadWorld(slimeWorld);
+                        loadWorld(slimeWorld, true);
                     } catch (UnknownWorldException | WorldLockedException | IOException exception) {
                         Logging.error("Failed to load world: " + slimeWorld.getName());
                         exception.printStackTrace();
