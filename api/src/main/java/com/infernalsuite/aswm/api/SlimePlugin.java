@@ -84,6 +84,16 @@ public interface SlimePlugin {
     SlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException;
 
     /**
+     * Generates a Minecraft World from a {@link SlimeWorld} and
+     * adds it to the server's world list.
+     *
+     * @param world {@link SlimeWorld} world to be added to the server's world list
+     * @param callWorldLoadEvent Whether or not to call {@link org.bukkit.event.world.WorldLoadEvent}
+     * @return Returns a slime world representing a live minecraft world
+     */
+    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws UnknownWorldException, WorldLockedException, IOException;
+
+    /**
      * Migrates a {@link SlimeWorld} to another datasource.
      *
      * @param worldName     The name of the world to be migrated.

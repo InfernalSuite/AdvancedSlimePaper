@@ -35,6 +35,7 @@ import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -312,18 +313,24 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
     @Override
     public SlimeWorld loadWorld(SlimeWorld slimeWorld) throws UnknownWorldException, WorldLockedException, IOException {
-        Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
+        SlimeWorld mirror = getMirror(slimeWorld);
+        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
 
-        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
-            slimeWorld.getLoader().acquireLock(slimeWorld.getName());
+        registerWorld(mirror);
+        return mirror;
+    }
+
+    @Override
+    public SlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
+        SlimeWorld mirror = getMirror(slimeWorld);
+        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
+        
+        if(callWorldLoadEvent) {
+            World world = Bukkit.getWorld(mirror.getName());
+            if(world != null) Bukkit.getPluginManager().callEvent(new WorldLoadEvent(world));
         }
 
-        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
-
-        SlimeWorld mirror = instance.getSlimeWorldMirror();
-        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
         registerWorld(mirror);
-
         return mirror;
     }
 
@@ -393,7 +400,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return world;
     }
 
-
     public static boolean isPaperMC() {
         return isPaperMC;
     }
@@ -402,7 +408,13 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return SWMPlugin.getPlugin(SWMPlugin.class);
     }
 
-    private void runAsync(Runnable runnable) {
-        getServer().getScheduler().runTaskAsynchronously(this, runnable);
+    private SlimeWorld getMirror(SlimeWorld slimeWorld) throws WorldLockedException, UnknownWorldException, IOException {
+        Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
+
+        if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
+            slimeWorld.getLoader().acquireLock(slimeWorld.getName());
+        }
+        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
+        return instance.getSlimeWorldMirror();
     }
 }
