@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 460bd4029b5a01e39b2322e69aecc128a073ee3a..312bce686f6157b117d8e33a111b701a7d5b43c3 100644
+index 639651972fddce4dff63a0f0a7e566a15b9e2dd6..35ef33b20065aecf5de493bfd26f20506148bf0d 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -1,3 +1,5 @@
@@ -19,6 +19,6 @@ index 460bd4029b5a01e39b2322e69aecc128a073ee3a..312bce686f6157b117d8e33a111b701a
  dependencies {
      // api dependencies are listed transitively to API consumers
 +    api(project(":api")) // ASWM
-     api("com.google.guava:guava:31.1-jre")
-     api("com.google.code.gson:gson:2.10")
+     api("com.google.guava:guava:32.1.2-jre")
+     api("com.google.code.gson:gson:2.10.1")
      api("net.md-5:bungeecord-chat:$bungeeCordChatVersion-deprecated+build.14") // Paper
