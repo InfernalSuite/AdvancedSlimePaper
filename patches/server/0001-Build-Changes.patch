@@ -1649,10 +1649,10 @@ index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372c
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..2d18d76829b6dc590913d974d50dbaafcb79e175
+index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa78688e97
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,195 @@
+@@ -0,0 +1,197 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1679,7 +1679,9 @@ index 0000000000000000000000000000000000000000..2d18d76829b6dc590913d974d50dbaaf
 +import net.minecraft.util.Unit;
 +import net.minecraft.util.datafix.DataFixers;
 +import net.minecraft.world.Difficulty;
++import net.minecraft.world.RandomSequences;
 +import net.minecraft.world.entity.EntityType;
++import net.minecraft.world.level.ChunkPos;
 +import net.minecraft.world.level.biome.Biome;
 +import net.minecraft.world.level.chunk.ChunkAccess;
 +import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -1740,7 +1742,7 @@ index 0000000000000000000000000000000000000000..2d18d76829b6dc590913d974d50dbaaf
 +        super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
 +                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
 +                primaryLevelData, worldKey, worldDimension,
-+                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
++                MinecraftServer.getServer().progressListenerFactory.create(11), false, null, 0,
 +                Collections.emptyList(), true, environment, null, null);
 +        this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 +
@@ -1838,7 +1840,7 @@ index 0000000000000000000000000000000000000000..2d18d76829b6dc590913d974d50dbaaf
 +                                    .map((tag) -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag))
 +                                    .collect(Collectors.toList()), this)
 +                            .toList()
-+            ));
++            ), new ChunkPos(chunkX, chunkZ));
 +        }
 +    }
 +
@@ -1951,9 +1953,18 @@ index 7e8dc9e8f381abfdcce2746edc93122d623622d1..12aadf4c981cdb1a6405de99016f4b40
      public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 97745f0bab8d82d397c6c2a5775aed92bca0a034..e196aa61da0278b5a4b2a992a976f986d8f40929 100644
+index 97745f0bab8d82d397c6c2a5775aed92bca0a034..14b38c7f8b3e36ce4b989afe6546df236f546b34 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -268,7 +268,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     private final PackRepository packRepository;
+     private final ServerScoreboard scoreboard;
+     @Nullable
+-    private CommandStorage commandStorage;
++    public CommandStorage commandStorage;
+     private final CustomBossEvents customBossEvents;
+     private final ServerFunctionManager functionManager;
+     private boolean enforceWhitelist;
 @@ -444,60 +444,75 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          LevelStorageSource.LevelStorageAccess worldSession = this.storageSource;
  
@@ -2176,7 +2187,7 @@ index 17b6925b46f8386dcfc561483693de516465ec12..743f34651d58f866bb7bbd050b0ed0d6
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 868951dc21aff541765b1f58f08cdf3c47446d25..4e32531e4cc67812a8e26776d0b293475c11f6d3 100644
+index 868951dc21aff541765b1f58f08cdf3c47446d25..0dd5aedefd64d04dbcb72739c1822361855da7b8 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -687,6 +687,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2184,12 +2195,12 @@ index 868951dc21aff541765b1f58f08cdf3c47446d25..4e32531e4cc67812a8e26776d0b29347
      // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
      public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
 +        // ASWM START
-+        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, i, list, flag1, env, gen, biomeProvider);
++        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, randomsequences, i, list, flag1, env, gen, biomeProvider);
 +    }
 +
 +    public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance;
 +
-+    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
++    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, @Nullable RandomSequences randomsequences, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
 +        // ASWM END
          // IRegistryCustom.Dimension iregistrycustom_dimension = minecraftserver.registryAccess(); // CraftBukkit - decompile error
          // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
