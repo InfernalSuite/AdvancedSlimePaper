@@ -8,10 +8,17 @@ Property "types" are handled by [SlimeProperty][1] instances. Whilst creating [S
 // create a new and empty property map
 SlimePropertyMap properties = new SlimePropertyMap();
 
-properties.setString(SlimeProperties.DIFFICULTY, "normal");
-properties.setInt(SlimeProperties.SPAWN_X, 123);
-properties.setInt(SlimeProperties.SPAWN_Y, 112);
-properties.setInt(SlimeProperties.SPAWN_Z, 170);
+properties.setValue(SlimeProperties.DIFFICULTY, "normal");
+properties.setValue(SlimeProperties.SPAWN_X, 123);
+properties.setValue(SlimeProperties.SPAWN_Y, 112);
+properties.setValue(SlimeProperties.SPAWN_Z, 170);
+properties.setValue(SlimeProperties.ALLOW_ANIMALS, false);
+properties.setValue(SlimeProperties.ALLOW_MONSTERS, false);
+properties.setValue(SlimeProperties.DRAGON_BATTLE, false);
+properties.setValue(SlimeProperties.PVP, false);
+properties.setValue(SlimeProperties.ENVIRONMENT, "normal");
+properties.setValue(SlimeProperties.WORLD_TYPE, "DEFAULT");
+properties.setValue(SlimeProperties.DEFAULT_BIOME, "minecraft:plains");
 // add as many as you would like
 ```
 
