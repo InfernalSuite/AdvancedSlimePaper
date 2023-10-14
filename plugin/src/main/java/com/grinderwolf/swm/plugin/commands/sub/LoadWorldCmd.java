@@ -86,10 +86,14 @@ public class LoadWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(loader, worldName, worldData.isReadOnly(), worldData.toPropertyMap());
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().loadWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld, true);
                         } catch (IllegalArgumentException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 
+                            return;
+                        } catch(WorldLockedException | UnknownWorldException | IOException exception) {
+                            SWMPlugin.getInstance().getLogger().info("Failed to load world " + worldName + ": " + exception.getMessage());
+                            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world " + worldName + ": " + exception.getMessage() + ".");
                             return;
                         }
 
