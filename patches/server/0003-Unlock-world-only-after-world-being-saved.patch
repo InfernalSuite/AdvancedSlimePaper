@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AltrixMC <51829846+AltrixMC@users.noreply.github.com>
+Date: Tue, 30 May 2023 18:00:54 +0200
+Subject: [PATCH] Unlock world only after world being saved
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 44b540b924f35ca3e535035b3539793c46e7d200..93613738383d9b4e78de878b9257b230d74f59c7 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -3,6 +3,7 @@ package com.infernalsuite.aswm.level;
+ import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
+ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import com.infernalsuite.aswm.Converter;
++import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
+ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+@@ -33,6 +34,9 @@ import net.minecraft.world.level.storage.LevelStorageSource;
+ import net.minecraft.world.level.storage.PrimaryLevelData;
+ import org.apache.commons.io.FileUtils;
+ import org.bukkit.Bukkit;
++import org.bukkit.Chunk;
++import org.bukkit.World;
++import org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer;
+ import org.bukkit.event.world.WorldSaveEvent;
+ import org.jetbrains.annotations.Nullable;
+ 
+@@ -41,6 +45,7 @@ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.util.ArrayList;
+ import java.util.Collections;
++import java.util.Optional;
+ import java.util.UUID;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+@@ -155,7 +160,8 @@ public class SlimeLevelInstance extends ServerLevel {
+                     long saveStart = System.currentTimeMillis();
+                     slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
+                     Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
+-                } catch (IOException | IllegalStateException ex) {
++                    slimeWorld.getSaveStrategy().unlockWorld(slimeWorld.getName());
++                } catch (IOException | IllegalStateException | UnknownWorldException ex) {
+                     ex.printStackTrace();
+                 }
+             });
