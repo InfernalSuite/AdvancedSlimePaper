@@ -11,7 +11,7 @@ public interface SlimeWorldInstance extends ActiveSlimeWorld {
 
     World getBukkitWorld();
 
-    SlimeWorld getSlimeWorldMirror();
+    ActiveSlimeWorld getSlimeWorldMirror();
 
     SlimePropertyMap getPropertyMap();
 

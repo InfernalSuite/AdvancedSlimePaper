@@ -328,14 +328,14 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public SlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
+    public ActiveSlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
         if (!slimeWorld.isReadOnly() && slimeWorld.getLoader() != null) {
             slimeWorld.getLoader().acquireLock(slimeWorld.getName());
         }
         SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
-        SlimeWorld mirror = instance.getSlimeWorldMirror();
+        ActiveSlimeWorld mirror = instance.getSlimeWorldMirror();
 
         Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
         if (callWorldLoadEvent) {

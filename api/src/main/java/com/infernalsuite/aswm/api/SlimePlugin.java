@@ -57,7 +57,7 @@ public interface SlimePlugin {
     SlimeWorld getWorld(String worldName);
 
     /**
-     * Gets an {@link ActiveSlimeWorld} from a given bukkit world, if backed by ASWM.
+     * Returns the loaded {@link ActiveSlimeWorld} from a given bukkit world, if backed by ASWM.
      *
      * @param bukkitWorld Bukkit World
      * @return active slime world instance, or {@code null} if the provided world is not backed by a slime world
@@ -104,7 +104,7 @@ public interface SlimePlugin {
      * @param world {@link SlimeWorld} world to be added to the server's world list
      * @return Returns a slime world representing a live minecraft world
      */
-    default SlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException {
+    default ActiveSlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException {
         return loadWorld(world, false);
     }
 
@@ -116,7 +116,7 @@ public interface SlimePlugin {
      * @param callWorldLoadEvent Whether or not to call {@link org.bukkit.event.world.WorldLoadEvent}
      * @return Returns a slime world representing a live minecraft world
      */
-    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws UnknownWorldException, WorldLockedException, IOException;
+    ActiveSlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws UnknownWorldException, WorldLockedException, IOException;
 
     /**
      * Migrates a {@link SlimeWorld} to another datasource.
