@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 21 Oct 2023 18:11:15 +0200
+Subject: [PATCH] Add support for serializing/deserializing PDC
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 20f16757ba8b8da525ff17d51d4f7eb660c4d22b..97a3c0401d1bcf34d8022da5163b8169a66fd5b3 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -11,6 +11,7 @@ import com.mojang.serialization.Lifecycle;
+ import net.kyori.adventure.util.Services;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.core.registries.Registries;
++import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.resources.ResourceLocation;
+ import net.minecraft.server.MinecraftServer;
+@@ -178,6 +179,11 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         // level.setReady(true);
+         level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS), world.getPropertyMap().getValue(SlimeProperties.ALLOW_ANIMALS));
+ 
++        var nmsExtraData = (CompoundTag) Converter.convertTag(world.getExtraData());
++
++        //Attempt to read PDC
++        if (nmsExtraData.get("BukkitValues") != null) level.getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
++
+         return level;
+     }
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index fd4cfb9cceb4f23265cb3cce7f1f251051bfba92..03f0a5c88a6b2d28a5a69649fc1295b51aaf879f 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -2,6 +2,7 @@ package com.infernalsuite.aswm.level;
+ 
+ import com.flowpowered.nbt.CompoundTag;
+ import com.infernalsuite.aswm.ChunkPos;
++import com.infernalsuite.aswm.Converter;
+ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+@@ -235,6 +236,17 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+             cloned.put(entry.getKey(), clonedChunk);
+         }
+ 
++        // Serialize Bukkit Values (PDC)
++
++        var nmsTag = new net.minecraft.nbt.CompoundTag();
++
++        instance.getWorld().storeBukkitValues(nmsTag);
++
++        // Bukkit stores the relevant tag as a tag with the key "BukkitValues" in the tag we supply to it
++        var flowTag = Converter.convertTag("BukkitValues", nmsTag.getCompound("BukkitValues"));
++
++        world.getExtraData().getValue().put(flowTag);
++
+         return new SkeletonSlimeWorld(world.getName(),
+                 world.getLoader(),
+                 world.isReadOnly(),
