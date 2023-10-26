@@ -5,6 +5,7 @@ import com.infernalsuite.aswm.api.SlimePlugin;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import org.bukkit.persistence.PersistentDataHolder;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -13,7 +14,7 @@ import java.util.Map;
 /**
  * In-memory representation of a SRF world.
  */
-public interface SlimeWorld {
+public interface SlimeWorld extends PersistentDataHolder {
 
     /**
      * Returns the name of the world.
