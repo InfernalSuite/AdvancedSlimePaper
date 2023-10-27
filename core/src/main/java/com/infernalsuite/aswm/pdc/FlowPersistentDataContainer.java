@@ -23,16 +23,20 @@ import java.util.Set;
 public class FlowPersistentDataContainer implements PersistentDataContainer, PersistentDataAdapterContext {
 
     private final CompoundTag root;
-    private final FlowTypeRegistry registry;
+    private final FlowDataTypeRegistry registry;
 
-    public FlowPersistentDataContainer(CompoundTag root, FlowTypeRegistry typeRegistry) {
+    public FlowPersistentDataContainer(CompoundTag root, FlowDataTypeRegistry typeRegistry) {
         this.root = root;
         this.registry = typeRegistry;
     }
 
     public FlowPersistentDataContainer(CompoundTag root) {
         this.root = root;
-        this.registry = FlowTypeRegistry.DEFAULT;
+        this.registry = FlowDataTypeRegistry.DEFAULT;
+    }
+
+    protected CompoundTag getRoot() {
+        return root;
     }
 
     @Override

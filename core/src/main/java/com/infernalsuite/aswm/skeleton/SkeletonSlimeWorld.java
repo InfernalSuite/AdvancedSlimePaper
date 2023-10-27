@@ -8,7 +8,6 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.pdc.FlowPersistentDataContainer;
-import com.infernalsuite.aswm.pdc.FlowTypeRegistry;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;

@@ -1,9 +1,11 @@
 package com.infernalsuite.aswm.api;
 
+import com.flowpowered.nbt.CompoundMap;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
 import net.kyori.adventure.util.Services;
 import org.bukkit.World;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.io.IOException;
@@ -34,6 +36,9 @@ public interface SlimeNMSBridge {
         return Holder.INSTANCE;
     }
 
+    void extractCraftPDC(PersistentDataContainer source, CompoundMap target);
+
+    PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundMap source);
 
     @ApiStatus.Internal
     static class Holder {
