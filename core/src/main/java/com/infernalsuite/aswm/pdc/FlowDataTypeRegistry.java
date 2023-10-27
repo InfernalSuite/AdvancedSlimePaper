@@ -3,23 +3,27 @@ package com.infernalsuite.aswm.pdc;
 import com.flowpowered.nbt.*;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Primitives;
+import com.infernalsuite.aswm.api.SlimeNMSBridge;
+import net.kyori.adventure.util.Services;
+import org.bukkit.persistence.PersistentDataContainer;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class FlowTypeRegistry {
+public class FlowDataTypeRegistry {
 
-    public static final FlowTypeRegistry DEFAULT = new FlowTypeRegistry();
+    public static final FlowDataTypeRegistry DEFAULT = new FlowDataTypeRegistry();
     private final Map<Class<?>, TagAdapter<?, ?>> adapters = new ConcurrentHashMap<>();
 
-    private <T, Z extends Tag<T>> TagAdapter<T, Z> createAdapter(Class<T> primitiveType, Class<Z> nbtBaseType, BiFunction<String, T, Z> builder, Function<Z, T> extractor) {
+    private <T, Z extends Tag<?>> TagAdapter<T, Z> createAdapter(Class<T> primitiveType, Class<Z> nbtBaseType, BiFunction<String, T, Z> builder, Function<Z, T> extractor) {
         return new TagAdapter<>(primitiveType, nbtBaseType, builder, extractor);
     }
 
-    private <T, Z extends Tag<T>> TagAdapter<T, Z> obtainAdapter(Class<T> type) {
+    private <T, Z extends Tag<?>> TagAdapter<T, Z> obtainAdapter(Class<T> type) {
         // Should be safe
         //noinspection unchecked
         return (TagAdapter<T, Z>) adapters.computeIfAbsent(type, this::createAdapter);
@@ -87,7 +91,58 @@ public class FlowTypeRegistry {
             return createAdapter(short[].class, ShortArrayTag.class, ShortArrayTag::new, ShortArrayTag::getValue);
         }
 
+        if (Objects.equals(PersistentDataContainer.class, type)) {
+            return createAdapter(PersistentDataContainer.class, CompoundTag.class, this::extractPDCIntoFlowNBT, this::extractFlowNBTIntoPDC);
+        }
+
+        if (Objects.equals(PersistentDataContainer[].class, type)) {
+            return createAdapter(PersistentDataContainer[].class, ListTag.class, (key, value) -> {
+                var list = new ArrayList<CompoundTag>();
+
+                for (PersistentDataContainer pdc : value) {
+                    list.add(extractPDCIntoFlowNBT(key, pdc));
+                }
+
+                return new ListTag<>(key, TagType.TAG_COMPOUND, list);
+            }, tag -> {
+                @SuppressWarnings("unchecked") var casted = (ListTag<CompoundTag>) tag;
+                var list = casted.getValue();
+                var resArr = new PersistentDataContainer[list.size()];
+
+                for (int i = 0; i < list.size(); i++) {
+                    resArr[i] = extractFlowNBTIntoPDC(list.get(i));
+                }
+
+                return resArr;
+            });
+        }
+
         throw new IllegalArgumentException("Could not find a valid TagAdapter implementation for the requested type " + type.getSimpleName());
+    }
+
+    private PersistentDataContainer extractFlowNBTIntoPDC(CompoundTag compound) {
+        var optBridge = Services.service(SlimeNMSBridge.class);
+        if (optBridge.isPresent()) {
+            var bridge = optBridge.get();
+            return bridge.extractCompoundMapIntoCraftPDC(compound.getValue());
+        } else {
+            // Fall back to FlowPersistentDataContainer
+            var container = new FlowPersistentDataContainer(new CompoundTag("root", new CompoundMap()), this);
+            container.getRoot().getValue().putAll(compound.getValue());
+            return container;
+        }
+    }
+
+    private CompoundTag extractPDCIntoFlowNBT(String key, PersistentDataContainer pdc) {
+        var map = new CompoundMap();
+
+        if (pdc instanceof FlowPersistentDataContainer container) {
+            map.putAll(container.getRoot().getValue());
+        } else {
+            Services.service(SlimeNMSBridge.class).orElseThrow().extractCraftPDC(pdc, map);
+        }
+
+        return new CompoundTag(key, map);
     }
 
     /**
@@ -100,7 +155,7 @@ public class FlowTypeRegistry {
      * @return the created tag instance
      * @throws IllegalArgumentException if no suitable tag type adapter for this type was found
      */
-    public <T> Tag<T> wrap(String key, Class<T> type, T value) throws IllegalArgumentException {
+    public <T> Tag<?> wrap(String key, Class<T> type, T value) throws IllegalArgumentException {
         return obtainAdapter(type)
                 .build(key, value);
     }
@@ -140,7 +195,7 @@ public class FlowTypeRegistry {
         return type.cast(foundValue);
     }
 
-    private record TagAdapter<T, Z extends Tag<T>>(Class<T> primitiveType, Class<Z> nbtBaseType,
+    private record TagAdapter<T, Z extends Tag<?>>(Class<T> primitiveType, Class<Z> nbtBaseType,
                                                    BiFunction<String, T, Z> builder, Function<Z, T> extractor) {
         /**
          * This method will extract the value stored in the tag, according to
@@ -152,7 +207,7 @@ public class FlowTypeRegistry {
          *                            the defined base type and therefore is not applicable to the
          *                            extractor function
          */
-        T extract(Tag<T> base) {
+        T extract(Tag<?> base) {
             Preconditions.checkArgument(this.nbtBaseType.isInstance(base), "The provided NBTBase was of the type %s. Expected type %s", base.getClass().getSimpleName(), this.nbtBaseType.getSimpleName());
             return this.extractor.apply(this.nbtBaseType.cast(base));
         }
