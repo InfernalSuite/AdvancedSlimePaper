@@ -94,7 +94,7 @@ index 9a27369c00345bbb94aa19f77687269dc94c0b0a..07e542e3f75bf272f53345dc040d9035
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..fe67f7d920f0599e642493adfdec5fce6c70259f 100644
+index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..092dae1f9e68f1c395cd0f8151cd696c0bcdceb0 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 @@ -5,6 +5,7 @@ import com.infernalsuite.aswm.ChunkPos;
@@ -137,6 +137,6 @@ index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..fe67f7d920f0599e642493adfdec5fce
 +
 +    @Override
 +    public @NotNull PersistentDataContainer getPersistentDataContainer() {
-+        return null;
++        return this.extraPDC;
 +    }
  }
