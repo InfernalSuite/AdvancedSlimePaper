@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Philip Kelley <philip@thoriumcube.org>
+Date: Thu, 2 Nov 2023 23:01:26 +0000
+Subject: [PATCH] Remove catch throwable
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+index e74d9edca5d5166502f39e617939e0c7038f200a..65642a9bde0fffc6531604026dd957fd268b6642 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+@@ -48,7 +48,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+             try {
+                 SlimeChunk chunk = ((SlimeLevelInstance) this.world).slimeInstance.getChunk(this.chunkX, this.chunkZ);
+                 this.onRun.accept(new GenericDataLoadTask.TaskResult<>(runOnMain(chunk), null));
+-            } catch (Throwable e) {
++            } catch (final Exception e) {
+                 LOGGER.error("ERROR", e);
+                 this.onRun.accept(new GenericDataLoadTask.TaskResult<>(null, e));
+             }
+@@ -79,10 +79,8 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+             }
+ 
+             return new ImposterProtoChunk(chunk, false);
+-        } catch (final ThreadDeath death) {
+-            throw death;
+-        } catch (final Throwable thr2) {
+-            LOGGER.error("Failed to parse main tasks for task " + this.toString() + ", chunk data will be lost", thr2);
++        } catch (final Exception e) {
++            LOGGER.error("Failed to parse main tasks for task {}, chunk data will be lost", this, e);
+             return this.getEmptyChunk();
+         }
+     }
