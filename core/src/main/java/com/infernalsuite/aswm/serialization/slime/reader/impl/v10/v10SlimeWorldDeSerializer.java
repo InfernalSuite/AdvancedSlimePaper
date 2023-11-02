@@ -50,25 +50,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
 
         byte[] tileEntities = readCompressed(dataStream);
-        byte[] entities = readCompressed(dataStream);
         byte[] extra = readCompressed(dataStream);
-
-        // Entity deserialization
-        com.flowpowered.nbt.CompoundTag entitiesCompound = readCompound(entities);
-        {
-            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
-            for (CompoundTag entityCompound : serializedEntities) {
-                ListTag<DoubleTag> listTag = (ListTag<DoubleTag>) entityCompound.getAsListTag("Pos").get();
-
-                int chunkX = listTag.getValue().get(0).getValue().intValue() >> 4;
-                int chunkZ = listTag.getValue().get(2).getValue().intValue() >> 4;
-                ChunkPos chunkKey = new ChunkPos(chunkX, chunkZ);
-                SlimeChunk chunk = chunks.get(chunkKey);
-                if (chunk != null) {
-                    chunk.getEntities().add(entityCompound);
-                }
-            }
-        }
 
         // Tile Entity deserialization
         com.flowpowered.nbt.CompoundTag tileEntitiesCompound = readCompound(tileEntities);
@@ -115,6 +97,17 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
             // coords
             int x = chunkData.readInt();
             int z = chunkData.readInt();
+
+            int compressedEntitiesData = chunkData.readInt();
+            int entitiesData = chunkData.readInt();
+            byte[] compressedData = new byte[compressedEntitiesData];
+            chunkData.read(compressedData);
+            byte[] decompressedEntityData = new byte[entitiesData];
+            Zstd.decompress(decompressedEntityData, compressedData);
+
+            // Entity deserialization
+            com.flowpowered.nbt.CompoundTag entitiesCompound = readCompound(decompressedEntityData);
+            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
             // Height Maps
             byte[] heightMapData = new byte[chunkData.readInt()];
@@ -167,7 +160,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                 }
 
                 chunkMap.put(new ChunkPos(x, z),
-                        new SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>())
+                        new SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), serializedEntities)
                 );
             }
         }

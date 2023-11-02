@@ -5,10 +5,10 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 683159586641dd9aa42ae96fa51602469755723f..db714bc95f439fb7878cd8f3750c5f3c3d8a05ce 100644
+index 79beac737c17412913983614bd478d33e3c6ed58..7bc8ef226eedf8e6013f0649959373d4fdd0c0b4 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -72,7 +72,7 @@ tasks.jar {
+@@ -70,7 +70,7 @@ tasks.jar {
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
              "Implementation-Title" to "CraftBukkit",
@@ -17,7 +17,7 @@ index 683159586641dd9aa42ae96fa51602469755723f..db714bc95f439fb7878cd8f3750c5f3c
              "Implementation-Vendor" to date, // Paper
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
-@@ -156,7 +156,7 @@ fun TaskContainer.registerRunTask(
+@@ -154,7 +154,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
@@ -2187,7 +2187,7 @@ index 17b6925b46f8386dcfc561483693de516465ec12..743f34651d58f866bb7bbd050b0ed0d6
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 868951dc21aff541765b1f58f08cdf3c47446d25..0dd5aedefd64d04dbcb72739c1822361855da7b8 100644
+index 17610196db7a1c6feb2cf74a02479a8691aa323f..a7d4646d545f1e8811361156d1317b0b78fb3119 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -687,6 +687,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2277,7 +2277,7 @@ index 1379084a80ce25644f13736b4a5ee5fabbd9ec1f..825d30e811a19b3b2dd83643ef925d8a
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index fcd5096d64edfaf6bce3ecce8c9b9afb84462786..ed8451887001a30dc28f4b5986d0bccbe8102849 100644
+index b7e7e6ed60f55d2ab5e4fcefb3638ad1768c3b7f..8770d77aa5067ec3265cc92b7c805bd79bf06fc2 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -267,7 +267,7 @@ import javax.annotation.Nullable; // Paper

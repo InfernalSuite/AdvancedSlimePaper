@@ -42,4 +42,6 @@ public interface SlimeNMSBridge {
 
     }
 
+    String chunkPosFromBlockPos(double x, double y, double z);
+
 }

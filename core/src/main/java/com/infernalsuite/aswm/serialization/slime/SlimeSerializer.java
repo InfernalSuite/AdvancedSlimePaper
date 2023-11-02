@@ -2,11 +2,13 @@ package com.infernalsuite.aswm.serialization.slime;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.DoubleTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.TagType;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 import com.github.luben.zstd.Zstd;
+import com.infernalsuite.aswm.api.SlimeNMSBridge;
 import com.infernalsuite.aswm.api.utils.SlimeFormat;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
@@ -64,20 +66,6 @@ public class SlimeSerializer {
             outStream.writeInt(compressedTileEntitiesData.length);
             outStream.writeInt(tileEntitiesData.length);
             outStream.write(compressedTileEntitiesData);
-
-            // Entities
-            List<CompoundTag> entitiesList = new ArrayList<>();
-            for (SlimeChunk chunk : world.getChunkStorage()) {
-                entitiesList.addAll(chunk.getEntities());
-            }
-            ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
-            CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
-            byte[] entitiesData = serializeCompoundTag(entitiesCompound);
-            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
-
-            outStream.writeInt(compressedEntitiesData.length);
-            outStream.writeInt(entitiesData.length);
-            outStream.write(compressedEntitiesData);
             
             // Extra Tag
             {
@@ -114,6 +102,31 @@ public class SlimeSerializer {
         for (SlimeChunk chunk : emptyChunks) {
             outStream.writeInt(chunk.getX());
             outStream.writeInt(chunk.getZ());
+
+            // Entities
+            List<CompoundTag> entitiesList = new ArrayList<>();
+
+            System.out.println("Chunk: " + chunk.getX() + ", " + chunk.getZ() + " has " + chunk.getEntities().size() + " entities");
+            entitiesList.addAll(chunk.getEntities());
+            entitiesList.forEach(compoundTag -> {
+                Optional<ListTag<?>> pos = compoundTag.getAsListTag("Pos");
+                if (pos.isPresent()) {
+                    ListTag<DoubleTag> posTag = (ListTag<DoubleTag>) pos.get();
+                    double x = posTag.getValue().get(0).getValue();
+                    double y = posTag.getValue().get(1).getValue();
+                    double z = posTag.getValue().get(2).getValue();
+                    System.out.println("POSSSSSS: " + SlimeNMSBridge.instance().chunkPosFromBlockPos(x, y, z));
+                }
+            });
+
+            ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
+            CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
+            byte[] entitiesData = serializeCompoundTag(entitiesCompound);
+            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
+
+            outStream.writeInt(compressedEntitiesData.length);
+            outStream.writeInt(entitiesData.length);
+            outStream.write(compressedEntitiesData);
 
             // Height Maps
             byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
