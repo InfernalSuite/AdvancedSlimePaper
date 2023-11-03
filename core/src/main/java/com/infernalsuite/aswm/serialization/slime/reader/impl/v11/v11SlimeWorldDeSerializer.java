@@ -146,7 +146,7 @@ public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
 
     private static byte[] readCompressed(DataInputStream stream) throws IOException {
         int compressedLength = stream.readInt();
-        int decompressedLength = stream.read();
+        int decompressedLength = stream.readInt();
         byte[] compressedData = new byte[compressedLength];
         byte[] decompressedData = new byte[decompressedLength];
         stream.read(compressedData);
