@@ -124,7 +124,7 @@ public class SlimeSerializer {
             outStream.write(heightMaps);
 
             // Tile entities
-            ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tiles", TagType.TAG_COMPOUND, chunk.getTileEntities());
+            ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tileEntities", TagType.TAG_COMPOUND, chunk.getTileEntities());
             CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
             byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
             byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
