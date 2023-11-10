@@ -1,9 +1,10 @@
 package com.grinderwolf.swm.plugin.loaders;
 
+import com.grinderwolf.swm.plugin.loaders.api.APILoader;
+import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
-import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import com.grinderwolf.swm.plugin.loaders.mongo.MongoLoader;
 import com.grinderwolf.swm.plugin.loaders.mysql.MysqlLoader;
 import com.grinderwolf.swm.plugin.loaders.redis.RedisLoader;
@@ -58,12 +59,17 @@ public class LoaderUtils {
 
         DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
         if(redisConfig.isEnabled()){
-          try{
-            registerLoader("redis", new RedisLoader(redisConfig));
-          }catch (RedisException ex){
-            Logging.error("Failed to establish connection to the Redis server:");
-            ex.printStackTrace();
-          }
+            try{
+                registerLoader("redis", new RedisLoader(redisConfig));
+            }catch (RedisException ex){
+                Logging.error("Failed to establish connection to the Redis server:");
+                ex.printStackTrace();
+            }
+        }
+
+        DatasourcesConfig.APIConfig apiConfig = config.getApiConfig();
+        if(apiConfig.isEnabled()){
+            registerLoader("api", new APILoader(apiConfig));
         }
     }
 
