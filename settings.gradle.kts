@@ -8,4 +8,4 @@ pluginManagement {
 rootProject.name = "slimeworldmanager"
 
 include("plugin", "core", "api", "importer")
-include("slimeworldmanager-api", "slimeworldmanager-server")
+include("slimeworldmanager-api", "slimeworldmanager-server" , "SlimeWorldGrowtoCraft")
