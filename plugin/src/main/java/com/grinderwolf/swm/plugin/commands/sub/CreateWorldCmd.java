@@ -2,6 +2,7 @@ package com.grinderwolf.swm.plugin.commands.sub;
 
 
 import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.Utils.WorldManager;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
@@ -20,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -91,6 +93,8 @@ public class CreateWorldCmd implements Subcommand {
                     worldData.setSpawn("0, 64, 0");
                     worldData.setDataSource(dataSource);
 
+                   // worldData.setWorldOwner(((Player)sender).getUniqueId().toString());
+
                     SlimePropertyMap propertyMap = worldData.toPropertyMap();
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().createEmptyWorld(loader, worldName, false, propertyMap);
 
@@ -99,8 +103,7 @@ public class CreateWorldCmd implements Subcommand {
                             SWMPlugin.getInstance().loadWorld(slimeWorld, true);
 
                             // Bedrock block
-                            Location location = new Location(Bukkit.getWorld(worldName), 0, 61, 0);
-                            location.getBlock().setType(Material.BEDROCK);
+                            WorldManager.setBlock(Bukkit.getWorld(worldName), 0, 61, 0, Material.BEDROCK);
 
                             // Config
                             config.getWorlds().put(worldName, worldData);

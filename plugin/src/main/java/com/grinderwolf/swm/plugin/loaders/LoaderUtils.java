@@ -55,7 +55,7 @@ public class LoaderUtils {
                 ex.printStackTrace();
             }
         }
-
+        //Redis loader
         DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
         if(redisConfig.isEnabled()){
           try{

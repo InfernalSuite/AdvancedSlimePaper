@@ -1,16 +1,17 @@
 package com.grinderwolf.swm.plugin.loaders.redis;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
+import com.grinderwolf.swm.plugin.loaders.redis.util.StringByteCodec;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
-import com.grinderwolf.swm.plugin.loaders.redis.util.StringByteCodec;
 import io.lettuce.core.*;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -37,9 +38,9 @@ public class RedisLoader implements SlimeLoader {
 
     public RedisLoader(DatasourcesConfig.RedisConfig config) {
         this.connection = RedisClient
-            .create(config.getUri())
-            .connect(StringByteCodec.INSTANCE)
-            .sync();
+                .create(config.getUri())
+                .connect(StringByteCodec.INSTANCE)
+                .sync();
     }
 
     @Override

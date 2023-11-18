@@ -1,7 +1,10 @@
 package com.grinderwolf.swm.plugin.commands.sub;
 
 import com.grinderwolf.swm.plugin.SWMPlugin;
+import com.grinderwolf.swm.plugin.Utils.WorldManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
+import com.grinderwolf.swm.plugin.config.WorldData;
+import com.grinderwolf.swm.plugin.config.WorldsConfig;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -36,59 +39,79 @@ public class GotoCmd implements Subcommand {
     public boolean onCommand(CommandSender sender, String[] args) {
         if (args.length > 0) {
             World world = Bukkit.getWorld(args[0]);
+            WorldsConfig config = ConfigManager.getWorldConfig();
+            WorldData worldData = config.getWorlds().get(args[0]);
 
             if (world == null) {
-                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "World " + args[0] + " does not exist!");
-
-                return true;
-            }
-
-            Player target;
-
-            if (args.length > 1) {
-                target = Bukkit.getPlayerExact(args[1]);
-            } else {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "The console cannot be teleported to a world! Please specify a player.");
-
+                if (worldData == null) {
+                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "World " + args[0] + " does not exist!");
+                    return true;
+                } else if (WorldManager.loadWorld(args)) {
+                    Bukkit.getScheduler().runTaskLaterAsynchronously(SWMPlugin.getInstance(), () -> gotoWorld(sender,args), 25);
                     return true;
                 }
-
-                target = (Player) sender;
             }
+            return gotoWorld(sender,args);
+        }
+        return false;
+    }
 
-            if (target == null) {
-                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + args[1] + " is offline.");
+    private boolean gotoWorld(CommandSender sender, String[] args) {
+
+        World world = Bukkit.getWorld(args[0]);
+        Player target;
+        if (args.length > 1) {
+            target = Bukkit.getPlayerExact(args[1]);
+        } else {
+            if (!(sender instanceof Player)) {
+                if (args.length > 2) {
+                    target = Bukkit.getPlayerExact(args[2]);
+                }
+
+                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "The console cannot be teleported to a world! Please specify a player.");
 
                 return true;
             }
 
-            sender.sendMessage(Logging.COMMAND_PREFIX + "Teleporting " + (target.getName().equals(sender.getName())
-                    ? "yourself" : ChatColor.YELLOW + target.getName() + ChatColor.GRAY) + " to " + ChatColor.AQUA + world.getName() + ChatColor.GRAY + "...");
+            target = (Player) sender;
+        }
 
-            Location spawnLocation;
-            if(ConfigManager.getWorldConfig().getWorlds().containsKey(world.getName())) {
-                String spawn = ConfigManager.getWorldConfig().getWorlds().get(world.getName()).getSpawn();
-                String[] coords = spawn.split(", ");
-                double x = Double.parseDouble(coords[0]);
-                double y = Double.parseDouble(coords[1]);
-                double z = Double.parseDouble(coords[2]);
-                spawnLocation = new Location(world, x, y, z);
-            }else{
-                spawnLocation = world.getSpawnLocation();
-            }
-
-            if(SWMPlugin.isPaperMC()) {
-                target.teleportAsync(spawnLocation);
-            }else {
-                target.teleport(spawnLocation);
-            }
+        if (target == null) {
+            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + args[1] + " is offline.");
 
             return true;
         }
 
-        return false;
+        sender.sendMessage(Logging.COMMAND_PREFIX + "Teleporting " + (target.getName().equals(sender.getName())
+                ? "yourself" : ChatColor.YELLOW + target.getName() + ChatColor.GRAY) + " to " + ChatColor.AQUA + world.getName() + ChatColor.GRAY + "...");
+
+        Location spawnLocation;
+        if (ConfigManager.getWorldConfig().getWorlds().containsKey(world.getName())) {
+            String spawn = ConfigManager.getWorldConfig().getWorlds().get(world.getName()).getSpawn();
+            String[] coords = spawn.split(", ");
+            double x = Double.parseDouble(coords[0]);
+            double y = Double.parseDouble(coords[1]);
+            double z = Double.parseDouble(coords[2]);
+            spawnLocation = new Location(world, x, y, z);
+        } else {
+            spawnLocation = world.getSpawnLocation();
+        }
+
+        World CurrentWorld = target.getWorld();
+
+        if (SWMPlugin.isPaperMC()) {
+            target.teleportAsync(spawnLocation);
+            List<Player> players = world.getPlayers();
+            if (players.isEmpty()) WorldManager.unloadWorld(CurrentWorld);
+        } else {
+            target.teleport(spawnLocation);
+            List<Player> players = world.getPlayers();
+            if (players.isEmpty()) WorldManager.unloadWorld(CurrentWorld);
+        }
+
+        return true;
     }
+
 
     @Override
     public List<String> onTabComplete(CommandSender sender, String[] args) {

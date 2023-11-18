@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +106,7 @@ public class ImportWorldCmd implements Subcommand {
                                     case "allowmonsters" -> worldData.setAllowMonsters(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS));
                                     case "dragonbattle" -> worldData.setDragonBattle(world.getPropertyMap().getValue(SlimeProperties.DRAGON_BATTLE));
                                     case "pvp" -> worldData.setPvp(world.getPropertyMap().getValue(SlimeProperties.PVP));
+                                //    case "worldOwner" -> worldData.setWorldOwner(((Player)sender).getUniqueId().toString());
                                     case "worldtype" -> worldData.setWorldType(world.getPropertyMap().getValue(SlimeProperties.WORLD_TYPE));
                                     case "defaultbiome" -> worldData.setDefaultBiome(world.getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME));
                                 }

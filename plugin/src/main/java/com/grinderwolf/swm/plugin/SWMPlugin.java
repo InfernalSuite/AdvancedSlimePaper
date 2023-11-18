@@ -3,11 +3,12 @@ package com.grinderwolf.swm.plugin;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.google.common.collect.ImmutableList;
+import com.grinderwolf.swm.plugin.Utils.WorldManager;
 import com.grinderwolf.swm.plugin.commands.CommandManager;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.WorldData;
 import com.grinderwolf.swm.plugin.config.WorldsConfig;
-import com.grinderwolf.swm.plugin.listeners.WorldUnlocker;
+import com.grinderwolf.swm.plugin.listeners.WorldListener;
 import com.grinderwolf.swm.plugin.loaders.LoaderUtils;
 import com.grinderwolf.swm.plugin.log.Logging;
 import com.infernalsuite.aswm.api.SlimeNMSBridge;
@@ -143,8 +144,8 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
                 });
 
         this.getServer().getPluginManager().registerEvents(this, this);
-        this.getServer().getPluginManager().registerEvents(new WorldUnlocker(), this);
-        //loadedWorlds.clear // - Commented out because not sure why this would be cleared. Needs checking
+        this.getServer().getPluginManager().registerEvents(new WorldListener(), this);
+        loadedWorlds.clear(); // - Commented out because not sure why this would be cleared. Needs checking
     }
 
     @Override
@@ -214,7 +215,6 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
                     if (ex instanceof IllegalArgumentException) {
                         message = ex.getMessage();
-
                         ex.printStackTrace();
                     } else if (ex instanceof UnknownWorldException) {
                         message = "world does not exist, are you sure you've set the correct data source?";
@@ -252,7 +252,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         Logging.info("Loading world " + worldName + ".");
         byte[] serializedWorld = loader.loadWorld(worldName);
 
-        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
+        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader , worldName, serializedWorld, propertyMap, readOnly);
         Logging.info("Applying datafixers for " + worldName + ".");
         SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
 

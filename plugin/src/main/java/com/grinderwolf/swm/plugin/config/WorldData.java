@@ -6,6 +6,8 @@ import org.bukkit.World;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
+import java.util.UUID;
+
 import static com.infernalsuite.aswm.api.world.properties.SlimeProperties.*;
 
 @ConfigSerializable
@@ -30,7 +32,8 @@ public class WorldData {
 
     @Setting("pvp")
     private boolean pvp = true;
-
+/*    @Setting("worldOwner")
+    private String worldOwner = null;*/
     @Setting("environment")
     private String environment = "NORMAL";
     @Setting("worldType")
@@ -39,7 +42,7 @@ public class WorldData {
     private String defaultBiome = "minecraft:plains";
 
     @Setting("loadOnStartup")
-    private boolean loadOnStartup = true;
+    private boolean loadOnStartup = false;
     @Setting("readOnly")
     private boolean readOnly = false;
 
@@ -82,9 +85,7 @@ public class WorldData {
 
         SlimePropertyMap propertyMap = new SlimePropertyMap();
 
-        propertyMap.setValue
-
-                (SPAWN_X, (int) spawnX);
+        propertyMap.setValue(SPAWN_X, (int) spawnX);
         propertyMap.setValue(SPAWN_Y, (int) spawnY);
         propertyMap.setValue(SPAWN_Z, (int) spawnZ);
 
@@ -96,6 +97,7 @@ public class WorldData {
         propertyMap.setValue(ENVIRONMENT, environment);
         propertyMap.setValue(WORLD_TYPE, worldType);
         propertyMap.setValue(DEFAULT_BIOME, defaultBiome);
+       //propertyMap.setValue(WORLD_OWNER, worldOwner);
 
         return propertyMap;
     }
@@ -164,6 +166,14 @@ public class WorldData {
     public void setPvp(boolean pvp) {
         this.pvp = pvp;
     }
+
+/*    public String getWorldOwner() {
+        return worldOwner;
+    }
+
+    public void setWorldOwner(String worldOwner) {
+        this.worldOwner = worldOwner;
+    }*/
 
     public String getEnvironment() {
         return environment;
