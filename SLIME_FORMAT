@@ -1,26 +1,12 @@
 -------------------------------------
 “Slime” file format
 2 bytes - magic = 0xB10B
-1 byte (ubyte) - version, current = 0x0A
+1 byte (ubyte) - version, current = 0x0B
 4 bytes (int) - world version (see version list below)
 4 bytes (int) - compressed chunks size
 4 bytes (int) - uncompressed chunks size
   <array of chunks> (size determined from bitmask)
   compressed using zstd
-
-4 bytes (int) - compressed tile entities size
-4 bytes (int) - uncompressed tile entities size
-  <array of tile entity nbt compounds>
-    Same format as mc
-    inside an nbt list named “tiles”, in a global compound, no gzip anywhere
-    compressed using zstd
-
-4 bytes (int) compressed entities size
-4 bytes (int) uncompressed entities size
-  <array of entity nbt compounds>
-    Same format as mc EXCEPT optional “CustomId”
-    inside an nbt list named “entities”, in a global compound
-    Compressed using zstd
 
 4 bytes (int) - compressed “extra” size
 4 bytes (int) - uncompressed “extra” size
@@ -30,9 +16,6 @@
 Custom chunk format
 4 byte (int) - chunk x
 4 byte (int) - chunk z
-4 bytes (int) - heightmaps size
-  <array of heightmap nbt compounds>
-    same format as mc, uncompressed
 4 bytes (int) section count
 [for each section]
   1 byte (boolean) - has sky light
@@ -45,6 +28,21 @@ Custom chunk format
       <block states component>
   4 bytes (int) - biomes byte size
       <biomes component>
+4 bytes (int) - heightmaps size
+  <array of heightmap nbt compounds>
+    same format as mc, uncompressed
+4 bytes (int) - compressed tile entities size
+4 bytes (int) - uncompressed tile entities size
+  <array of tile entity nbt compounds>
+    Same format as mc
+    inside an nbt list named “tiles”, in a global compound, no gzip anywhere
+    compressed using zstd
+4 bytes (int) compressed entities size
+4 bytes (int) uncompressed entities size
+  <array of entity nbt compounds>
+    Same format as mc EXCEPT optional “CustomId”
+    inside an nbt list named “entities”, in a global compound
+    Compressed using zstd
 
 -------------------------------------
 
@@ -70,3 +68,4 @@ Version history:
  - v8: Variable biomes size
  - v9: Fix issue with biomes size, causing old worlds to be corrupted
  - v10: Use minecraft version id, remove legacy version artifacts
+ - v11: Move entities and tile entities into the chunk structure
