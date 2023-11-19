@@ -24,16 +24,16 @@ public class ConfigManager {
     public static void initialize() throws IOException {
         copyDefaultConfigs();
 
-        worldConfigLoader = YamlConfigurationLoader.builder().file(WORLDS_FILE)
-                .nodeStyle(NodeStyle.BLOCK).headerMode(HeaderMode.PRESERVE).build();
-        worldConfig = worldConfigLoader.load().get(TypeToken.get(WorldsConfig.class));
-
         YamlConfigurationLoader datasourcesConfigLoader = YamlConfigurationLoader.builder().file(SERVERCONF_FILE)
                 .nodeStyle(NodeStyle.BLOCK).headerMode(HeaderMode.PRESERVE).build();
         serverConfig = datasourcesConfigLoader.load().get(TypeToken.get(ServerConfig.class));
 
-        worldConfig.save();
+        worldConfigLoader = YamlConfigurationLoader.builder().file(WORLDS_FILE)
+                .nodeStyle(NodeStyle.BLOCK).headerMode(HeaderMode.PRESERVE).build();
+        worldConfig = worldConfigLoader.load().get(TypeToken.get(WorldsConfig.class));
+
         datasourcesConfigLoader.save(datasourcesConfigLoader.createNode().set(TypeToken.get(ServerConfig.class), serverConfig));
+        worldConfig.save();
     }
 
     private static void copyDefaultConfigs() throws IOException {

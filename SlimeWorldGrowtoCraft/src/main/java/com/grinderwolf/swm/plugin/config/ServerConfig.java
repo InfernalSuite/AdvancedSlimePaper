@@ -35,10 +35,10 @@ public class ServerConfig {
         private boolean pvp = true;
         @Setting("loadOnStartup")
         private boolean loadOnStartup = false;
-        @Setting("loadOnWarp")
-        private boolean loadOnWarp = false;
         @Setting("readOnly")
         private boolean readOnly = false;
+        @Setting("loadOnWarp")
+        private boolean loadOnWarp = false;
 
         public boolean isLoadOnWarp() {
             return loadOnWarp;
