@@ -2,7 +2,7 @@ plugins {
     java
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1" apply false
-    id("io.papermc.paperweight.patcher") version "1.5.7-SNAPSHOT"
+    id("io.papermc.paperweight.patcher") version "1.5.10-SNAPSHOT"
     id("org.kordamp.gradle.profiles") version "0.47.0"
 }
 
@@ -48,7 +48,6 @@ subprojects {
         options.release.set(17)
     }
     tasks.withType<Javadoc> {
-        enabled = false
         options.encoding = Charsets.UTF_8.name()
     }
     tasks.withType<ProcessResources> {
@@ -74,6 +73,15 @@ paperweight {
 
             serverPatchDir.set(layout.projectDirectory.dir("patches/server"))
             serverOutputDir.set(layout.projectDirectory.dir("slimeworldmanager-server"))
+
+            patchTasks {
+                register("generatedApi") {
+                    isBareDirectory.set(true)
+                    upstreamDirPath.set("paper-api-generator/generated")
+                    patchDir.set(layout.projectDirectory.dir("patches/generatedApi"))
+                    outputDir.set(layout.projectDirectory.dir("paper-api-generator/generated"))
+                }
+            }
         }
     }
 }
