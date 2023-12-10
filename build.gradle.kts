@@ -38,7 +38,7 @@ allprojects {
 
 dependencies {
     remapper("net.fabricmc:tiny-remapper:0.8.6:fat")
-    decompiler("net.minecraftforge:forgeflower:2.0.627.2")
+    decompiler("org.vineflower:vineflower:1.10.0-SNAPSHOT")
     paperclip("io.papermc:paperclip:3.0.3")
 }
 
