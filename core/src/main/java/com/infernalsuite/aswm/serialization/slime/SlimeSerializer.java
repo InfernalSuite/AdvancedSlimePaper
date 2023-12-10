@@ -50,34 +50,6 @@ public class SlimeSerializer {
             outStream.writeInt(compressedChunkData.length);
             outStream.writeInt(chunkData.length);
             outStream.write(compressedChunkData);
-
-            // Tile entities
-            List<CompoundTag> tileEntitiesList = new ArrayList<>();
-            for (SlimeChunk chunk : world.getChunkStorage()) {
-                tileEntitiesList.addAll(chunk.getTileEntities());
-            }
-            ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tiles", TagType.TAG_COMPOUND, tileEntitiesList);
-            CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
-            byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
-            byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
-
-            outStream.writeInt(compressedTileEntitiesData.length);
-            outStream.writeInt(tileEntitiesData.length);
-            outStream.write(compressedTileEntitiesData);
-
-            // Entities
-            List<CompoundTag> entitiesList = new ArrayList<>();
-            for (SlimeChunk chunk : world.getChunkStorage()) {
-                entitiesList.addAll(chunk.getEntities());
-            }
-            ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, entitiesList);
-            CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
-            byte[] entitiesData = serializeCompoundTag(entitiesCompound);
-            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
-
-            outStream.writeInt(compressedEntitiesData.length);
-            outStream.writeInt(entitiesData.length);
-            outStream.write(compressedEntitiesData);
             
             // Extra Tag
             {
@@ -115,11 +87,6 @@ public class SlimeSerializer {
             outStream.writeInt(chunk.getX());
             outStream.writeInt(chunk.getZ());
 
-            // Height Maps
-            byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
-            outStream.writeInt(heightMaps.length);
-            outStream.write(heightMaps);
-
             // Chunk sections
             SlimeChunkSection[] sections = Arrays.stream(chunk.getSections()).filter(Objects::nonNull).toList().toArray(new SlimeChunkSection[0]);
 
@@ -150,6 +117,31 @@ public class SlimeSerializer {
                 outStream.writeInt(serializedBiomes.length);
                 outStream.write(serializedBiomes);
             }
+
+            // Height Maps
+            byte[] heightMaps = serializeCompoundTag(chunk.getHeightMaps());
+            outStream.writeInt(heightMaps.length);
+            outStream.write(heightMaps);
+
+            // Tile entities
+            ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tileEntities", TagType.TAG_COMPOUND, chunk.getTileEntities());
+            CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
+            byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
+            byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
+
+            outStream.writeInt(compressedTileEntitiesData.length);
+            outStream.writeInt(tileEntitiesData.length);
+            outStream.write(compressedTileEntitiesData);
+
+            // Entities
+            ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, chunk.getEntities());
+            CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
+            byte[] entitiesData = serializeCompoundTag(entitiesCompound);
+            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
+
+            outStream.writeInt(compressedEntitiesData.length);
+            outStream.writeInt(entitiesData.length);
+            outStream.write(compressedEntitiesData);
         }
 
         return outByteStream.toByteArray();

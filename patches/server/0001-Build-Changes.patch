@@ -5,10 +5,10 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 683159586641dd9aa42ae96fa51602469755723f..db714bc95f439fb7878cd8f3750c5f3c3d8a05ce 100644
+index 64479f0a892d6847f987d844efe282a6080d607b..d0b7b5ccd2bc2448b1f4f075bb135207c83fcd3a 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -72,7 +72,7 @@ tasks.jar {
+@@ -70,7 +70,7 @@ tasks.jar {
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
              "Implementation-Title" to "CraftBukkit",
@@ -17,7 +17,7 @@ index 683159586641dd9aa42ae96fa51602469755723f..db714bc95f439fb7878cd8f3750c5f3c
              "Implementation-Vendor" to date, // Paper
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
-@@ -156,7 +156,7 @@ fun TaskContainer.registerRunTask(
+@@ -154,7 +154,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
@@ -1953,7 +1953,7 @@ index 7e8dc9e8f381abfdcce2746edc93122d623622d1..12aadf4c981cdb1a6405de99016f4b40
      public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 97745f0bab8d82d397c6c2a5775aed92bca0a034..14b38c7f8b3e36ce4b989afe6546df236f546b34 100644
+index 8f31413c939cc2b0454ad3d9a1b618dbae449d00..91b318e50fb271bd836f891a30270601f5a94790 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -268,7 +268,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2170,7 +2170,7 @@ index 97745f0bab8d82d397c6c2a5775aed92bca0a034..14b38c7f8b3e36ce4b989afe6546df23
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-index 17b6925b46f8386dcfc561483693de516465ec12..743f34651d58f866bb7bbd050b0ed0d60302c6df 100644
+index 8c33a12ca879c46893150d6adfb8aa4d397c6b4c..9e227705332b46b5af3bb94e586d8bf6cdc72747 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 +++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 @@ -167,7 +167,11 @@ public class ServerChunkCache extends ChunkSource {
@@ -2187,7 +2187,7 @@ index 17b6925b46f8386dcfc561483693de516465ec12..743f34651d58f866bb7bbd050b0ed0d6
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 868951dc21aff541765b1f58f08cdf3c47446d25..0dd5aedefd64d04dbcb72739c1822361855da7b8 100644
+index c88d5b9125f6ee43bf2be60fd1745d836f271b78..529decbe9f01e874ecfb70bd1c4da016e0262d2a 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -687,6 +687,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2277,10 +2277,10 @@ index 1379084a80ce25644f13736b4a5ee5fabbd9ec1f..825d30e811a19b3b2dd83643ef925d8a
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index fcd5096d64edfaf6bce3ecce8c9b9afb84462786..ed8451887001a30dc28f4b5986d0bccbe8102849 100644
+index 356107688a5d40d1c462b164f61af82f4dfd3926..f824b6a4e17bed3e82c25f7c6711196f0bb52cd3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -267,7 +267,7 @@ import javax.annotation.Nullable; // Paper
+@@ -269,7 +269,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {

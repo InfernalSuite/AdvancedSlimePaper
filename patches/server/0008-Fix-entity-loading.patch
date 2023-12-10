@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Philip Kelley <philip@thoriumcube.org>
+Date: Thu, 2 Nov 2023 22:56:51 +0000
+Subject: [PATCH] Fix entity loading
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+index c32d52c68188dc1eb7feeac364cdc4aded1c4574..e74d9edca5d5166502f39e617939e0c7038f200a 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+@@ -1,12 +1,13 @@
+ package com.infernalsuite.aswm.level;
+ 
+ import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
++import com.infernalsuite.aswm.Converter;
+ import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.mojang.logging.LogUtils;
+-import io.papermc.paper.chunk.system.poi.PoiChunk;
+ import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
+ import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
+ import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
++import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.block.Block;
+@@ -14,7 +15,6 @@ import net.minecraft.world.level.chunk.ChunkAccess;
+ import net.minecraft.world.level.chunk.ImposterProtoChunk;
+ import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.chunk.UpgradeData;
+-import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.material.Fluid;
+ import net.minecraft.world.ticks.LevelChunkTicks;
+ import org.slf4j.Logger;
+@@ -60,7 +60,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
+ 
+         return new ImposterProtoChunk(new LevelChunk(this.world, new ChunkPos(this.chunkX, this.chunkZ), UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
+-                0L, null, null, null), true);
++                0L, null, chunk -> {}, null), true);
+     }
+ 
+     protected ChunkAccess runOnMain(final SlimeChunk data) {
+@@ -73,6 +73,10 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+             //                }
+ 
+             LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
++            ImposterProtoChunk protoChunk = new ImposterProtoChunk(chunk, false);
++            if (data != null) {
++                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
++            }
+ 
+             return new ImposterProtoChunk(chunk, false);
+         } catch (final ThreadDeath death) {
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+index 91a7f41db47c7df3ecc301e0827a1d07305f604e..276c48a4e9d10fd3124ce29586d3b2ef8c3a1727 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+@@ -15,6 +15,8 @@ import net.minecraft.core.Holder;
+ import net.minecraft.core.Registry;
+ import net.minecraft.core.registries.Registries;
+ import net.minecraft.nbt.NbtOps;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.EntityType;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.biome.Biome;
+ import net.minecraft.world.level.biome.Biomes;
+@@ -127,6 +129,13 @@ public class SlimeChunkConverter {
+                     }
+                 }
+             }
++
++            List<CompoundTag> entities = chunk.getEntities();
++
++            if (entities != null) {
++                instance.addLegacyChunkEntities(EntityType.loadEntitiesRecursive(entities.stream()
++                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), instance), nmsChunk.getPos());
++            }
+         };
+ 
+         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
