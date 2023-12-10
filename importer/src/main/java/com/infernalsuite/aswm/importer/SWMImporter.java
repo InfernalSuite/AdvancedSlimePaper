@@ -43,6 +43,10 @@ public class SWMImporter {
             }
         }
 
+        importWorld(worldDir, outputFile, printErrors);
+    }
+
+    public static void importWorld(File worldDir, File outputFile, boolean shouldPrintDebug) {
         try {
             outputFile.createNewFile();
             Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.INSTANCE.readFromData(worldDir)));
@@ -53,7 +57,7 @@ public class SWMImporter {
             System.err.println("Failed to save the world file.");
             ex.printStackTrace();
         } catch (RuntimeException ex) {
-            if(printErrors) {
+            if(shouldPrintDebug) {
                 ex.printStackTrace();
             } else {
                 System.err.println(ex.getMessage());

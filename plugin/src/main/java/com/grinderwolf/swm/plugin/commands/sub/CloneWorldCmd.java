@@ -101,13 +101,17 @@ public class CloneWorldCmd implements Subcommand {
                     SlimeWorld slimeWorld = SWMPlugin.getInstance().loadWorld(initLoader, templateWorldName, true, worldData.toPropertyMap()).clone(worldName, loader);
                     Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
                         try {
-                            SWMPlugin.getInstance().loadWorld(slimeWorld);
+                            SWMPlugin.getInstance().loadWorld(slimeWorld, true);
 
                             config.getWorlds().put(worldName, worldData);
                             config.save();
                         } catch (IllegalArgumentException ex) {
                             sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to generate world " + worldName + ": " + ex.getMessage() + ".");
 
+                            return;
+                        } catch(WorldLockedException | UnknownWorldException | IOException exception) {
+                            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to load world during clone " + worldName + ": " + exception.getMessage() + ".");
+                            SWMPlugin.getInstance().getLogger().info("Failed to load world during clone " + worldName + ": " + exception.getMessage());
                             return;
                         }
 

@@ -9,5 +9,5 @@ public class SlimeFormat {
     public static final byte[] SLIME_HEADER = new byte[] { -79, 11 };
 
     /** Latest version of the SRF that SWM supports **/
-    public static final byte SLIME_VERSION = 10;
+    public static final byte SLIME_VERSION = 11;
 }
