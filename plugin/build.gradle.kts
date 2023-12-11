@@ -13,7 +13,7 @@ dependencies {
     implementation("org.spongepowered:configurate-yaml:4.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("commons-io:commons-io:2.11.0")
-    compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
 }
 
 tasks {
@@ -34,7 +34,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.2")
+        minecraftVersion("1.20.4")
     }
 }
 
