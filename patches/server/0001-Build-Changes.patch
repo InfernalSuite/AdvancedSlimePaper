@@ -1649,10 +1649,10 @@ index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372c
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa78688e97
+index 0000000000000000000000000000000000000000..e067da5b683ff1013936590e2cb1a0f8c7cb54ad
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-@@ -0,0 +1,197 @@
+@@ -0,0 +1,200 @@
 +package com.infernalsuite.aswm.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
@@ -1694,6 +1694,8 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +import org.bukkit.Bukkit;
 +import org.bukkit.event.world.WorldSaveEvent;
 +import org.jetbrains.annotations.Nullable;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
 +
 +import java.io.IOException;
 +import java.nio.file.Files;
@@ -1710,6 +1712,7 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +
 +public class SlimeLevelInstance extends ServerLevel {
 +
++    private final Logger logger = LoggerFactory.getLogger(SlimeLevelInstance.class);
 +
 +    public static LevelStorageSource CUSTOM_LEVEL_STORAGE;
 +
@@ -1789,7 +1792,7 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +                }
 +            }
 +        } catch (Throwable e) {
-+            e.printStackTrace();
++            this.logger.error("Failed to save world " + this.slimeInstance.getName(), e);
 +        }
 +    }
 +
@@ -1806,9 +1809,9 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
 +            long start = System.currentTimeMillis();
 +
-+            Bukkit.getLogger().log(Level.INFO, "CONVERTING NMS -> SKELETON");
++            this.logger.debug("CONVERTING NMS -> SKELETON");
 +            SlimeWorld world = this.slimeInstance.getForSerialization();
-+            Bukkit.getLogger().log(Level.INFO, "CONVERTED TO SKELETON, PUSHING OFF-THREAD");
++            this.logger.debug("CONVERTED TO SKELETON, PUSHING OFF-THREAD");
 +            return WORLD_SAVER_SERVICE.submit(() -> {
 +                try {
 +                    byte[] serializedWorld = SlimeSerializer.serialize(world);
@@ -1816,7 +1819,7 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
 +                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
 +                } catch (IOException | IllegalStateException ex) {
-+                    ex.printStackTrace();
++                    this.logger.error("Failed to save world " + slimeWorld.getName(), ex);
 +                }
 +            });
 +
