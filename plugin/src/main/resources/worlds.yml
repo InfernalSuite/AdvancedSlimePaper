@@ -26,4 +26,11 @@
 #     allowAnimals: true
 #     loadOnStartup: true
 #     readOnly: false
+#   world4:
+#     source: api
+#     difficulty: easy
+#     spawn: -59, 67, -2
+#     allowMonsters: false
+#     allowAnimals: true
+#     loadOnStartup: true
 worlds:
