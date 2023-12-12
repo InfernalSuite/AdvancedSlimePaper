@@ -5,6 +5,8 @@ import com.google.gson.reflect.TypeToken;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -27,10 +29,31 @@ import java.util.stream.Collectors;
 
 public class APILoader implements SlimeLoader {
 
+    private final Logger logger = LoggerFactory.getLogger(APILoader.class);
+
     private final Gson gson;
     private final boolean ignoreSslCertificate;
-    private String apiUrl;
-    private String authorizationHeader;
+    private final String apiUrl;
+    private final String authorizationHeader;
+
+    public APILoader(DatasourcesConfig.APIConfig apiConfig) {
+        this.gson = new Gson();
+        this.ignoreSslCertificate = apiConfig.isIgnoreSslCertificate();
+
+        String apiUrl = apiConfig.getUrl();
+        if (!apiUrl.endsWith("/")) apiUrl += "/";
+        this.apiUrl = apiUrl;
+
+        String username = apiConfig.getUsername();
+        String token = apiConfig.getToken();
+        if (username != null && !username.isEmpty() && token != null && !token.isEmpty()) {
+            String auth = username + ":" + token;
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+            this.authorizationHeader = "Basic " + encodedAuth;
+        } else {
+            this.authorizationHeader = null;
+        }
+    }
 
     private SSLContext createTrustAllSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -50,8 +73,7 @@ public class APILoader implements SlimeLoader {
 
     private HttpClient createHttpClient() {
         try {
-            if(ignoreSslCertificate)
-            {
+            if (this.ignoreSslCertificate) {
                 SSLContext sslContext = createTrustAllSSLContext();
 
                 return HttpClient.newBuilder()
@@ -69,10 +91,9 @@ public class APILoader implements SlimeLoader {
         }
     }
 
-    private List<MapStructure> GetMapList() throws IOException, InterruptedException {
+    private List<MapStructure> getMapList() throws IOException, InterruptedException {
         HttpClient client = createHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-
                 .uri(URI.create(this.apiUrl))
                 .GET()
                 .header("Authorization", this.authorizationHeader)
@@ -123,23 +144,6 @@ public class APILoader implements SlimeLoader {
         }
     }
 
-    public APILoader(DatasourcesConfig.APIConfig apiConfig) {
-        this.gson = new Gson();
-        this.ignoreSslCertificate = apiConfig.isIgnoreSslCertificate();
-        this.apiUrl = apiConfig.getUrl();
-        if (!this.apiUrl.endsWith("/")) {
-            this.apiUrl += "/";
-        }
-
-        String username = apiConfig.getUsername();
-        String token = apiConfig.getToken();
-        if (username != null && !username.isEmpty() && token != null && !token.isEmpty()) {
-            String auth = username + ":" + token;
-            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
-            this.authorizationHeader = "Basic " + encodedAuth;
-        }
-    }
-
     @Override
     public byte[] loadWorld(String worldName) throws UnknownWorldException, IOException {
         try {
@@ -159,7 +163,7 @@ public class APILoader implements SlimeLoader {
         List<MapStructure> mapList;
 
         try {
-            mapList = GetMapList();
+            mapList = getMapList();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -171,12 +175,12 @@ public class APILoader implements SlimeLoader {
 
     @Override
     public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
-        // System.out.println("API Worlds cannot be saved. They're always read-only.");
+        this.logger.warn("Illegal call to saveWorld: API Worlds cannot be saved. They're always read-only.");
     }
 
     @Override
     public void unlockWorld(String worldName) throws UnknownWorldException, IOException {
-        // System.out.println("API Worlds are always unlocked.");
+        this.logger.warn("Illegal call to unlockWorld: API Worlds are always unlocked.");
     }
 
     @Override
@@ -186,11 +190,11 @@ public class APILoader implements SlimeLoader {
 
     @Override
     public void deleteWorld(String worldName) {
-        // System.out.println("API Worlds do not need to be deleted.");
+        this.logger.warn("Illegal call to deleteWorld: API Worlds cannot be deleted through the loader.");
     }
 
     @Override
     public void acquireLock(String worldName) {
-        // System.out.println("API Worlds cannot be locked.");
+        this.logger.warn("Illegal call to acquireLock: API Worlds cannot be locked.");
     }
 }
