@@ -127,21 +127,25 @@ public class SlimeSerializer {
             ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tileEntities", TagType.TAG_COMPOUND, chunk.getTileEntities());
             CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
             byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
-            byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
 
-            outStream.writeInt(compressedTileEntitiesData.length);
             outStream.writeInt(tileEntitiesData.length);
-            outStream.write(compressedTileEntitiesData);
+            outStream.write(tileEntitiesData);
 
             // Entities
             ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, chunk.getEntities());
             CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
             byte[] entitiesData = serializeCompoundTag(entitiesCompound);
-            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
 
-            outStream.writeInt(compressedEntitiesData.length);
             outStream.writeInt(entitiesData.length);
-            outStream.write(compressedEntitiesData);
+            outStream.write(entitiesData);
+
+            // Extra Tag
+            {
+                byte[] extra = serializeCompoundTag(chunk.getExtraData());
+
+                outStream.writeInt(extra.length);
+                outStream.write(extra);
+            }
         }
 
         return outByteStream.toByteArray();

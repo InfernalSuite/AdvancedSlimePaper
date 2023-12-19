@@ -381,9 +381,13 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             sectionArray[index - minSectionY] = new SlimeChunkSectionSkeleton(/*paletteTag, blockStatesArray,*/ blockStatesTag, biomeTag, blockLightArray, skyLightArray);
         }
 
+        var extraTag = new CompoundTag("", new CompoundMap());
+
+        extraTag.getValue().put(compound.getValue().get("ChunkBukkitValues")); // An attempt to migrate PDC from the anvil to the slime format.
+
         for (SlimeChunkSection section : sectionArray) {
             if (section != null) { // Chunk isn't empty
-                return new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMapsCompound, tileEntities, entities);
+                return new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMapsCompound, tileEntities, entities, extraTag);
             }
         }
 
