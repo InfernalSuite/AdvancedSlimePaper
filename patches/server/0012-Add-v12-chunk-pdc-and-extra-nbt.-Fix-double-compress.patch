@@ -54,10 +54,10 @@ index f1db2fe121bb3aabfad727a8133b645524b8f19a..ad30e83670ca88f09fa7625fc52c2242
          return chunk;
      }
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-index 9a27369c00345bbb94aa19f77687269dc94c0b0a..e0fc007bbc324f258a8bc7975fd8d95a2644f962 100644
+index 07e542e3f75bf272f53345dc040d90358e7d7b2d..004d7bcc5b35c76855787dcf32fe460e73cab38f 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -43,14 +43,14 @@ public class NMSSlimeWorld implements SlimeWorld {
+@@ -45,14 +45,14 @@ public class NMSSlimeWorld implements SlimeWorld {
              return null;
          }
  
@@ -114,10 +114,10 @@ index 276c48a4e9d10fd3124ce29586d3b2ef8c3a1727..9302b8bba83840eff921f0dc000344c4
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..76913fab8da9509d86b8c685ad6078244257b7fc 100644
+index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3704a4736 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -83,11 +83,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -88,11 +88,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                      0L, null, null, null);
  
@@ -131,7 +131,7 @@ index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..76913fab8da9509d86b8c685ad607824
          }
          this.chunkStorage.put(new ChunkPos(x, z), chunk);
  
-@@ -100,7 +100,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -105,7 +105,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          final int x = providedChunk.locX;
          final int z = providedChunk.locZ;
  
@@ -140,7 +140,7 @@ index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..76913fab8da9509d86b8c685ad607824
  
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
              this.chunkStorage.remove(new ChunkPos(x, z));
-@@ -109,7 +109,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -114,7 +114,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
          this.chunkStorage.put(new ChunkPos(x, z),
                  new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
@@ -149,7 +149,7 @@ index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..76913fab8da9509d86b8c685ad607824
      }
  
      @Override
-@@ -222,13 +222,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -227,13 +227,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                          continue;
                      }
  
