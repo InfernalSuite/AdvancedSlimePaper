@@ -95,10 +95,10 @@ index b20a037679182e3c4a8bf31f084078f6d7e4ff46..e449b3eebe0d245a2107a6d0018930d3
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 276c48a4e9d10fd3124ce29586d3b2ef8c3a1727..9302b8bba83840eff921f0dc000344c41631a65b 100644
+index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..afa5804039d6b15c29f0ddc7d778b5b0b1d9dc6f 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-@@ -168,6 +168,13 @@ public class SlimeChunkConverter {
+@@ -165,6 +165,13 @@ public class SlimeChunkConverter {
              Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
          }
  
