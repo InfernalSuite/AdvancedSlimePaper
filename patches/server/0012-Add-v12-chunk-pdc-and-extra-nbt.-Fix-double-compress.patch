@@ -187,3 +187,16 @@ index 65b475b1292e01c918c1f8144599b5fa78688e97..67be177f92ff66074b6f0f0f82fce284
              return WORLD_SAVER_SERVICE.submit(() -> {
                  try {
                      byte[] serializedWorld = SlimeSerializer.serialize(world);
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 529decbe9f01e874ecfb70bd1c4da016e0262d2a..feec24fcb10074932743d8dfd160458d60b5c979 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -455,7 +455,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+                 io.papermc.paper.chunk.system.io.RegionFileIOThread.getIOBlockingPriorityForCurrentThread()
+             );
+         }
+-        return this.entityStorage.read(new ChunkPos(chunkX, chunkZ));
++        return this instanceof com.infernalsuite.aswm.level.SlimeLevelInstance ? null : this.entityStorage.read(new ChunkPos(chunkX, chunkZ));
+     }
+ 
+     private final io.papermc.paper.chunk.system.entity.EntityLookup entityLookup;
