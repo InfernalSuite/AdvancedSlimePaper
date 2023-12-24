@@ -131,6 +131,9 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
             // Extra Tag
             var rawExtra = read(chunkData);
             var extra = readCompound(rawExtra);
+            // If the extra tag is empty, the serializer will save it as null.
+            // So if we deserialize a null extra tag, we will assume it was empty.
+            if (extra == null) extra = new CompoundTag("", new CompoundMap());
 
             chunkMap.put(new ChunkPos(x, z),
                     new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra));
