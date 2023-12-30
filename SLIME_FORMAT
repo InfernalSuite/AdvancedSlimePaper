@@ -1,7 +1,7 @@
 -------------------------------------
 “Slime” file format
 2 bytes - magic = 0xB10B
-1 byte (ubyte) - version, current = 0x0B
+1 byte (ubyte) - version, current = 0x0C
 4 bytes (int) - world version (see version list below)
 4 bytes (int) - compressed chunks size
 4 bytes (int) - uncompressed chunks size
@@ -10,7 +10,7 @@
 
 4 bytes (int) - compressed “extra” size
 4 bytes (int) - uncompressed “extra” size
-[depends] - compound tag compressed using zstd
+[depends] - extra compound tag compressed using zstd (used for PDC, and/or custom data)
 -------------------------------------
 
 Custom chunk format
@@ -31,19 +31,17 @@ Custom chunk format
 4 bytes (int) - heightmaps size
   <array of heightmap nbt compounds>
     same format as mc, uncompressed
-4 bytes (int) - compressed tile entities size
-4 bytes (int) - uncompressed tile entities size
+4 bytes (int) - tile entities size
   <array of tile entity nbt compounds>
     Same format as mc
     inside an nbt list named “tiles”, in a global compound, no gzip anywhere
-    compressed using zstd
-4 bytes (int) compressed entities size
-4 bytes (int) uncompressed entities size
+    uncompressed
+4 bytes (int) entities size
   <array of entity nbt compounds>
     Same format as mc EXCEPT optional “CustomId”
     inside an nbt list named “entities”, in a global compound
     Compressed using zstd
-
+[depends] - compound tag uncompressed (used for PDC, and/or custom data)
 -------------------------------------
 
 World version list:
@@ -69,3 +67,4 @@ Version history:
  - v9: Fix issue with biomes size, causing old worlds to be corrupted
  - v10: Use minecraft version id, remove legacy version artifacts
  - v11: Move entities and tile entities into the chunk structure
+ - v12: Add support for chunk-based PDC

@@ -1,5 +1,7 @@
 package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
 
+import com.flowpowered.nbt.CompoundMap;
+import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.serialization.SlimeWorldReader;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
@@ -61,7 +63,8 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                     sections,
                     slimeChunk.heightMap,
                     slimeChunk.tileEntities,
-                    slimeChunk.entities
+                    slimeChunk.entities,
+                    new CompoundTag("", new CompoundMap())
             ));
         }
 
