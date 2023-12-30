@@ -20,3 +20,9 @@ mongodb:
   uri: ''
 file:
   path: slime_worlds
+api:
+  enabled: false
+  ignoreSslCertificate: false
+  username: ''
+  token: ''
+  url: ''

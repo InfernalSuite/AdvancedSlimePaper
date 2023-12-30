@@ -15,6 +15,9 @@ public class DatasourcesConfig {
     @Setting("redis")
     private RedisConfig redisConfig = new RedisConfig();
 
+    @Setting("api")
+    private APIConfig apiConfig = new APIConfig();
+
     @ConfigSerializable
     public static class MysqlConfig {
 
@@ -233,6 +236,42 @@ public class DatasourcesConfig {
         }
     }
 
+    @ConfigSerializable
+    public static class APIConfig {
+        @Setting("enabled")
+        private boolean enabled = false;
+
+        @Setting("ignoreSslCertificate")
+        private boolean ignoreSslCertificate = false;
+
+        @Setting("username")
+        private String username = "";
+        @Setting("token")
+        private String token = "";
+        @Setting("url")
+        private String url = "";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public boolean isIgnoreSslCertificate() {
+            return ignoreSslCertificate;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
     public FileConfig getFileConfig() {
         return fileConfig;
     }
@@ -263,5 +302,13 @@ public class DatasourcesConfig {
 
     public void setRedisConfig(RedisConfig redisConfig) {
         this.redisConfig = redisConfig;
+    }
+
+    public APIConfig getApiConfig() {
+        return apiConfig;
+    }
+
+    public void setApiConfig(APIConfig apiConfig) {
+        this.apiConfig = apiConfig;
     }
 }

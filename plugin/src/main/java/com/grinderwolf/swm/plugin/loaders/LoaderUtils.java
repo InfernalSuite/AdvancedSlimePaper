@@ -1,15 +1,17 @@
 package com.grinderwolf.swm.plugin.loaders;
 
+import com.grinderwolf.swm.plugin.loaders.api.APILoader;
+import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.config.ConfigManager;
 import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
-import com.grinderwolf.swm.plugin.loaders.file.FileLoader;
 import com.grinderwolf.swm.plugin.loaders.mongo.MongoLoader;
 import com.grinderwolf.swm.plugin.loaders.mysql.MysqlLoader;
 import com.grinderwolf.swm.plugin.loaders.redis.RedisLoader;
-import com.grinderwolf.swm.plugin.log.Logging;
 import com.mongodb.MongoException;
 import io.lettuce.core.RedisException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class LoaderUtils {
     public static final long LOCK_INTERVAL = 60000L;
 
     private static final Map<String, SlimeLoader> loaderMap = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoaderUtils.class);
 
     public static void registerLoaders() {
         DatasourcesConfig config = ConfigManager.getDatasourcesConfig();
@@ -38,9 +41,8 @@ public class LoaderUtils {
         if (mysqlConfig.isEnabled()) {
             try {
                 registerLoader("mysql", new MysqlLoader(mysqlConfig));
-            } catch (SQLException ex) {
-                Logging.error("Failed to establish connection to the MySQL server:");
-                ex.printStackTrace();
+            } catch (final SQLException ex) {
+                LOGGER.error("Failed to establish connection to the MySQL server:", ex);
             }
         }
 
@@ -50,20 +52,23 @@ public class LoaderUtils {
         if (mongoConfig.isEnabled()) {
             try {
                 registerLoader("mongodb", new MongoLoader(mongoConfig));
-            } catch (MongoException ex) {
-                Logging.error("Failed to establish connection to the MongoDB server:");
-                ex.printStackTrace();
+            } catch (final MongoException ex) {
+                LOGGER.error("Failed to establish connection to the MongoDB server:", ex);
             }
         }
 
         DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
-        if(redisConfig.isEnabled()){
-          try{
-            registerLoader("redis", new RedisLoader(redisConfig));
-          }catch (RedisException ex){
-            Logging.error("Failed to establish connection to the Redis server:");
-            ex.printStackTrace();
-          }
+        if (redisConfig.isEnabled()){
+            try {
+                registerLoader("redis", new RedisLoader(redisConfig));
+            } catch (final RedisException ex) {
+                LOGGER.error("Failed to establish connection to the Redis server:", ex);
+            }
+        }
+
+        DatasourcesConfig.APIConfig apiConfig = config.getApiConfig();
+        if(apiConfig.isEnabled()){
+            registerLoader("api", new APILoader(apiConfig));
         }
     }
 
@@ -84,13 +89,12 @@ public class LoaderUtils {
         if (loader instanceof UpdatableLoader) {
             try {
                 ((UpdatableLoader) loader).update();
-            } catch (UpdatableLoader.NewerDatabaseException e) {
-                Logging.error("Data source " + dataSource + " version is " + e.getDatabaseVersion() + ", while" +
-                        " this SWM version only supports up to version " + e.getCurrentVersion() + ".");
+            } catch (final UpdatableLoader.NewerDatabaseException e) {
+                LOGGER.error("Data source {} version is {}, while this SWM version only supports up to version {}.",
+                        dataSource, e.getDatabaseVersion(), e.getCurrentVersion(), e);
                 return;
-            } catch (IOException ex) {
-                Logging.error("Failed to check if data source " + dataSource + " is updated:");
-                ex.printStackTrace();
+            } catch (final IOException ex) {
+                LOGGER.error("Failed to update data source {}", dataSource, ex);
                 return;
             }
         }

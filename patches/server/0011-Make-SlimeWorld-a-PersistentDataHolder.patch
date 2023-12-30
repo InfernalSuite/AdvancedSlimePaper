@@ -1,0 +1,142 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Thu, 26 Oct 2023 14:55:39 +0200
+Subject: [PATCH] Make SlimeWorld a PersistentDataHolder
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 97a3c0401d1bcf34d8022da5163b8169a66fd5b3..21c3ea3596a1f954618348afae2b2f7f058393d1 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -1,5 +1,6 @@
+ package com.infernalsuite.aswm;
+ 
++import com.flowpowered.nbt.CompoundMap;
+ import com.infernalsuite.aswm.api.SlimeNMSBridge;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+ import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
+@@ -12,6 +13,7 @@ import net.kyori.adventure.util.Services;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.core.registries.Registries;
+ import net.minecraft.nbt.CompoundTag;
++import net.minecraft.nbt.Tag;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.resources.ResourceLocation;
+ import net.minecraft.server.MinecraftServer;
+@@ -30,13 +32,18 @@ import org.apache.logging.log4j.Logger;
+ import org.bukkit.Bukkit;
+ import org.bukkit.World;
+ import org.bukkit.craftbukkit.CraftWorld;
++import org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer;
++import org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry;
++import org.bukkit.persistence.PersistentDataContainer;
+ import org.jetbrains.annotations.Nullable;
+ 
+ import java.io.IOException;
+ import java.util.Locale;
++import java.util.Map;
+ 
+ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+ 
++    private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
+     private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
+ 
+     private static final Logger LOGGER = LogManager.getLogger("SWM");
+@@ -49,6 +56,26 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         return (SlimeNMSBridgeImpl) SlimeNMSBridge.instance();
+     }
+ 
++    @Override
++    public void extractCraftPDC(PersistentDataContainer source, CompoundMap target) {
++        if (source instanceof CraftPersistentDataContainer craftPDC) {
++            for (Map.Entry<String, Tag> entry : craftPDC.getRaw().entrySet()) {
++                target.put(Converter.convertTag(entry.getKey(), entry.getValue()));
++            }
++        } else {
++            throw new IllegalArgumentException("PersistentDataContainer is not a CraftPersistentDataContainer");
++        }
++    }
++
++    @Override
++    public PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundMap source) {
++        var container = new CraftPersistentDataContainer(REGISTRY);
++        for (Map.Entry<String, com.flowpowered.nbt.Tag<?>> entry : source.entrySet()) {
++            container.put(entry.getKey(), Converter.convertTag(entry.getValue()));
++        }
++        return container;
++    }
++
+     @Override
+     public boolean loadOverworldOverride() {
+         if (defaultWorld == null) {
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+index 9a27369c00345bbb94aa19f77687269dc94c0b0a..07e542e3f75bf272f53345dc040d90358e7d7b2d 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+@@ -9,6 +9,8 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.server.level.ChunkHolder;
+ import net.minecraft.world.level.chunk.LevelChunk;
++import org.bukkit.persistence.PersistentDataContainer;
++import org.jetbrains.annotations.NotNull;
+ 
+ import java.io.IOException;
+ import java.util.Collection;
+@@ -88,4 +90,9 @@ public class NMSSlimeWorld implements SlimeWorld {
+     public int getDataVersion() {
+         return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+     }
++
++    @Override
++    public @NotNull PersistentDataContainer getPersistentDataContainer() {
++        return memoryWorld.getPersistentDataContainer();
++    }
+ }
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..092dae1f9e68f1c395cd0f8151cd696c0bcdceb0 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -5,6 +5,7 @@ import com.infernalsuite.aswm.ChunkPos;
+ import com.infernalsuite.aswm.Converter;
+ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.aswm.api.loaders.SlimeLoader;
++import com.infernalsuite.aswm.pdc.FlowPersistentDataContainer;
+ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.aswm.skeleton.SkeletonCloning;
+ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
+@@ -19,6 +20,8 @@ import net.minecraft.world.level.chunk.UpgradeData;
+ import net.minecraft.world.level.material.Fluid;
+ import net.minecraft.world.ticks.LevelChunkTicks;
+ import org.bukkit.World;
++import org.bukkit.persistence.PersistentDataContainer;
++import org.jetbrains.annotations.NotNull;
+ 
+ import java.io.IOException;
+ import java.util.ArrayList;
+@@ -38,6 +41,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+     private final SlimeWorld liveWorld;
+ 
+     private final CompoundTag extra;
++    private final FlowPersistentDataContainer extraPDC;
+     private final SlimePropertyMap propertyMap;
+     private final SlimeLoader loader;
+ 
+@@ -60,6 +64,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+             this.chunkStorage.put(pos, initial);
+         }
+ 
++        this.extraPDC = new FlowPersistentDataContainer(extra);
+         this.liveWorld = new NMSSlimeWorld(this);
+     }
+ 
+@@ -260,4 +265,9 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+     public SlimeLevelInstance getInstance() {
+         return instance;
+     }
++
++    @Override
++    public @NotNull PersistentDataContainer getPersistentDataContainer() {
++        return this.extraPDC;
++    }
+ }
