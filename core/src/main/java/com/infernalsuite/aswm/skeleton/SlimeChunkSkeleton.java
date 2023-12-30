@@ -9,7 +9,9 @@ import java.util.List;
 public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
                                  CompoundTag heightMap,
                                  List<CompoundTag> blockEntities,
-                                 List<CompoundTag> entities) implements SlimeChunk {
+                                 List<CompoundTag> entities,
+                                 CompoundTag extra) implements SlimeChunk {
+
     @Override
     public int getX() {
         return this.x;
@@ -38,5 +40,10 @@ public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
     @Override
     public List<CompoundTag> getEntities() {
         return this.entities;
+    }
+
+    @Override
+    public CompoundTag getExtraData() {
+        return this.extra;
     }
 }

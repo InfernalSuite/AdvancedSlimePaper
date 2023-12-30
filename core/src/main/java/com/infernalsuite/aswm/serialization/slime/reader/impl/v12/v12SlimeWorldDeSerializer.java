@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.slime.reader.impl.v11;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v12;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWorld> {
+public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWorld> {
 
     public static final int ARRAY_SIZE = 16 * 16 * 16 / (8 / 4);
 
@@ -114,32 +114,32 @@ public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
 
             // Tile Entities
 
-            int compressedTileEntitiesLength = chunkData.readInt();
-            int decompressedTileEntitiesLength = chunkData.readInt();
-            byte[] compressedTileEntitiesData = new byte[compressedTileEntitiesLength];
-            byte[] decompressedTileEntitiesData = new byte[decompressedTileEntitiesLength];
-            chunkData.read(compressedTileEntitiesData);
-            Zstd.decompress(decompressedTileEntitiesData, compressedTileEntitiesData);
+            byte[] tileEntities = read(chunkData);
 
-            CompoundTag tileEntitiesCompound = readCompound(decompressedTileEntitiesData);
+            CompoundTag tileEntitiesCompound = readCompound(tileEntities);
             @SuppressWarnings("unchecked")
             List<CompoundTag> serializedTileEntities = ((ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tileEntities")).getValue();
 
             // Entities
 
-            int compressedEntitiesLength = chunkData.readInt();
-            int decompressedEntitiesLength = chunkData.readInt();
-            byte[] compressedEntitiesData = new byte[compressedEntitiesLength];
-            byte[] decompressedEntitiesData = new byte[decompressedEntitiesLength];
-            chunkData.read(compressedEntitiesData);
-            Zstd.decompress(decompressedEntitiesData, compressedEntitiesData);
+            byte[] entities = read(chunkData);
 
-            CompoundTag entitiesCompound = readCompound(decompressedEntitiesData);
+            CompoundTag entitiesCompound = readCompound(entities);
             @SuppressWarnings("unchecked")
             List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
+
+            // Extra Tag
+            byte[] rawExtra = read(chunkData);
+            CompoundTag extra = readCompound(rawExtra);
+            // If the extra tag is empty, the serializer will save it as null.
+            // So if we deserialize a null extra tag, we will assume it was empty.
+            if (extra == null) {
+                extra = new CompoundTag("", new CompoundMap());
+            }
+
             chunkMap.put(new ChunkPos(x, z),
-                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, new CompoundTag("", new CompoundMap())));
+                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra));
         }
         return chunkMap;
     }
@@ -154,8 +154,17 @@ public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
         return decompressedData;
     }
 
+    private static byte[] read(DataInputStream stream) throws IOException {
+        int length = stream.readInt();
+        byte[] data = new byte[length];
+        stream.read(data);
+        return data;
+    }
+
     private static CompoundTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return null;
+        if (tagBytes.length == 0) {
+            return null;
+        }
 
         NBTInputStream nbtStream = new NBTInputStream(new ByteArrayInputStream(tagBytes), NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
         return (CompoundTag) nbtStream.readTag();

@@ -5,7 +5,7 @@ Subject: [PATCH] Fix entity loading
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index c32d52c68188dc1eb7feeac364cdc4aded1c4574..e74d9edca5d5166502f39e617939e0c7038f200a 100644
+index c32d52c68188dc1eb7feeac364cdc4aded1c4574..8485296594c01edcaef271fc37bf2c70932f4986 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -1,12 +1,13 @@
@@ -40,7 +40,7 @@ index c32d52c68188dc1eb7feeac364cdc4aded1c4574..e74d9edca5d5166502f39e617939e0c7
      }
  
      protected ChunkAccess runOnMain(final SlimeChunk data) {
-@@ -73,6 +73,10 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+@@ -73,8 +73,12 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
              //                }
  
              LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
@@ -49,10 +49,13 @@ index c32d52c68188dc1eb7feeac364cdc4aded1c4574..e74d9edca5d5166502f39e617939e0c7
 +                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
 +            }
  
-             return new ImposterProtoChunk(chunk, false);
+-            return new ImposterProtoChunk(chunk, false);
++            return protoChunk;
          } catch (final ThreadDeath death) {
+             throw death;
+         } catch (final Throwable thr2) {
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 91a7f41db47c7df3ecc301e0827a1d07305f604e..276c48a4e9d10fd3124ce29586d3b2ef8c3a1727 100644
+index 91a7f41db47c7df3ecc301e0827a1d07305f604e..27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -15,6 +15,8 @@ import net.minecraft.core.Holder;
@@ -64,17 +67,73 @@ index 91a7f41db47c7df3ecc301e0827a1d07305f604e..276c48a4e9d10fd3124ce29586d3b2ef
  import net.minecraft.world.level.ChunkPos;
  import net.minecraft.world.level.biome.Biome;
  import net.minecraft.world.level.biome.Biomes;
-@@ -127,6 +129,13 @@ public class SlimeChunkConverter {
-                     }
-                 }
-             }
-+
+@@ -106,26 +108,11 @@ public class SlimeChunkConverter {
+ 
+ 
+         LevelChunk.PostLoadProcessor loadEntities = (nmsChunk) -> {
 +            List<CompoundTag> entities = chunk.getEntities();
-+
+ 
+-            // TODO
+-            // Load tile entities
+-            List<CompoundTag> tileEntities = chunk.getTileEntities();
+-
+-            if (tileEntities != null) {
+-                for (CompoundTag tag : tileEntities) {
+-                    Optional<String> type = tag.getStringValue("id");
+-
+-                    // Sometimes null tile entities are saved
+-                    if (type.isPresent()) {
+-                        BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
+-                        BlockState blockData = nmsChunk.getBlockState(blockPosition);
+-                        BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
+-
+-                        if (entity != null) {
+-                            nmsChunk.setBlockEntity(entity);
+-                        }
+-                    }
+-                }
 +            if (entities != null) {
-+                instance.addLegacyChunkEntities(EntityType.loadEntitiesRecursive(entities.stream()
-+                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), instance), nmsChunk.getPos());
-+            }
++                net.minecraft.server.level.ChunkMap.postLoadProtoChunk(instance, entities.stream()
++                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), nmsChunk.getPos());
+             }
          };
  
-         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
+@@ -133,6 +120,25 @@ public class SlimeChunkConverter {
+         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
+         SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
+ 
++        List<CompoundTag> tileEntities = chunk.getTileEntities();
++
++        if (tileEntities != null) {
++            for (CompoundTag tag : tileEntities) {
++                Optional<String> type = tag.getStringValue("id");
++
++                // Sometimes null tile entities are saved
++                if (type.isPresent()) {
++                    BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
++                    BlockState blockData = nmsChunk.getBlockState(blockPosition);
++                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
++
++                    if (entity != null) {
++                        nmsChunk.setBlockEntity(entity);
++                    }
++                }
++            }
++        }
++
+         // Height Maps
+         EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
+         CompoundMap heightMaps = chunk.getHeightMaps().getValue();
+diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
+index b66a7d4aab887309579154815a0d4abf9de506b0..1654d7ec66e5077810494992e3c56fb692301269 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
++++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
+@@ -112,7 +112,7 @@ public final class NewChunkHolder {
+         }
+ 
+         if (!transientChunk) {
+-            if (entityChunk != null) {
++            if (!(this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) && entityChunk != null) {
+                 final List<Entity> entities = EntityStorage.readEntities(this.world, entityChunk);
+ 
+                 this.world.getEntityLookup().addEntityChunkEntities(entities, new ChunkPos(this.chunkX, this.chunkZ));

@@ -5,7 +5,7 @@ Subject: [PATCH] Remove catch throwable
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index e74d9edca5d5166502f39e617939e0c7038f200a..65642a9bde0fffc6531604026dd957fd268b6642 100644
+index 8485296594c01edcaef271fc37bf2c70932f4986..f9ac1efca06d8debbb7894160c3e67fd23440ebb 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -48,7 +48,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
@@ -20,7 +20,7 @@ index e74d9edca5d5166502f39e617939e0c7038f200a..65642a9bde0fffc6531604026dd957fd
 @@ -79,10 +79,8 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
              }
  
-             return new ImposterProtoChunk(chunk, false);
+             return protoChunk;
 -        } catch (final ThreadDeath death) {
 -            throw death;
 -        } catch (final Throwable thr2) {

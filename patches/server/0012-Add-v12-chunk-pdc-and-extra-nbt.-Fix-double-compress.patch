@@ -1,0 +1,200 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Tue, 19 Dec 2023 21:47:15 +0100
+Subject: [PATCH] Add v12, chunk pdc and extra nbt. Fix double compression on
+ tile entities and entities. Fix horrible bug which made chunks go poof.
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+index 1a4be97069f01a82deadd26a94e86dbebe0e47a0..ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6 100644
+--- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+@@ -70,11 +70,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+ 
+             chunks.put(chunkPos, new SlimeChunkSkeleton(
+                     chunk.getX(),
+-                    chunk.getX(),
++                    chunk.getZ(),
+                     sections,
+                     chunk.getHeightMaps(),
+                     blockEntities,
+-                    entities
++                    entities,
++                    chunk.getExtraData()
+             ));
+ 
+         }
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index f1db2fe121bb3aabfad727a8133b645524b8f19a..ad30e83670ca88f09fa7625fc52c224247410623 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -67,9 +67,11 @@ public class NMSSlimeChunk implements SlimeChunk {
+     }
+ 
+     private LevelChunk chunk;
++    private CompoundTag extra;
+ 
+-    public NMSSlimeChunk(LevelChunk chunk) {
++    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
+         this.chunk = chunk;
++        this.extra = reference == null ? new CompoundTag("", new CompoundMap()) : reference.getExtraData();
+     }
+ 
+     @Override
+@@ -192,6 +194,11 @@ public class NMSSlimeChunk implements SlimeChunk {
+         });
+     }
+ 
++    @Override
++    public CompoundTag getExtraData() {
++        return extra;
++    }
++
+     public LevelChunk getChunk() {
+         return chunk;
+     }
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+index 07e542e3f75bf272f53345dc040d90358e7d7b2d..004d7bcc5b35c76855787dcf32fe460e73cab38f 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+@@ -45,14 +45,14 @@ public class NMSSlimeWorld implements SlimeWorld {
+             return null;
+         }
+ 
+-        return new NMSSlimeChunk(chunk);
++        return new NMSSlimeChunk(chunk, memoryWorld.getChunk(x, z));
+     }
+ 
+     @Override
+     public Collection<SlimeChunk> getChunkStorage() {
+         List<ChunkHolder> chunks = io.papermc.paper.chunk.system.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
+         return chunks.stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull)
+-                .map(NMSSlimeChunk::new)
++                .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
+                 .collect(Collectors.toList());
+     }
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+index b20a037679182e3c4a8bf31f084078f6d7e4ff46..e449b3eebe0d245a2107a6d0018930d32dfc4976 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+@@ -62,6 +62,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
+         return this.wrapper.getEntities();
+     }
+ 
++    @Override
++    public CompoundTag getExtraData() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getExtraData();
++        }
++
++        return this.wrapper.getExtraData();
++    }
++
+     /*
+ Slime chunks can still be requested but not actually loaded, this caused
+ some things to not properly save because they are not "loaded" into the chunk.
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..afa5804039d6b15c29f0ddc7d778b5b0b1d9dc6f 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+@@ -165,6 +165,13 @@ public class SlimeChunkConverter {
+             Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
+         }
+ 
++        var nmsExtraData = (net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getExtraData());
++
++        // Attempt to read PDC from the extra tag
++        if (nmsExtraData.get("ChunkBukkitValues") != null) {
++            nmsChunk.persistentDataContainer.putAll(nmsExtraData.getCompound("ChunkBukkitValues"));
++        }
++
+         return nmsChunk;
+     }
+ }
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3704a4736 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -88,11 +88,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+             levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
+                     0L, null, null, null);
+ 
+-            chunk = new NMSSlimeChunk(levelChunk);
++            chunk = new NMSSlimeChunk(levelChunk, getChunk(x, z));
+ 
+         } else {
+             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
+-            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk), chunk);
++            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk, chunk), chunk);
+         }
+         this.chunkStorage.put(new ChunkPos(x, z), chunk);
+ 
+@@ -105,7 +105,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+         final int x = providedChunk.locX;
+         final int z = providedChunk.locZ;
+ 
+-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk);
++        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
+ 
+         if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
+             this.chunkStorage.remove(new ChunkPos(x, z));
+@@ -114,7 +114,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+ 
+         this.chunkStorage.put(new ChunkPos(x, z),
+                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
+-                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
++                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData()));
+     }
+ 
+     @Override
+@@ -227,13 +227,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+                         continue;
+                     }
+ 
++                    // Serialize Bukkit Values (PDC)
++
++                    var flowTag = Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound());
++
++                    clonedChunk.getExtraData().getValue().put(flowTag);
++
+                     clonedChunk = new SlimeChunkSkeleton(
+                             clonedChunk.getX(),
+                             clonedChunk.getZ(),
+                             clonedChunk.getSections(),
+                             clonedChunk.getHeightMaps(),
+                             clonedChunk.getTileEntities(),
+-                            clonedChunk.getEntities()
++                            clonedChunk.getEntities(),
++                            clonedChunk.getExtraData()
+                     );
+                 }
+             }
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 65b475b1292e01c918c1f8144599b5fa78688e97..a525fa1781535d458c5ecb67e261520692c858ac 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -151,9 +151,7 @@ public class SlimeLevelInstance extends ServerLevel {
+             Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
+             long start = System.currentTimeMillis();
+ 
+-            Bukkit.getLogger().log(Level.INFO, "CONVERTING NMS -> SKELETON");
+             SlimeWorld world = this.slimeInstance.getForSerialization();
+-            Bukkit.getLogger().log(Level.INFO, "CONVERTED TO SKELETON, PUSHING OFF-THREAD");
+             return WORLD_SAVER_SERVICE.submit(() -> {
+                 try {
+                     byte[] serializedWorld = SlimeSerializer.serialize(world);
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 529decbe9f01e874ecfb70bd1c4da016e0262d2a..feec24fcb10074932743d8dfd160458d60b5c979 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -455,7 +455,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+                 io.papermc.paper.chunk.system.io.RegionFileIOThread.getIOBlockingPriorityForCurrentThread()
+             );
+         }
+-        return this.entityStorage.read(new ChunkPos(chunkX, chunkZ));
++        return this instanceof com.infernalsuite.aswm.level.SlimeLevelInstance ? null : this.entityStorage.read(new ChunkPos(chunkX, chunkZ));
+     }
+ 
+     private final io.papermc.paper.chunk.system.entity.EntityLookup entityLookup;

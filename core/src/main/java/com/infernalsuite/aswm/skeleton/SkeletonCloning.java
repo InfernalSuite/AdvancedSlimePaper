@@ -71,7 +71,8 @@ public class SkeletonCloning {
                             copied,
                             chunk.getHeightMaps().clone(),
                             deepClone(chunk.getTileEntities()),
-                            deepClone(chunk.getEntities())
+                            deepClone(chunk.getEntities()),
+                            chunk.getExtraData().clone()
                     ));
         }
 

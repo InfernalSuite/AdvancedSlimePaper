@@ -167,7 +167,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                 }
 
                 chunkMap.put(new ChunkPos(x, z),
-                        new SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>())
+                        new SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new CompoundTag("", new CompoundMap()))
                 );
             }
         }

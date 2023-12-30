@@ -53,4 +53,17 @@ public interface SlimeChunk {
      */
     List<CompoundTag> getEntities();
 
+    /**
+     * Returns the extra data of the chunk.
+     * Inside this {@link CompoundTag}
+     * can be stored any information to then be retrieved later, as it's
+     * saved alongside the chunk data.
+     * <br>
+     * <b>Beware, a compound tag under the key "ChunkBukkitValues" will be stored here.
+     * It is used for storing chunk-based Bukkit PDC. Do not overwrite it.</b>
+     *
+     * @return A {@link CompoundTag} containing the extra data of the chunk,
+     */
+    CompoundTag getExtraData();
+
 }
