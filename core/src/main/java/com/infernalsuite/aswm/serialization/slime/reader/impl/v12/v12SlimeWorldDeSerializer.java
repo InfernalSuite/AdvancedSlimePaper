@@ -128,12 +128,15 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
             @SuppressWarnings("unchecked")
             List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
+
             // Extra Tag
             byte[] rawExtra = read(chunkData);
             CompoundTag extra = readCompound(rawExtra);
             // If the extra tag is empty, the serializer will save it as null.
             // So if we deserialize a null extra tag, we will assume it was empty.
-            if (extra == null) extra = new CompoundTag("", new CompoundMap());
+            if (extra == null) {
+                extra = new CompoundTag("", new CompoundMap());
+            }
 
             chunkMap.put(new ChunkPos(x, z),
                     new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra));
@@ -159,7 +162,9 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
     }
 
     private static CompoundTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return null;
+        if (tagBytes.length == 0) {
+            return null;
+        }
 
         NBTInputStream nbtStream = new NBTInputStream(new ByteArrayInputStream(tagBytes), NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
         return (CompoundTag) nbtStream.readTag();
