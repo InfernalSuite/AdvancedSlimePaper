@@ -114,7 +114,7 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
 
             // Tile Entities
 
-            var tileEntities = read(chunkData);
+            byte[] tileEntities = read(chunkData);
 
             CompoundTag tileEntitiesCompound = readCompound(tileEntities);
             @SuppressWarnings("unchecked")
@@ -122,15 +122,15 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
 
             // Entities
 
-            var entities = read(chunkData);
+            byte[] entities = read(chunkData);
 
             CompoundTag entitiesCompound = readCompound(entities);
             @SuppressWarnings("unchecked")
             List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
             // Extra Tag
-            var rawExtra = read(chunkData);
-            var extra = readCompound(rawExtra);
+            byte[] rawExtra = read(chunkData);
+            CompoundTag extra = readCompound(rawExtra);
             // If the extra tag is empty, the serializer will save it as null.
             // So if we deserialize a null extra tag, we will assume it was empty.
             if (extra == null) extra = new CompoundTag("", new CompoundMap());
