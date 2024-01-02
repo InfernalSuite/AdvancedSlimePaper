@@ -87,32 +87,14 @@ public class UnloadWorldCmd implements Subcommand {
                 } else {
                     world.save();
                 }
-                unlockWorldFinally(world, loader, sender);
+                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
             });
         } else {
             Bukkit.unloadWorld(world, true);
-            unlockWorldFinally(world, loader, sender);
+            sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
         }
 
         return true;
-    }
-
-    private void unlockWorldFinally(World world, SlimeLoader loader, CommandSender sender) {
-        String worldName = world.getName();
-        System.out.println("Attempting to unlock world.. " + worldName + ".");
-        try {
-            if (loader != null && loader.isWorldLocked(worldName)) {
-                System.out.println("World.. " + worldName + " is locked.");
-                loader.unlockWorld(worldName);
-                System.out.println("Attempted to unlock world.. " + worldName + ".");
-            } else {
-                System.out.println(worldName + " was not unlocked. This could be because the world is either unlocked or not in the config. This is not an error");
-            }
-        } catch (UnknownWorldException | IOException e) {
-            e.printStackTrace();
-        }
-
-        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
     }
 
     @NotNull
