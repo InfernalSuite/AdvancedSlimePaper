@@ -68,6 +68,7 @@ public interface SlimeLoader {
      * @throws WorldLockedException  If the world is already locked
      * @throws IOException If the world could not be locked
      */
+    @Deprecated(forRemoval = true)
     void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException;
 
     /**
@@ -78,6 +79,7 @@ public interface SlimeLoader {
      * @throws UnknownWorldException if the world could not be found.
      * @throws IOException           if the world could not be obtained.
      */
+    @Deprecated(forRemoval = true)
     boolean isWorldLocked(String worldName) throws UnknownWorldException, IOException;
 
     /**
@@ -87,6 +89,7 @@ public interface SlimeLoader {
      * @throws UnknownWorldException If the world could not be found
      * @throws IOException If the world could not be unlocked
      */
+    @Deprecated(forRemoval = true)
     void unlockWorld(String worldName) throws UnknownWorldException, IOException;
 
 }
