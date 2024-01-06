@@ -8,7 +8,7 @@ import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v11.v11WorldFormat;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v12.v12WorldFormat;
-import com.infernalsuite.aswm.serialization.slime.reader.impl.v19.v1_9WorldFormat;
+import com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9.v1_9WorldFormat;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v10.v10WorldFormat;
 
 import java.io.ByteArrayInputStream;
