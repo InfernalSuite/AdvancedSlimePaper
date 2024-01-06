@@ -1,9 +1,10 @@
-package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.serialization.SlimeWorldReader;
+import com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9.upgrade.*;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
@@ -15,19 +16,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
+class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
 
-    private static final Map<Byte, Upgrade> upgrades = new HashMap<>();
+    public static final Map<Byte, Upgrade> UPGRADES = new HashMap<>();
 
     static {
-        upgrades.put((byte) 0x06, new v1_16WorldUpgrade());
-        upgrades.put((byte) 0x07, new v117WorldUpgrade());
-        upgrades.put((byte) 0x08, new v118WorldUpgrade());
+        UPGRADES.put((byte) 0x02, new v1_9WorldUpgrade());
+        UPGRADES.put((byte) 0x03, new v1_11WorldUpgrade());
+        UPGRADES.put((byte) 0x04, new v1_13WorldUpgrade());
+        UPGRADES.put((byte) 0x05, new v1_14WorldUpgrade());
+        UPGRADES.put((byte) 0x06, new v1_16WorldUpgrade());
+        UPGRADES.put((byte) 0x07, new v1_17WorldUpgrade());
+        UPGRADES.put((byte) 0x08, new v1_18WorldUpgrade());
     }
 
     @Override
     public SlimeWorld readFromData(v1_9SlimeWorld data) {
-        upgradeWorld(data);
+        int dataVersion = upgradeWorld(data);
 
         Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
         for (Map.Entry<ChunkPos, v1_9SlimeChunk> entry : data.chunks.entrySet()) {
@@ -76,16 +81,17 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                 chunks,
                 data.extraCompound,
                 data.propertyMap,
-                3120 // MCVersions.V1_19_2
+                dataVersion
         );
     }
 
 
-    public static void upgradeWorld(v1_9SlimeWorld world) {
-        byte serverVersion = 0x09; // Last version
+    public static int upgradeWorld(v1_9SlimeWorld world) {
+        byte upgradeTo = 0x08; // Last version
+        int dataVersion = 3120; // MCVersions.V1_19_2
 
-        for (byte ver = (byte) (world.version + 1); ver <= serverVersion; ver++) {
-            Upgrade upgrade = upgrades.get(ver);
+        for (byte ver = (byte) (world.version + 1); ver <= upgradeTo; ver++) {
+            Upgrade upgrade = UPGRADES.get(ver);
 
             if (upgrade == null) {
                 Logger.getLogger("v1_9WorldUpgrader").warning("Missing world upgrader for version " + ver + ". World will not be upgraded.");
@@ -93,8 +99,13 @@ class v1_9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
             }
 
             upgrade.upgrade(world);
+
+            if (ver == 0x08) {
+                dataVersion = 2975;
+            }
         }
 
-        world.version = serverVersion;
+        world.version = 0x09;
+        return dataVersion;
     }
 }

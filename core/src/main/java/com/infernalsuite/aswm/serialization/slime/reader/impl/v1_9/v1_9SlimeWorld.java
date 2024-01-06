@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.ChunkPos;
@@ -7,17 +7,17 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
 import java.util.Map;
 
-class v1_9SlimeWorld {
+public class v1_9SlimeWorld {
 
-    byte version;
-    final String worldName;
-    final SlimeLoader loader;
-    final Map<ChunkPos, v1_9SlimeChunk> chunks;
-    final CompoundTag extraCompound;
-    final SlimePropertyMap propertyMap;
-    final boolean readOnly;
+    public byte version;
+    public final String worldName;
+    public final SlimeLoader loader;
+    public final Map<ChunkPos, v1_9SlimeChunk> chunks;
+    public final CompoundTag extraCompound;
+    public final SlimePropertyMap propertyMap;
+    public final boolean readOnly;
 
-    v1_9SlimeWorld(byte version,
+    public v1_9SlimeWorld(byte version,
                    String worldName,
                    SlimeLoader loader,
                    Map<ChunkPos, v1_9SlimeChunk> chunks,
