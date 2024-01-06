@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul19988 <paul@paulcodes.co.uk>
+Date: Sat, 6 Jan 2024 15:12:38 +0000
+Subject: [PATCH] dragon battle property
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 65b475b1292e01c918c1f8144599b5fa78688e97..2e0bbadd6bc40fe24cb04f95b7686c50edeb7381 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -84,7 +84,7 @@ public class SlimeLevelInstance extends ServerLevel {
+                               ResourceKey<LevelStem> dimensionKey, LevelStem worldDimension,
+                               org.bukkit.World.Environment environment) throws IOException {
+ 
+-        super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
++        super(slimeBootstrap, slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DRAGON_BATTLE), MinecraftServer.getServer(), MinecraftServer.getServer().executor,
+                 CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
+                 primaryLevelData, worldKey, worldDimension,
+                 MinecraftServer.getServer().progressListenerFactory.create(11), false, null, 0,
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 529decbe9f01e874ecfb70bd1c4da016e0262d2a..2d4ca968d6aeb53cf7bf44c3671f08e0f7f26733 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -688,12 +688,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
+     // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
+     public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
+         // ASWM START
+-        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, randomsequences, i, list, flag1, env, gen, biomeProvider);
++        this(null, false, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, randomsequences, i, list, flag1, env, gen, biomeProvider);
+     }
+ 
+     public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance;
+ 
+-    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, @Nullable RandomSequences randomsequences, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
++    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, boolean dragonFight, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, @Nullable RandomSequences randomsequences, long i, List<CustomSpawner> list, boolean flag1, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
+         // ASWM END
+         // IRegistryCustom.Dimension iregistrycustom_dimension = minecraftserver.registryAccess(); // CraftBukkit - decompile error
+         // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
+@@ -767,7 +767,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+ 
+         this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), minecraftserver.getStructureManager(), this.getTypeKey(), chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), l, datafixer); // Paper - Fix missing CB diff
+         this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
+-        if ((this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
++        if (dragonFight && (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
+             this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
+         } else {
+             this.dragonFight = null;
