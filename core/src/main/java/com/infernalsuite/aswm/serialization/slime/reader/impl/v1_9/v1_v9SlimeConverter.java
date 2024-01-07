@@ -91,7 +91,8 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                     slimeChunk.heightMap,
                     slimeChunk.tileEntities,
                     slimeChunk.entities,
-                    new CompoundTag("", new CompoundMap())
+                    new CompoundTag("", new CompoundMap()),
+                    slimeChunk.upgradeData
             ));
         }
 

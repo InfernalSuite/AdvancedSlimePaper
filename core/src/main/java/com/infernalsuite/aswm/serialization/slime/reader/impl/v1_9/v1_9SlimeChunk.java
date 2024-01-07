@@ -15,6 +15,8 @@ public final class v1_9SlimeChunk {
     public int[] biomes;
     public final List<CompoundTag> tileEntities;
     public final List<CompoundTag> entities;
+    // Used for 1.13 world upgrading
+    public CompoundTag upgradeData;
 
     v1_9SlimeChunk(String worldName,
                    int x,

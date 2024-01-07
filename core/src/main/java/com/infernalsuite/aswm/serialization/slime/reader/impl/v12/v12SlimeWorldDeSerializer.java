@@ -139,7 +139,7 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
             }
 
             chunkMap.put(new ChunkPos(x, z),
-                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra));
+                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra, null));
         }
         return chunkMap;
     }
