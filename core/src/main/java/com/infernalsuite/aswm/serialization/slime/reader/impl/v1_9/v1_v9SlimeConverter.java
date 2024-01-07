@@ -43,7 +43,8 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                 v1_9SlimeChunkSection dataSection = slimeChunk.sections[i];
                 if (dataSection != null) {
                     sections[i] = new SlimeChunkSectionSkeleton(
-                            dataSection.blockStatesTag,
+                            // SlimeChunkConverter can handle null blockState, but cannot handle empty blockState
+                            dataSection.blockStatesTag.getValue().isEmpty() ? null : dataSection.blockStatesTag,
                             dataSection.biomeTag,
                             dataSection.blockLight,
                             dataSection.skyLight
