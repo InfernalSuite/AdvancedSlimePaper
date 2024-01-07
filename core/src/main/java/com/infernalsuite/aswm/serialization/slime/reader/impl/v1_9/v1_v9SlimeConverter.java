@@ -1,7 +1,6 @@
 package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.*;
 import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.serialization.SlimeWorldReader;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9.upgrade.*;
@@ -12,6 +11,7 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -42,6 +42,27 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
             for (int i = 0; i < sections.length; i++) {
                 v1_9SlimeChunkSection dataSection = slimeChunk.sections[i];
                 if (dataSection != null) {
+                    // I'm not sure which upgrader should handle this, so I'm leaving it here
+                    if (dataSection.biomeTag != null) {
+                        ListTag<StringTag> palette = (ListTag<StringTag>) dataSection.biomeTag.getValue().get("palette");
+
+                        var newPalette = new ArrayList<StringTag>();
+                        if (palette != null) {
+                            for (StringTag stringTag : palette.getValue()) {
+                                // air is no longer a valid biome, I'm not sure when this changed,
+                                // so I cannot pick the proper upgrader to place it in.
+                                if (stringTag.getValue().equals("minecraft:air")) continue;
+                                newPalette.add(stringTag);
+                            }
+                        }
+
+                        if (palette == null || palette.getValue().isEmpty()) {
+                            newPalette.add(new StringTag(null, "minecraft:plains"));
+                        }
+
+                        dataSection.biomeTag.getValue().put("palette", new ListTag<>("palette", TagType.TAG_STRING, newPalette));
+                    }
+
                     sections[i] = new SlimeChunkSectionSkeleton(
                             // SlimeChunkConverter can handle null blockState, but cannot handle empty blockState
                             dataSection.blockStatesTag.getValue().isEmpty() ? null : dataSection.blockStatesTag,
