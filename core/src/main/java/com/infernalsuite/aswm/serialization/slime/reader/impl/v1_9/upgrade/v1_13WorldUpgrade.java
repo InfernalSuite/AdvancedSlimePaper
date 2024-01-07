@@ -73,6 +73,9 @@ public class v1_13WorldUpgrade implements Upgrade {
             chunk.sections = newSections;
             chunk.biomes = newBiomes;
 
+            // Upgrade data
+            chunk.upgradeData = chunkTag.getAsCompoundTag("UpgradeData").orElse(null);
+
             int done = i + 1;
             if (done == chunks.size()) {
                 Logger.getLogger("v1_13WorldUpgrade").info("World successfully converted to the 1.13 format!");

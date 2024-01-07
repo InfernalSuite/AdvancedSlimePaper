@@ -139,7 +139,7 @@ public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
             List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
             chunkMap.put(new ChunkPos(x, z),
-                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, new CompoundTag("", new CompoundMap())));
+                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, new CompoundTag("", new CompoundMap()), null));
         }
         return chunkMap;
     }
