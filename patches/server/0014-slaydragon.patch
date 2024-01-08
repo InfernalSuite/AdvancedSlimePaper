@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: neil <neilbooth125@gmail.com>
+Date: Mon, 8 Jan 2024 16:01:34 +0200
+Subject: [PATCH] slaydragon
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 26043c7a9fec8ef021eeeb5e95c81b1b9d6ad688..82d964fd56d45c618e0a762add1681b0fb629330 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -688,7 +688,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+     // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
+     public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
+         // ASWM START
+-        this(null, false, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, randomsequences, i, list, flag1, env, gen, biomeProvider);
++        this(null, true, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, randomsequences, i, list, flag1, env, gen, biomeProvider);
+     }
+ 
+     public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance;
+@@ -767,10 +767,13 @@ public class ServerLevel extends Level implements WorldGenLevel {
+ 
+         this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), minecraftserver.getStructureManager(), this.getTypeKey(), chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), l, datafixer); // Paper - Fix missing CB diff
+         this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
+-        if (dragonFight && (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
++        if ((this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
+             this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
++            if(!dragonFight){
++                this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), new EndDragonFight.Data(false, true, true, false,Optional.empty(),Optional.empty(),Optional.empty())); // ASP - disable dragon
++            }
+         } else {
+-            this.dragonFight = null;
++            this.dragonFight = null; //
+         }
+ 
+         this.sleepStatus = new SleepStatus();
