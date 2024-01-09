@@ -57,8 +57,8 @@ public class SkeletonCloning {
                 NibbleArray skyLight = original.getSkyLight();
 
                 copied[i] = new SlimeChunkSectionSkeleton(
-                        original.getBlockStatesTag().clone(),
-                        original.getBiomeTag().clone(),
+                        original.getBlockStatesTag() == null ? null : original.getBlockStatesTag().clone(),
+                        original.getBiomeTag() == null ? null : original.getBiomeTag().clone(),
                         blockLight == null ? null : blockLight.clone(),
                         skyLight == null ? null : skyLight.clone()
                 );
