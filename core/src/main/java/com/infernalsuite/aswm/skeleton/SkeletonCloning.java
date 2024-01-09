@@ -52,6 +52,7 @@ public class SkeletonCloning {
             SlimeChunkSection[] copied = new SlimeChunkSection[chunk.getSections().length];
             for (int i = 0; i < copied.length; i++) {
                 SlimeChunkSection original = chunk.getSections()[i];
+                if (original == null) continue; // This shouldn't happen, yet it does, not gonna figure out why.
 
                 NibbleArray blockLight = original.getBlockLight();
                 NibbleArray skyLight = original.getSkyLight();
