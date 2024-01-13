@@ -382,8 +382,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         }
 
         CompoundTag extraTag = new CompoundTag("", new CompoundMap());
-
-        extraTag.getValue().put(compound.getValue().get("ChunkBukkitValues")); // Attempt to Migrate PDC from Anvil format to Slime format.
+        compound.getAsCompoundTag("ChunkBukkitValues").ifPresent(chunkBukkitValues -> extraTag.getValue().put(chunkBukkitValues));
 
         for (SlimeChunkSection section : sectionArray) {
             if (section != null) { // Chunk isn't empty
