@@ -46,7 +46,7 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                     if (dataSection.biomeTag != null) {
                         ListTag<StringTag> palette = (ListTag<StringTag>) dataSection.biomeTag.getValue().get("palette");
 
-                        var newPalette = new ArrayList<StringTag>();
+                        ArrayList<StringTag> newPalette = new ArrayList<StringTag>();
                         if (palette != null) {
                             for (StringTag stringTag : palette.getValue()) {
                                 // air is no longer a valid biome, I'm not sure when this changed,
