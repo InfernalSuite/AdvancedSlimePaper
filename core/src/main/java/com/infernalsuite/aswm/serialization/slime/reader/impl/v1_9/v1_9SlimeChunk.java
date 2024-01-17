@@ -1,20 +1,22 @@
-package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
 import com.flowpowered.nbt.CompoundTag;
 
 import java.util.List;
 
-final class v1_9SlimeChunk {
-    final String worldName;
-    final int x;
-    final int z;
-    v1_9SlimeChunkSection[] sections;
-    final int minY;
-    final int maxY;
-    final CompoundTag heightMap;
-    int[] biomes;
-    final List<CompoundTag> tileEntities;
-    final List<CompoundTag> entities;
+public final class v1_9SlimeChunk {
+    public final String worldName;
+    public final int x;
+    public final int z;
+    public v1_9SlimeChunkSection[] sections;
+    public final int minY;
+    public final int maxY;
+    public final CompoundTag heightMap;
+    public int[] biomes;
+    public final List<CompoundTag> tileEntities;
+    public final List<CompoundTag> entities;
+    // Used for 1.13 world upgrading
+    public CompoundTag upgradeData;
 
     v1_9SlimeChunk(String worldName,
                    int x,

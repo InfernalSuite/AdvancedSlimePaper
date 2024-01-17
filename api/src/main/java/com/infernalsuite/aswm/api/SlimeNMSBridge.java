@@ -1,6 +1,7 @@
 package com.infernalsuite.aswm.api;
 
 import com.flowpowered.nbt.CompoundMap;
+import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
 import net.kyori.adventure.util.Services;
@@ -46,5 +47,7 @@ public interface SlimeNMSBridge {
         private static final SlimeNMSBridge INSTANCE = Services.service(SlimeNMSBridge.class).orElseThrow();
 
     }
+
+    CompoundTag convertChunkTo1_13(CompoundTag tag);
 
 }

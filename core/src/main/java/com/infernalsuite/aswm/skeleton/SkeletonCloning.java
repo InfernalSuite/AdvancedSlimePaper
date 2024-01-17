@@ -52,13 +52,14 @@ public class SkeletonCloning {
             SlimeChunkSection[] copied = new SlimeChunkSection[chunk.getSections().length];
             for (int i = 0; i < copied.length; i++) {
                 SlimeChunkSection original = chunk.getSections()[i];
+                if (original == null) continue; // This shouldn't happen, yet it does, not gonna figure out why.
 
                 NibbleArray blockLight = original.getBlockLight();
                 NibbleArray skyLight = original.getSkyLight();
 
                 copied[i] = new SlimeChunkSectionSkeleton(
-                        original.getBlockStatesTag().clone(),
-                        original.getBiomeTag().clone(),
+                        original.getBlockStatesTag() == null ? null : original.getBlockStatesTag().clone(),
+                        original.getBiomeTag() == null ? null : original.getBiomeTag().clone(),
                         blockLight == null ? null : blockLight.clone(),
                         skyLight == null ? null : skyLight.clone()
                 );
@@ -72,7 +73,8 @@ public class SkeletonCloning {
                             chunk.getHeightMaps().clone(),
                             deepClone(chunk.getTileEntities()),
                             deepClone(chunk.getEntities()),
-                            chunk.getExtraData().clone()
+                            chunk.getExtraData().clone(),
+                            null
                     ));
         }
 

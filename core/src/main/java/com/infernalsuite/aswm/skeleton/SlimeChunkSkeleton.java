@@ -10,7 +10,8 @@ public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
                                  CompoundTag heightMap,
                                  List<CompoundTag> blockEntities,
                                  List<CompoundTag> entities,
-                                 CompoundTag extra) implements SlimeChunk {
+                                 CompoundTag extra,
+                                 CompoundTag upgradeData) implements SlimeChunk {
 
     @Override
     public int getX() {
@@ -45,5 +46,10 @@ public record SlimeChunkSkeleton(int x, int z, SlimeChunkSection[] sections,
     @Override
     public CompoundTag getExtraData() {
         return this.extra;
+    }
+
+    @Override
+    public CompoundTag getUpgradeData() {
+        return this.upgradeData;
     }
 }
