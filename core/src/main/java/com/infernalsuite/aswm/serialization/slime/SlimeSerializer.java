@@ -77,17 +77,13 @@ public class SlimeSerializer {
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
         DataOutputStream outStream = new DataOutputStream(outByteStream);
 
-        List<SlimeChunk> emptyChunks = new ArrayList<>(chunks);
-        for (SlimeChunk chunk : chunks) {
-            if (!ChunkPruner.canBePruned(world, chunk)) {
-                emptyChunks.add(chunk);
-            } else {
-                LOGGER.info("PRUNED: " + chunk);
-            }
-        }
+        // Prune chunks
+        List<SlimeChunk> chunksToSave = chunks.stream()
+                .filter(chunk -> !ChunkPruner.canBePruned(world, chunk))
+                .toList();
 
-        outStream.writeInt(chunks.size());
-        for (SlimeChunk chunk : emptyChunks) {
+        outStream.writeInt(chunksToSave.size());
+        for (SlimeChunk chunk : chunksToSave) {
             outStream.writeInt(chunk.getX());
             outStream.writeInt(chunk.getZ());
 
