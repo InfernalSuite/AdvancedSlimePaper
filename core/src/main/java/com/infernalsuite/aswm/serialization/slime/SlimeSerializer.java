@@ -12,6 +12,8 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -20,6 +22,8 @@ import java.nio.ByteOrder;
 import java.util.*;
 
 public class SlimeSerializer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SlimeSerializer.class);
 
     public static byte[] serialize(SlimeWorld world) {
         CompoundTag extraData = world.getExtraData();
@@ -78,7 +82,7 @@ public class SlimeSerializer {
             if (!ChunkPruner.canBePruned(world, chunk)) {
                 emptyChunks.add(chunk);
             } else {
-                System.out.println("PRUNED: " + chunk);
+                LOGGER.info("PRUNED: " + chunk);
             }
         }
 
@@ -127,21 +131,28 @@ public class SlimeSerializer {
             ListTag<CompoundTag> tileEntitiesNbtList = new ListTag<>("tileEntities", TagType.TAG_COMPOUND, chunk.getTileEntities());
             CompoundTag tileEntitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(tileEntitiesNbtList)));
             byte[] tileEntitiesData = serializeCompoundTag(tileEntitiesCompound);
-            byte[] compressedTileEntitiesData = Zstd.compress(tileEntitiesData);
 
-            outStream.writeInt(compressedTileEntitiesData.length);
             outStream.writeInt(tileEntitiesData.length);
-            outStream.write(compressedTileEntitiesData);
+            outStream.write(tileEntitiesData);
 
             // Entities
             ListTag<CompoundTag> entitiesNbtList = new ListTag<>("entities", TagType.TAG_COMPOUND, chunk.getEntities());
             CompoundTag entitiesCompound = new CompoundTag("", new CompoundMap(Collections.singletonList(entitiesNbtList)));
             byte[] entitiesData = serializeCompoundTag(entitiesCompound);
-            byte[] compressedEntitiesData = Zstd.compress(entitiesData);
 
-            outStream.writeInt(compressedEntitiesData.length);
             outStream.writeInt(entitiesData.length);
-            outStream.write(compressedEntitiesData);
+            outStream.write(entitiesData);
+
+            // Extra Tag
+            {
+                if (chunk.getExtraData() == null) {
+                    LOGGER.warn("Chunk at " + chunk.getX() + ", " + chunk.getZ() + " from world " + world.getName() + " has no extra data! When deserialized, this chunk will have an empty extra data tag!");
+                }
+                byte[] extra = serializeCompoundTag(chunk.getExtraData());
+
+                outStream.writeInt(extra.length);
+                outStream.write(extra);
+            }
         }
 
         return outByteStream.toByteArray();

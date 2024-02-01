@@ -66,13 +66,13 @@ Usage: `/swm load-template <template-world> <world>`<br>
 Since version: 2.0.0.<br>
 Description: Creates a clone of the provided template world. This can be used to create many copies of the same world. 
 
+**Cloned template worlds are temporary, and they will never be actually stored anywhere, so any changes to them will be lost once the server is shut down.**
+
 ### /swm clone
 Permission required: `swm.cloneworld`<br>
 Usage: `/swm clone <template-world> <world> [new-data-source]`<br>
 Since version: 2.2.0.<br>
 Description: Creates a clone of the provided template world. If not provided, SWM will use the data source of the template world to save the clone.
-
-**Cloned worlds are temporary, and they will never be actually stored anywhere, so any changes to them will be lost once the server is shut down.**
 
 ### /swm create
 Permission required: `swm.createworld`<br>

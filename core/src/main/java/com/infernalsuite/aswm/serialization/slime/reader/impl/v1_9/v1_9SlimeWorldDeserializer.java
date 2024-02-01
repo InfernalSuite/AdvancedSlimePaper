@@ -1,4 +1,4 @@
-package com.infernalsuite.aswm.serialization.slime.reader.impl.v19;
+package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
@@ -189,6 +189,8 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                 extraCompound = new CompoundTag("", new CompoundMap());
             }
 
+            if (version <= 0x05) {}
+
             // World Maps
 //            CompoundTag mapsCompound = readCompoundTag(mapsTag);
 //            List<CompoundTag> mapList;
@@ -294,7 +296,6 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                     int chunkX = minX + x;
                     int chunkZ = minZ + z;
 
-
                     chunkMap.put(new ChunkPos(chunkX, chunkZ), new v1_9SlimeChunk(
                             worldName,
                             chunkX,
@@ -372,7 +373,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                 dataStream.skip(hypixelBlocksLength);
             }
 
-            chunkSectionArray[y] = new v1_9SlimeChunkSection(null, null, blockStateTag, biomeTag, blockLightArray, skyLightArray);
+            chunkSectionArray[y] = new v1_9SlimeChunkSection(null, null, null, null, blockStateTag, biomeTag, blockLightArray, skyLightArray);
         }
 
         return new ChunkSectionData(chunkSectionArray, minSectionY, maxSectionY);
@@ -398,31 +399,51 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                 }
 
                 // Block data
-                ListTag<CompoundTag> paletteTag = null;
-                long[] blockStatesArray = null;
+                byte[] blockArray;
+                NibbleArray dataArray;
 
-                // Palette
-                int paletteLength = dataStream.readInt();
-                List<CompoundTag> paletteList = new ArrayList<>(paletteLength);
-                for (int index = 0; index < paletteLength; index++) {
-                    int tagLength = dataStream.readInt();
-                    byte[] serializedTag = new byte[tagLength];
-                    dataStream.read(serializedTag);
+                ListTag<CompoundTag> paletteTag;
+                long[] blockStatesArray;
 
-                    CompoundTag tag = readCompoundTag(serializedTag);
-                    paletteList.add(tag);
+                if (worldVersion >= 0x04) {
+                    // Post 1.13
+                    // Palette
+                    int paletteLength = dataStream.readInt();
+                    List<CompoundTag> paletteList = new ArrayList<>(paletteLength);
+                    for (int index = 0; index < paletteLength; index++) {
+                        int tagLength = dataStream.readInt();
+                        byte[] serializedTag = new byte[tagLength];
+                        dataStream.read(serializedTag);
+
+                        CompoundTag tag = readCompoundTag(serializedTag);
+                        paletteList.add(tag);
+                    }
+
+                    paletteTag = new ListTag<>("", TagType.TAG_COMPOUND, paletteList);
+
+                    // Block states
+                    int blockStatesArrayLength = dataStream.readInt();
+                    blockStatesArray = new long[blockStatesArrayLength];
+
+                    for (int index = 0; index < blockStatesArrayLength; index++) {
+                        blockStatesArray[index] = dataStream.readLong();
+                    }
+
+                    blockArray = null;
+                    dataArray = null;
+                } else {
+                    // Pre 1.13
+                    blockArray = new byte[4096];
+                    dataStream.read(blockArray);
+
+                    // Block Data Nibble Array
+                    byte[] dataByteArray = new byte[2048];
+                    dataStream.read(dataByteArray);
+                    dataArray = new NibbleArray((dataByteArray));
+
+                    paletteTag = null;
+                    blockStatesArray = null;
                 }
-
-                paletteTag = new ListTag<>("", TagType.TAG_COMPOUND, paletteList);
-
-                // Block states
-                int blockStatesArrayLength = dataStream.readInt();
-                blockStatesArray = new long[blockStatesArrayLength];
-
-                for (int index = 0; index < blockStatesArrayLength; index++) {
-                    blockStatesArray[index] = dataStream.readLong();
-                }
-
 
                 // Sky Light Nibble Array
                 NibbleArray skyLightArray;
@@ -441,7 +462,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                     dataStream.skip(hypixelBlocksLength);
                 }
 
-                chunkSectionArray[i] = new v1_9SlimeChunkSection(paletteTag, blockStatesArray, null, null, blockLightArray, skyLightArray);
+                chunkSectionArray[i] = new v1_9SlimeChunkSection(blockArray, dataArray, paletteTag, blockStatesArray, null, null, blockLightArray, skyLightArray);
             }
         }
 

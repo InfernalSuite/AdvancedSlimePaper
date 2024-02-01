@@ -3,6 +3,7 @@ package com.infernalsuite.aswm.api.world;
 import com.flowpowered.nbt.CompoundTag;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * In-memory representation of a SRF chunk.
@@ -53,4 +54,24 @@ public interface SlimeChunk {
      */
     List<CompoundTag> getEntities();
 
+    /**
+     * Returns the extra data of the chunk.
+     * Inside this {@link CompoundTag}
+     * can be stored any information to then be retrieved later, as it's
+     * saved alongside the chunk data.
+     * <br>
+     * <b>Beware, a compound tag under the key "ChunkBukkitValues" will be stored here.
+     * It is used for storing chunk-based Bukkit PDC. Do not overwrite it.</b>
+     *
+     * @return A {@link CompoundTag} containing the extra data of the chunk,
+     */
+    CompoundTag getExtraData();
+
+    /**
+     * Upgrade data used to fix the chunks.
+     * Not intended to be serialized.
+     * @return A {@link CompoundTag} containing the upgrade data of the chunk,
+     */
+    @Nullable
+    CompoundTag getUpgradeData();
 }
