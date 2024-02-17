@@ -177,7 +177,7 @@ index e449b3eebe0d245a2107a6d0018930d32dfc4976..f5da649f4914319229fdba014e1042ab
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index afa5804039d6b15c29f0ddc7d778b5b0b1d9dc6f..586f5020e168de0dabec37015237aa5b4e50fae7 100644
+index a03c59d2800885e90467812f0088787a85d8cd88..75bb1e9355141215c4850f1b57db9434d8212637 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -118,7 +118,14 @@ public class SlimeChunkConverter {
@@ -197,10 +197,10 @@ index afa5804039d6b15c29f0ddc7d778b5b0b1d9dc6f..586f5020e168de0dabec37015237aa5b
          List<CompoundTag> tileEntities = chunk.getTileEntities();
  
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 208339f93fbd078b89d4bbb24fd8f7d3704a4736..a55153bd48a6c20114655afd3f27a0c9fb4c3e38 100644
+index 72a74f0c2cf21c32fa4ffd600cf95eaee003aec6..95133e0ff8a8bdfc84c1dd7ff6b2c7ed7ae9a2f9 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -114,7 +114,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -115,7 +115,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
          this.chunkStorage.put(new ChunkPos(x, z),
                  new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
@@ -209,7 +209,7 @@ index 208339f93fbd078b89d4bbb24fd8f7d3704a4736..a55153bd48a6c20114655afd3f27a0c9
      }
  
      @Override
-@@ -240,7 +240,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -241,7 +241,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                              clonedChunk.getHeightMaps(),
                              clonedChunk.getTileEntities(),
                              clonedChunk.getEntities(),

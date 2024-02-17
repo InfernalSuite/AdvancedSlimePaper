@@ -95,14 +95,14 @@ index b20a037679182e3c4a8bf31f084078f6d7e4ff46..e449b3eebe0d245a2107a6d0018930d3
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..afa5804039d6b15c29f0ddc7d778b5b0b1d9dc6f 100644
+index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..a03c59d2800885e90467812f0088787a85d8cd88 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -165,6 +165,13 @@ public class SlimeChunkConverter {
              Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
          }
  
-+        var nmsExtraData = (net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getExtraData());
++        net.minecraft.nbt.CompoundTag nmsExtraData = (net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getExtraData());
 +
 +        // Attempt to read PDC from the extra tag
 +        if (nmsExtraData.get("ChunkBukkitValues") != null) {
@@ -114,10 +114,18 @@ index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..afa5804039d6b15c29f0ddc7d778b5b0
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3704a4736 100644
+index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..72a74f0c2cf21c32fa4ffd600cf95eaee003aec6 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -88,11 +88,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -1,6 +1,7 @@
+ package com.infernalsuite.aswm.level;
+ 
+ import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.Tag;
+ import com.infernalsuite.aswm.ChunkPos;
+ import com.infernalsuite.aswm.Converter;
+ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+@@ -88,11 +89,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                      0L, null, null, null);
  
@@ -131,7 +139,7 @@ index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3
          }
          this.chunkStorage.put(new ChunkPos(x, z), chunk);
  
-@@ -105,7 +105,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -105,7 +106,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          final int x = providedChunk.locX;
          final int z = providedChunk.locZ;
  
@@ -140,7 +148,7 @@ index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3
  
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
              this.chunkStorage.remove(new ChunkPos(x, z));
-@@ -114,7 +114,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -114,7 +115,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
          this.chunkStorage.put(new ChunkPos(x, z),
                  new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
@@ -149,13 +157,13 @@ index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..208339f93fbd078b89d4bbb24fd8f7d3
      }
  
      @Override
-@@ -227,13 +227,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -227,13 +228,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                          continue;
                      }
  
 +                    // Serialize Bukkit Values (PDC)
 +
-+                    var flowTag = Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound());
++                    Tag<?> flowTag = Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound());
 +
 +                    clonedChunk.getExtraData().getValue().put(flowTag);
 +
@@ -186,10 +194,10 @@ index 65b475b1292e01c918c1f8144599b5fa78688e97..a525fa1781535d458c5ecb67e2615206
                  try {
                      byte[] serializedWorld = SlimeSerializer.serialize(world);
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 46b3bc312c0e162716ac0593f8ce02dfe100d52b..7b57c566398fb4a35ce50b45b011c94dab3be498 100644
+index 584494d179bbc3ade7a8ba2385c6102a7d0684a5..f069840610242adac3166903efc5b7f94bc1a49a 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -457,7 +457,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+@@ -451,7 +451,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
                  io.papermc.paper.chunk.system.io.RegionFileIOThread.getIOBlockingPriorityForCurrentThread()
              );
          }
