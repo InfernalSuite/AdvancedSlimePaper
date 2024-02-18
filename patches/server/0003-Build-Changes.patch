@@ -5,7 +5,7 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index dd06e5f40b7c92ff31af51e83bfdc85ce160ee48..d7655979c24f7e24c8ee7dc0d242d92fd3fc69a9 100644
+index be5c4212aebed4a932ee2c688b2a31640eca3dc7..d03c9c385d6d969f0de33fa7d8dc547699f64493 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -13,8 +13,13 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
@@ -17,7 +17,7 @@ index dd06e5f40b7c92ff31af51e83bfdc85ce160ee48..d7655979c24f7e24c8ee7dc0d242d92f
 +    // ASWM start
 +    implementation(project(":slimeworldmanager-api"))
 +    implementation(project(":core"))
-+    implementation("io.papermc.paper:paper-mojangapi:1.20-R0.1-SNAPSHOT") {
++    implementation("io.papermc.paper:paper-mojangapi:1.20.4-R0.1-SNAPSHOT") {
 +        exclude("io.papermc.paper", "paper-api")
 +    }
 +    // ASWM end

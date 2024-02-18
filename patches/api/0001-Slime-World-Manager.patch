@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index e827ee211e3c65dc68ac5867fd8476639df63645..1fd7438886c68e91377b1d570e3952fcb70750c2 100644
+index 9d817bf3f26ffd484945a00a6538970eca22ee20..96a5e0f59a6dde3ea2e53b658e2d2c79d09f8d9c 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -1,3 +1,5 @@
@@ -21,4 +21,4 @@ index e827ee211e3c65dc68ac5867fd8476639df63645..1fd7438886c68e91377b1d570e3952fc
 +    api(project(":api")) // ASWM
      api("com.google.guava:guava:32.1.2-jre")
      api("com.google.code.gson:gson:2.10.1")
-     api("net.md-5:bungeecord-chat:$bungeeCordChatVersion-deprecated+build.14") // Paper
+     // Paper start - adventure

@@ -1,0 +1,221 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 6 Jan 2024 22:23:55 +0100
+Subject: [PATCH] Add migration from SRF 1-8
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+index ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6..ba203e3dc9f6b0be5a92c30808daa0c284616f09 100644
+--- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+@@ -1,5 +1,6 @@
+ package com.infernalsuite.aswm;
+ 
++import ca.spottedleaf.dataconverter.converters.DataConverter;
+ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+ import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
+ import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+@@ -30,18 +31,21 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+             return data;
+         }
+ 
++        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
++        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
++
+         Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
+         for (SlimeChunk chunk : data.getChunkStorage()) {
+             List<CompoundTag> entities = new ArrayList<>();
+             List<CompoundTag> blockEntities = new ArrayList<>();
+             for (CompoundTag upgradeEntity : chunk.getTileEntities()) {
+                 blockEntities.add(
+-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
++                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+                 );
+             }
+             for (CompoundTag upgradeEntity : chunk.getEntities()) {
+                 entities.add(
+-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
++                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+                 );
+             }
+ 
+@@ -53,11 +57,11 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+                 if (dataSection == null) continue;
+ 
+                 com.flowpowered.nbt.CompoundTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+-                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", currentVersion, newVersion);
++                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+                 });
+ 
+                 com.flowpowered.nbt.CompoundTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
+-                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", currentVersion, newVersion);
++                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+                 });
+ 
+                 sections[i] = new SlimeChunkSectionSkeleton(
+@@ -75,7 +79,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+                     chunk.getHeightMaps(),
+                     blockEntities,
+                     entities,
+-                    chunk.getExtraData()
++                    chunk.getExtraData(),
++                    chunk.getUpgradeData()
+             ));
+ 
+         }
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 21c3ea3596a1f954618348afae2b2f7f058393d1..18f0f7933c42a7609a3d7bd775b24c372baae175 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -1,5 +1,8 @@
+ package com.infernalsuite.aswm;
+ 
++import ca.spottedleaf.dataconverter.converters.DataConverter;
++import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
++import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+ import com.flowpowered.nbt.CompoundMap;
+ import com.infernalsuite.aswm.api.SlimeNMSBridge;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+@@ -9,7 +12,6 @@ import com.infernalsuite.aswm.level.SlimeBootstrap;
+ import com.infernalsuite.aswm.level.SlimeInMemoryWorld;
+ import com.infernalsuite.aswm.level.SlimeLevelInstance;
+ import com.mojang.serialization.Lifecycle;
+-import net.kyori.adventure.util.Services;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.core.registries.Registries;
+ import net.minecraft.nbt.CompoundTag;
+@@ -76,6 +78,20 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         return container;
+     }
+ 
++    @Override
++    public com.flowpowered.nbt.CompoundTag convertChunkTo1_13(com.flowpowered.nbt.CompoundTag tag) {
++        CompoundTag converted = (CompoundTag) Converter.convertTag(tag);
++
++        int version = converted.getInt("DataVersion");
++
++        long encodedNewVersion = DataConverter.encodeVersions(1624, Integer.MAX_VALUE);
++        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
++
++        MCTypeRegistry.CHUNK.convert(new NBTMapType(converted), encodedCurrentVersion, encodedNewVersion);
++
++        return (com.flowpowered.nbt.CompoundTag) Converter.convertTag(tag.getName(), converted);
++    }
++
+     @Override
+     public boolean loadOverworldOverride() {
+         if (defaultWorld == null) {
+@@ -166,7 +182,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         return DATA_FIXER_CONVERTER.readFromData(world);
+     }
+ 
+-
+     @Override
+     public int getCurrentVersion() {
+         return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index ad30e83670ca88f09fa7625fc52c224247410623..e183ca25bf67a0519de7a91615fbcfc6ff45a56e 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -26,10 +26,7 @@ import net.minecraft.world.level.block.Block;
+ import net.minecraft.world.level.block.Blocks;
+ import net.minecraft.world.level.block.entity.BlockEntity;
+ import net.minecraft.world.level.block.state.BlockState;
+-import net.minecraft.world.level.chunk.LevelChunk;
+-import net.minecraft.world.level.chunk.LevelChunkSection;
+-import net.minecraft.world.level.chunk.PalettedContainer;
+-import net.minecraft.world.level.chunk.PalettedContainerRO;
++import net.minecraft.world.level.chunk.*;
+ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.levelgen.Heightmap;
+ import net.minecraft.world.level.lighting.LevelLightEngine;
+@@ -67,11 +64,13 @@ public class NMSSlimeChunk implements SlimeChunk {
+     }
+ 
+     private LevelChunk chunk;
+-    private CompoundTag extra;
++    private final CompoundTag extra;
++    private final CompoundTag upgradeData;
+ 
+     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
+         this.chunk = chunk;
+         this.extra = reference == null ? new CompoundTag("", new CompoundMap()) : reference.getExtraData();
++        this.upgradeData = reference == null ? null : reference.getUpgradeData();
+     }
+ 
+     @Override
+@@ -199,6 +198,11 @@ public class NMSSlimeChunk implements SlimeChunk {
+         return extra;
+     }
+ 
++    @Override
++    public CompoundTag getUpgradeData() {
++        return upgradeData;
++    }
++
+     public LevelChunk getChunk() {
+         return chunk;
+     }
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+index e449b3eebe0d245a2107a6d0018930d32dfc4976..f5da649f4914319229fdba014e1042abca62f835 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+@@ -71,6 +71,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
+         return this.wrapper.getExtraData();
+     }
+ 
++    @Override
++    public CompoundTag getUpgradeData() {
++        if (shouldDefaultBackToSlimeChunk()) {
++            return this.safety.getUpgradeData();
++        }
++
++        return this.wrapper.getUpgradeData();
++    }
++
+     /*
+ Slime chunks can still be requested but not actually loaded, this caused
+ some things to not properly save because they are not "loaded" into the chunk.
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+index a03c59d2800885e90467812f0088787a85d8cd88..75bb1e9355141215c4850f1b57db9434d8212637 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+@@ -118,7 +118,14 @@ public class SlimeChunkConverter {
+ 
+         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
+         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
+-        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
++
++        UpgradeData upgradeData;
++        if (chunk.getUpgradeData() != null) {
++            upgradeData = new UpgradeData((net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getUpgradeData()), instance);
++        } else {
++            upgradeData = UpgradeData.EMPTY;
++        }
++        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, upgradeData, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
+ 
+         List<CompoundTag> tileEntities = chunk.getTileEntities();
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index 72a74f0c2cf21c32fa4ffd600cf95eaee003aec6..95133e0ff8a8bdfc84c1dd7ff6b2c7ed7ae9a2f9 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -115,7 +115,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+ 
+         this.chunkStorage.put(new ChunkPos(x, z),
+                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
+-                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData()));
++                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData(), null));
+     }
+ 
+     @Override
+@@ -241,7 +241,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+                             clonedChunk.getHeightMaps(),
+                             clonedChunk.getTileEntities(),
+                             clonedChunk.getEntities(),
+-                            clonedChunk.getExtraData()
++                            clonedChunk.getExtraData(),
++                            clonedChunk.getUpgradeData()
+                     );
+                 }
+             }
