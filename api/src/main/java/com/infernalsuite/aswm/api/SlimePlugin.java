@@ -1,6 +1,8 @@
 package com.infernalsuite.aswm.api;
 
 import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
+import com.infernalsuite.aswm.api.loaders.SlimeFormatAdapter;
+import com.infernalsuite.aswm.api.world.ActiveSlimeWorld;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
@@ -11,6 +13,9 @@ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.exceptions.WorldLoadedException;
 import com.infernalsuite.aswm.api.exceptions.WorldTooBigException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +57,15 @@ public interface SlimePlugin {
     SlimeWorld getWorld(String worldName);
 
     /**
+     * Returns the loaded {@link ActiveSlimeWorld} from a given bukkit world, if backed by ASWM.
+     *
+     * @param bukkitWorld Bukkit World
+     * @return active slime world instance, or {@code null} if the provided world is not backed by a slime world
+     */
+    @Nullable
+    ActiveSlimeWorld getActiveWorld(@NotNull World bukkitWorld);
+
+    /**
      * Gets a list of worlds which have been loaded by ASWM.
      * Note: The returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
      *
@@ -75,13 +89,22 @@ public interface SlimePlugin {
     SlimeWorld createEmptyWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws WorldAlreadyExistsException, IOException;
 
     /**
+     * Creates a read-only empty world without registering it or binding it to a loader.
+     *
+     * @param worldName Name the loaded world will assume.
+     * @param propertyMap A {@link SlimePropertyMap} with the world properties.
+     * @return A {@link SlimeWorld} that is empty, doesn't have a loader and is unregistered
+     */
+    SlimeWorld createUnboundEmptyWorld(@NotNull String worldName, @NotNull SlimePropertyMap propertyMap);
+
+    /**
      * Generates a Minecraft World from a {@link SlimeWorld} and
      * adds it to the server's world list.
      *
      * @param world {@link SlimeWorld} world to be added to the server's world list
      * @return Returns a slime world representing a live minecraft world
      */
-    default SlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException {
+    default ActiveSlimeWorld loadWorld(SlimeWorld world) throws UnknownWorldException, WorldLockedException, IOException {
         return loadWorld(world, false);
     }
 
@@ -93,7 +116,7 @@ public interface SlimePlugin {
      * @param callWorldLoadEvent Whether or not to call {@link org.bukkit.event.world.WorldLoadEvent}
      * @return Returns a slime world representing a live minecraft world
      */
-    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws UnknownWorldException, WorldLockedException, IOException;
+    ActiveSlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws UnknownWorldException, WorldLockedException, IOException;
 
     /**
      * Migrates a {@link SlimeWorld} to another datasource.
@@ -162,4 +185,11 @@ public interface SlimePlugin {
 //    CompletableFuture<Void> asyncMigrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader);
 //
 //    CompletableFuture<Void> asyncImportWorld(File worldDir, String worldName, SlimeLoader loader);
+
+    /**
+     * Returns the default slime format adapter.
+     *
+     * @return A format adapter to serialize/deserialize worlds.
+     */
+    SlimeFormatAdapter getDefaultFormatAdapter();
 }
