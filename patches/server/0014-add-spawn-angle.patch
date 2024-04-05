@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: edoardo <edoardomannino@gmail.com>
+Date: Fri, 5 Apr 2024 20:39:48 +0200
+Subject: [PATCH] add spawn angle
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index a525fa1781535d458c5ecb67e261520692c858ac..4678c7841b27b43ac3faf5e2a7fca1a987eee5e8 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -95,7 +95,7 @@ public class SlimeLevelInstance extends ServerLevel {
+         SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
+ 
+         this.serverLevelData.setDifficulty(Difficulty.valueOf(propertyMap.getValue(SlimeProperties.DIFFICULTY).toUpperCase()));
+-        this.serverLevelData.setSpawn(new BlockPos(propertyMap.getValue(SlimeProperties.SPAWN_X), propertyMap.getValue(SlimeProperties.SPAWN_Y), propertyMap.getValue(SlimeProperties.SPAWN_Z)), 0);
++        this.serverLevelData.setSpawn(new BlockPos(propertyMap.getValue(SlimeProperties.SPAWN_X), propertyMap.getValue(SlimeProperties.SPAWN_Y), propertyMap.getValue(SlimeProperties.SPAWN_Z)), propertyMap.getValue(SlimeProperties.SPAWN_ANGLE));
+         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+ 
+         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index a139601888b88e8580bdb9c2469386a94abae975..831169d1b93d6b1ae443f4ce7923eba8bb70dbd6 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
+ import com.google.common.base.Predicates;
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.ImmutableMap;
++import com.infernalsuite.aswm.api.SlimePlugin;
++import com.infernalsuite.aswm.api.world.SlimeWorld;
++import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+ import com.mojang.datafixers.util.Pair;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+@@ -293,6 +296,15 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+     public boolean setSpawnLocation(Location location) {
+         Preconditions.checkArgument(location != null, "location");
+ 
++        SlimePlugin slimePlugin = (SlimePlugin) server.getPluginManager().getPlugin("SlimeWorldManager");
++        SlimeWorld slimeWorld = slimePlugin.getWorld(location.getWorld().getName());
++        if (slimeWorld != null) {
++                slimeWorld.getPropertyMap().setValue(SlimeProperties.SPAWN_X, (int) location.getX());
++                slimeWorld.getPropertyMap().setValue(SlimeProperties.SPAWN_Y, (int)  location.getY());
++                slimeWorld.getPropertyMap().setValue(SlimeProperties.SPAWN_Z, (int)  location.getZ());
++                slimeWorld.getPropertyMap().setValue(SlimeProperties.SPAWN_ANGLE, location.getYaw());
++        }
++
+         return this.equals(location.getWorld()) ? this.setSpawnLocation(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getYaw()) : false;
+     }
+ 
