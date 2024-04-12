@@ -5,10 +5,10 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 376e8983fdfdbb6c3e5fd8ad0f6a05e655b622bf..a02dc4719674bf82cf702317952f1212ad7d569d 100644
+index bcfe59b6efb628ee1e7f9d60667360d4d885fb6a..55bd0f98ec8d19f7aeda85190f89fbc6556897b3 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -69,7 +69,7 @@ tasks.jar {
+@@ -71,7 +71,7 @@ tasks.jar {
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
              "Implementation-Title" to "CraftBukkit",
@@ -17,7 +17,7 @@ index 376e8983fdfdbb6c3e5fd8ad0f6a05e655b622bf..a02dc4719674bf82cf702317952f1212
              "Implementation-Vendor" to date, // Paper
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
-@@ -153,7 +153,7 @@ fun TaskContainer.registerRunTask(
+@@ -150,7 +150,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
@@ -1940,10 +1940,10 @@ index f0b03a05387e38ca6933b1ea6fe59b537d5535b9..49789a0385c2f78f1e6a51db70ca5373
                                      final int chunkZ, final PrioritisedExecutor.Priority priority) {
              super(scheduler, world, chunkX, chunkZ, RegionFileIOThread.RegionFileType.CHUNK_DATA, priority);
 diff --git a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
-index 7e8dc9e8f381abfdcce2746edc93122d623622d1..12aadf4c981cdb1a6405de99016f4b40e83a04b8 100644
+index c78cbec447032de9fe69748591bef6be300160ed..e74c54398373fb1f17ab719dbc63d72bc08eb5b3 100644
 --- a/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
 +++ b/src/main/java/io/papermc/paper/world/ChunkEntitySlices.java
-@@ -36,7 +36,7 @@ public final class ChunkEntitySlices {
+@@ -37,7 +37,7 @@ public final class ChunkEntitySlices {
      protected final EntityCollectionBySection allEntities;
      protected final EntityCollectionBySection hardCollidingEntities;
      protected final Reference2ObjectOpenHashMap<Class<? extends Entity>, EntityCollectionBySection> entitiesByClass;
@@ -1953,7 +1953,7 @@ index 7e8dc9e8f381abfdcce2746edc93122d623622d1..12aadf4c981cdb1a6405de99016f4b40
      public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index fa2b4cdd4c4e2c1df3e378a7c706f06c3361ad53..11bf1e86a4fc04a519a6f1dc7ec94003962419b3 100644
+index 27db614d46dffc2d10f18d79cc5a084f3421d86b..3c3095ecec8745981e6dc715187abd6039816496 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -273,7 +273,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2054,7 +2054,7 @@ index fa2b4cdd4c4e2c1df3e378a7c706f06c3361ad53..11bf1e86a4fc04a519a6f1dc7ec94003
                      throw new RuntimeException(ex);
                  }
              }
-@@ -1854,7 +1869,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1865,7 +1880,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
      @DontObfuscate
      public String getServerModName() {
@@ -2081,7 +2081,7 @@ index 366c0c9b45a819f7f94ebe3e49b8ab7f9edf9ce7..844f9a563dd7ec05f5d4970e9eff38fe
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 6934e9dac0d69c043b73b7c46d59f2d39b37c67f..584494d179bbc3ade7a8ba2385c6102a7d0684a5 100644
+index 502bdc726b7890b00ee36871d905dea44e8719e3..99c8785f970465e68c883799af0634ae29d597de 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -688,6 +688,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2135,11 +2135,11 @@ index 6934e9dac0d69c043b73b7c46d59f2d39b37c67f..584494d179bbc3ade7a8ba2385c6102a
          this.serverLevelData.setClearWeatherTime(clearDuration);
          this.serverLevelData.setRainTime(rainDuration);
 diff --git a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-index 983799520ce052d98c9231f4f7925492d4f7d5c9..15f655f257a1eb64f6d6da7222f82230cf5737e4 100644
+index adfbdca12fbdee2602feb0158674166d5256e49e..d5fcd0d4d5a6581a8f3fb0f4824639e9b17cd753 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-@@ -31,7 +31,8 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
-     };
+@@ -29,7 +29,8 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+     private final PaletteResize<T> dummyPaletteResize = (newSize, added) -> 0;
      public final IdMap<T> registry;
      private final T @org.jetbrains.annotations.Nullable [] presetValues; // Paper - Anti-Xray - Add preset values
 -    private volatile PalettedContainer.Data<T> data;
@@ -2148,17 +2148,17 @@ index 983799520ce052d98c9231f4f7925492d4f7d5c9..15f655f257a1eb64f6d6da7222f82230
      private final PalettedContainer.Strategy strategy;
      // private final ThreadingDetector threadingDetector = new ThreadingDetector("PalettedContainer"); // Paper - unused
  
-@@ -399,7 +400,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+@@ -394,7 +395,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
          void accept(T object, int count);
      }
  
 -    static record Data<T>(PalettedContainer.Configuration<T> configuration, BitStorage storage, Palette<T> palette) {
 +    public static record Data<T>(PalettedContainer.Configuration<T> configuration, BitStorage storage, Palette<T> palette) { // ASWM
          public void copyFrom(Palette<T> palette, BitStorage storage) {
-             for(int i = 0; i < storage.getSize(); ++i) {
+             for (int i = 0; i < storage.getSize(); i++) {
                  T object = palette.valueFor(storage.get(i));
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index afc583d5726a572f606469bba3aaba4600827992..ed6bb6663b3cd61595f19010330121760fdc6bed 100644
+index d53c4f3d47a8728d56fbd9b5e12be51885560d52..cca835b67337321f48622bde0d5aa390d645c1d6 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 @@ -439,7 +439,7 @@ public class ChunkSerializer {
@@ -2171,10 +2171,10 @@ index afc583d5726a572f606469bba3aaba4600827992..ed6bb6663b3cd61595f1901033012176
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 25f41119bcc19bab7cd2fdb044147b3f78a8ef1c..ce9bb150c2412f70d5d715fc13af6d8dd4ef9640 100644
+index c490a29bcf7410bc54959ee71375605964379ed5..0fd7cb70917a22825e44784d383797ae588da80d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -264,7 +264,7 @@ import javax.annotation.Nullable; // Paper
+@@ -266,7 +266,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {
