@@ -26,7 +26,7 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..3980d993f5d441587675a0f07cda6416
              LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
          } else {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index ed6bb6663b3cd61595f19010330121760fdc6bed..815786a943e640ea1cc93fef9fa1d38656b83306 100644
+index cca835b67337321f48622bde0d5aa390d645c1d6..3c1d10dcf777e2a1a3c3473c822743a2044d5bc6 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 @@ -1,6 +1,9 @@

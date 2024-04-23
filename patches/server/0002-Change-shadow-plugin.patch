@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Philip Kelley <philip@thoriumcube.org>
+Date: Tue, 23 Apr 2024 17:06:36 +0100
+Subject: [PATCH] Change shadow plugin
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 55bd0f98ec8d19f7aeda85190f89fbc6556897b3..2cc26e35857b0550f6bf07b31b3146205eb8db11 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -3,7 +3,7 @@ import io.papermc.paperweight.util.*
+ plugins {
+     java
+     `maven-publish`
+-    id("com.github.johnrengelman.shadow")
++    id("io.github.goooler.shadow")
+ }
+ 
+ val log4jPlugins = sourceSets.create("log4jPlugins")
