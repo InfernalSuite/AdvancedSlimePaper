@@ -5,14 +5,13 @@ Subject: [PATCH] Change shadow plugin
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 55bd0f98ec8d19f7aeda85190f89fbc6556897b3..2cc26e35857b0550f6bf07b31b3146205eb8db11 100644
+index fbdce1cf7cd1c27f94e011e921af48716ae81ea1..088c97e15466e1deba8b2e0bfd7ed7d4757ee81f 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -3,7 +3,7 @@ import io.papermc.paperweight.util.*
+@@ -3,6 +3,7 @@ import io.papermc.paperweight.util.*
  plugins {
      java
      `maven-publish`
--    id("com.github.johnrengelman.shadow")
 +    id("io.github.goooler.shadow")
  }
  
