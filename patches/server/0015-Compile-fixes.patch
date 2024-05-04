@@ -1,0 +1,132 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AverageGithub <adorjantoto09@gmail.com>
+Date: Sat, 4 May 2024 20:18:16 +0200
+Subject: [PATCH] Compile fixes
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e09b756bb2 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -46,18 +46,14 @@ public class NMSSlimeChunk implements SlimeChunk {
+     static {
+         {
+             PalettedContainer<BlockState> empty = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
+-            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow(false, (error) -> {
+-                throw new AssertionError(error);
+-            });
++            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+ 
+             EMPTY_BLOCK_STATE_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+         }
+         {
+             Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
+             PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.asHolderIdMap(), biomes.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
+-            Tag tag = ChunkSerializer.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow(false, (error) -> {
+-                throw new AssertionError(error);
+-            });
++            Tag tag = ChunkSerializer.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+ 
+             EMPTY_BIOME_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+         }
+@@ -110,7 +106,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+             if (section.hasOnlyAir()) {
+                 blockStateTag = EMPTY_BLOCK_STATE_PALETTE;
+             } else {
+-                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(false, System.err::println); // todo error handling
++                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
+                 blockStateTag = (CompoundTag) Converter.convertTag("", data);
+             }
+ 
+@@ -120,7 +116,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+             if (biomes.data.palette().getSize() == 1 && biomes.data.palette().maybeHas((h) -> h.is(Biomes.PLAINS))) {
+                 biomeTag = EMPTY_BIOME_PALETTE;
+             } else {
+-                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(false, System.err::println); // todo error handling
++                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
+                 biomeTag = (CompoundTag) Converter.convertTag("", biomeData);
+             }
+ 
+@@ -154,7 +150,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+         List<net.minecraft.nbt.CompoundTag> tileEntities = new ArrayList<>();
+ 
+         for (BlockEntity entity : chunk.blockEntities.values()) {
+-            net.minecraft.nbt.CompoundTag entityNbt = entity.saveWithFullMetadata();
++            net.minecraft.nbt.CompoundTag entityNbt = entity.saveWithFullMetadata(net.minecraft.server.MinecraftServer.getServer().registryAccess());
+             tileEntities.add(entityNbt);
+         }
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+index 586f5020e168de0dabec37015237aa5b4e50fae7..cdd964e57b6857c2da2010fa953c47195cecd49e 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+@@ -78,7 +78,7 @@ public class SlimeChunkConverter {
+                     DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
+                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
+                     });
+-                    blockPalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
++                    blockPalette = dataresult.getOrThrow(); // todo proper logging
+                 } else {
+                     blockPalette = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
+                 }
+@@ -89,7 +89,7 @@ public class SlimeChunkConverter {
+                     DataResult<PalettedContainer<Holder<Biome>>> dataresult = codec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBiomeTag())).promotePartial((s) -> {
+                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
+                     });
+-                    biomePalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
++                    biomePalette = dataresult.getOrThrow(); // todo proper logging
+                 } else {
+                     biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
+                 }
+@@ -137,7 +137,7 @@ public class SlimeChunkConverter {
+                 if (type.isPresent()) {
+                     BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
+                     BlockState blockData = nmsChunk.getBlockState(blockPosition);
+-                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
++                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag), net.minecraft.server.MinecraftServer.getServer().registryAccess());
+ 
+                     if (entity != null) {
+                         nmsChunk.setBlockEntity(entity);
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
+index 4f48b7a1a41aabc78cc9276fbf9f372cb117003f..aa3ed7005ddfda74b2c3ca1e1dde810c62aa1ce7 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
+@@ -1,6 +1,7 @@
+ package com.infernalsuite.aswm.level;
+ 
+ import com.mojang.serialization.Codec;
++import com.mojang.serialization.MapCodec;
+ import net.minecraft.core.Holder;
+ import net.minecraft.world.level.biome.Biome;
+ import net.minecraft.world.level.biome.BiomeSource;
+@@ -21,7 +22,7 @@ public class SlimeLevelGenerator extends FlatLevelSource {
+     private static BiomeSource getSource(Holder<Biome> biome) {
+         return new BiomeSource() {
+             @Override
+-            protected Codec<? extends BiomeSource> codec() {
++            protected MapCodec<? extends BiomeSource> codec() {
+                 return null;
+             }
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index a525fa1781535d458c5ecb67e261520692c858ac..5760368a5c70612941e6b1a78f0b4dfef3c7d07f 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -99,8 +99,6 @@ public class SlimeLevelInstance extends ServerLevel {
+         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+ 
+         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
+-
+-        this.keepSpawnInMemory = false;
+     }
+ 
+     @Override
+@@ -119,7 +117,7 @@ public class SlimeLevelInstance extends ServerLevel {
+ 
+                 //this.getChunkSource().save(forceSave);
+                 this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
+-                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save());
++                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
+ 
+                 // Update level data
+                 net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
