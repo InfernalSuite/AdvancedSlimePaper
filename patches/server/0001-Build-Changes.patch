@@ -5,10 +5,10 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 5d448d8a7cf6626a11791f30ad52baf41a099272..fbdce1cf7cd1c27f94e011e921af48716ae81ea1 100644
+index 87bb3fd9b97506f61734ae7f2e6860610ba794e7..745bee8b7fbe80cd71e9090b45f41a4baf2a7abc 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -79,7 +79,7 @@ tasks.jar {
+@@ -78,7 +78,7 @@ tasks.jar {
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
              "Implementation-Title" to "CraftBukkit",
@@ -17,7 +17,7 @@ index 5d448d8a7cf6626a11791f30ad52baf41a099272..fbdce1cf7cd1c27f94e011e921af4871
              "Implementation-Vendor" to date, // Paper
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
-@@ -138,7 +138,7 @@ fun TaskContainer.registerRunTask(
+@@ -137,7 +137,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
@@ -1953,7 +1953,7 @@ index c78cbec447032de9fe69748591bef6be300160ed..e74c54398373fb1f17ab719dbc63d72b
      public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e6fdf9352 100644
+index 39303bb4e336732db0ab19dee0c1f8b609bbb134..104eba3f0580012e084c6f19c9f29e0c3e02b5b1 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -279,7 +279,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -1965,7 +1965,7 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private boolean enforceWhitelist;
-@@ -471,51 +471,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -470,51 +470,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
@@ -2045,7 +2045,7 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
                          MinecraftServer.LOGGER.warn("Could not create path for " + newWorld + "!");
                          MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
                      }
-@@ -523,7 +538,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -522,7 +537,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
                  try {
                      worldSession = LevelStorageSource.createDefault(this.server.getWorldContainer().toPath()).validateAndCreateAccess(name, dimensionKey);
@@ -2054,7 +2054,7 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
                      throw new RuntimeException(ex);
                  }
              }
-@@ -1924,7 +1939,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1926,7 +1941,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
      @DontObfuscate
      public String getServerModName() {
@@ -2081,7 +2081,7 @@ index b99f50604bafecbc68835974c9ed0caa91911a40..d3fdc1f72b02508e0f2126e3f995d416
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 0981d440d0dbfe4df668d1f3f1b5706a93bc4434..ff38b841a8a494ee42307c7d0aa68c6beb9f8645 100644
+index ca56a0b596976448da6bb2a0e82b3d5cd4133e12..699d7d9c000b21bdfe850b2a0899668649e87cf9 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -693,6 +693,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2158,10 +2158,10 @@ index 81368bf186365878db2e1ed305bb7bf36c26f61f..ca6d53d4535d0f92c4ffa1f35452574c
              for (int i = 0; i < storage.getSize(); i++) {
                  T object = palette.valueFor(storage.get(i));
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index db932f8e9d48e1e47a89526d1d76947e91b55eea..dc5fc249ae434143688aecd2c8962acca2a8956e 100644
+index 26431a814f6472689484dcc7cd8183fe1676e17e..7da17001d9f676c906e94bcfaaeafc0a1668d210 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-@@ -433,7 +433,7 @@ public class ChunkSerializer {
+@@ -434,7 +434,7 @@ public class ChunkSerializer {
          ChunkSerializer.LOGGER.error("Recoverable errors when loading section [" + chunkPos.x + ", " + y + ", " + chunkPos.z + "]: " + message);
      }
  
@@ -2171,10 +2171,10 @@ index db932f8e9d48e1e47a89526d1d76947e91b55eea..dc5fc249ae434143688aecd2c8962acc
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 05e304f9fc8d0291fa779da589bd060ef4165b49..b3083ea25a6a91942e8028a18d465d320220342a 100644
+index da1aed63af837b193900bb85393611edbd56c363..e45c38d727c1e8a37728d0dca5315b8d19bdd2d5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -268,7 +268,7 @@ import javax.annotation.Nullable; // Paper
+@@ -269,7 +269,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {
