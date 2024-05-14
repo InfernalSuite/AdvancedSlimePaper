@@ -36,110 +36,113 @@ public class v11SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
 
     @Override
     public SlimeWorld deserializeWorld(byte version, @Nullable SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly) throws IOException, CorruptedWorldException, NewerFormatException {
-        int worldVersion = dataStream.readInt();
+        try (dataStream) {
+            int worldVersion = dataStream.readInt();
 
-        byte[] chunkBytes = readCompressed(dataStream);
-        Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
+            byte[] chunkBytes = readCompressed(dataStream);
+            Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
 
-        byte[] extraTagBytes = readCompressed(dataStream);
-        CompoundTag extraTag = readCompound(extraTagBytes);
+            byte[] extraTagBytes = readCompressed(dataStream);
+            CompoundTag extraTag = readCompound(extraTagBytes);
 
-        SlimePropertyMap worldPropertyMap = propertyMap;
-        Optional<CompoundMap> propertiesMap = extraTag
-                .getAsCompoundTag("properties")
-                .map(CompoundTag::getValue);
+            SlimePropertyMap worldPropertyMap = propertyMap;
+            Optional<CompoundMap> propertiesMap = extraTag
+                    .getAsCompoundTag("properties")
+                    .map(CompoundTag::getValue);
 
-        if (propertiesMap.isPresent()) {
-            worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
-            worldPropertyMap.merge(propertyMap);
+            if (propertiesMap.isPresent()) {
+                worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
+                worldPropertyMap.merge(propertyMap);
+            }
+
+            return new SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraTag, worldPropertyMap, worldVersion);
         }
-
-        return new SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraTag, worldPropertyMap, worldVersion);
     }
 
     private static Map<ChunkPos, SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, byte[] chunkBytes) throws IOException {
         Map<ChunkPos, SlimeChunk> chunkMap = new HashMap<>();
-        DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(chunkBytes));
+        try (DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(chunkBytes))) {
 
-        int chunks = chunkData.readInt();
-        for (int i = 0; i < chunks; i++) {
-            // ChunkPos
-            int x = chunkData.readInt();
-            int z = chunkData.readInt();
+            int chunks = chunkData.readInt();
+            for (int i = 0; i < chunks; i++) {
+                // ChunkPos
+                int x = chunkData.readInt();
+                int z = chunkData.readInt();
 
-            // Sections
-            int sectionAmount = slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MAX) - slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MIN) + 1;
-            SlimeChunkSection[] chunkSections = new SlimeChunkSection[sectionAmount];
+                // Sections
+                int sectionAmount = slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MAX) - slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MIN) + 1;
+                SlimeChunkSection[] chunkSections = new SlimeChunkSection[sectionAmount];
 
-            int sectionCount = chunkData.readInt();
-            for (int sectionId = 0; sectionId < sectionCount; sectionId++) {
+                int sectionCount = chunkData.readInt();
+                for (int sectionId = 0; sectionId < sectionCount; sectionId++) {
 
-                // Block Light Nibble Array
-                NibbleArray blockLightArray;
-                if (chunkData.readBoolean()) {
-                    byte[] blockLightByteArray = new byte[ARRAY_SIZE];
-                    chunkData.read(blockLightByteArray);
-                    blockLightArray = new NibbleArray(blockLightByteArray);
-                } else {
-                    blockLightArray = null;
+                    // Block Light Nibble Array
+                    NibbleArray blockLightArray;
+                    if (chunkData.readBoolean()) {
+                        byte[] blockLightByteArray = new byte[ARRAY_SIZE];
+                        chunkData.read(blockLightByteArray);
+                        blockLightArray = new NibbleArray(blockLightByteArray);
+                    } else {
+                        blockLightArray = null;
+                    }
+
+                    // Sky Light Nibble Array
+                    NibbleArray skyLightArray;
+                    if (chunkData.readBoolean()) {
+                        byte[] skyLightByteArray = new byte[ARRAY_SIZE];
+                        chunkData.read(skyLightByteArray);
+                        skyLightArray = new NibbleArray(skyLightByteArray);
+                    } else {
+                        skyLightArray = null;
+                    }
+
+                    // Block Data
+                    byte[] blockStateData = new byte[chunkData.readInt()];
+                    chunkData.read(blockStateData);
+                    CompoundTag blockStateTag = readCompound(blockStateData);
+
+                    // Biome Data
+                    byte[] biomeData = new byte[chunkData.readInt()];
+                    chunkData.read(biomeData);
+                    CompoundTag biomeTag = readCompound(biomeData);
+
+                    chunkSections[sectionId] = new SlimeChunkSectionSkeleton(blockStateTag, biomeTag, blockLightArray, skyLightArray);
                 }
 
-                // Sky Light Nibble Array
-                NibbleArray skyLightArray;
-                if (chunkData.readBoolean()) {
-                    byte[] skyLightByteArray = new byte[ARRAY_SIZE];
-                    chunkData.read(skyLightByteArray);
-                    skyLightArray = new NibbleArray(skyLightByteArray);
-                } else {
-                    skyLightArray = null;
-                }
+                // HeightMaps
+                byte[] heightMapData = new byte[chunkData.readInt()];
+                chunkData.read(heightMapData);
+                CompoundTag heightMaps = readCompound(heightMapData);
 
-                // Block Data
-                byte[] blockStateData = new byte[chunkData.readInt()];
-                chunkData.read(blockStateData);
-                CompoundTag blockStateTag = readCompound(blockStateData);
+                // Tile Entities
 
-                // Biome Data
-                byte[] biomeData = new byte[chunkData.readInt()];
-                chunkData.read(biomeData);
-                CompoundTag biomeTag = readCompound(biomeData);
+                int compressedTileEntitiesLength = chunkData.readInt();
+                int decompressedTileEntitiesLength = chunkData.readInt();
+                byte[] compressedTileEntitiesData = new byte[compressedTileEntitiesLength];
+                byte[] decompressedTileEntitiesData = new byte[decompressedTileEntitiesLength];
+                chunkData.read(compressedTileEntitiesData);
+                Zstd.decompress(decompressedTileEntitiesData, compressedTileEntitiesData);
 
-                chunkSections[sectionId] = new SlimeChunkSectionSkeleton(blockStateTag, biomeTag, blockLightArray, skyLightArray);
+                CompoundTag tileEntitiesCompound = readCompound(decompressedTileEntitiesData);
+                @SuppressWarnings("unchecked")
+                List<CompoundTag> serializedTileEntities = ((ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tileEntities")).getValue();
+
+                // Entities
+
+                int compressedEntitiesLength = chunkData.readInt();
+                int decompressedEntitiesLength = chunkData.readInt();
+                byte[] compressedEntitiesData = new byte[compressedEntitiesLength];
+                byte[] decompressedEntitiesData = new byte[decompressedEntitiesLength];
+                chunkData.read(compressedEntitiesData);
+                Zstd.decompress(decompressedEntitiesData, compressedEntitiesData);
+
+                CompoundTag entitiesCompound = readCompound(decompressedEntitiesData);
+                @SuppressWarnings("unchecked")
+                List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
+
+                chunkMap.put(new ChunkPos(x, z),
+                        new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, new CompoundTag("", new CompoundMap()), null));
             }
-
-            // HeightMaps
-            byte[] heightMapData = new byte[chunkData.readInt()];
-            chunkData.read(heightMapData);
-            CompoundTag heightMaps = readCompound(heightMapData);
-
-            // Tile Entities
-
-            int compressedTileEntitiesLength = chunkData.readInt();
-            int decompressedTileEntitiesLength = chunkData.readInt();
-            byte[] compressedTileEntitiesData = new byte[compressedTileEntitiesLength];
-            byte[] decompressedTileEntitiesData = new byte[decompressedTileEntitiesLength];
-            chunkData.read(compressedTileEntitiesData);
-            Zstd.decompress(decompressedTileEntitiesData, compressedTileEntitiesData);
-
-            CompoundTag tileEntitiesCompound = readCompound(decompressedTileEntitiesData);
-            @SuppressWarnings("unchecked")
-            List<CompoundTag> serializedTileEntities = ((ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tileEntities")).getValue();
-
-            // Entities
-
-            int compressedEntitiesLength = chunkData.readInt();
-            int decompressedEntitiesLength = chunkData.readInt();
-            byte[] compressedEntitiesData = new byte[compressedEntitiesLength];
-            byte[] decompressedEntitiesData = new byte[decompressedEntitiesLength];
-            chunkData.read(compressedEntitiesData);
-            Zstd.decompress(decompressedEntitiesData, compressedEntitiesData);
-
-            CompoundTag entitiesCompound = readCompound(decompressedEntitiesData);
-            @SuppressWarnings("unchecked")
-            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
-
-            chunkMap.put(new ChunkPos(x, z),
-                    new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, new CompoundTag("", new CompoundMap()), null));
         }
         return chunkMap;
     }

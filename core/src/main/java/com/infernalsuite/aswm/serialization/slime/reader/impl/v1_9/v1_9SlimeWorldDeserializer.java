@@ -36,7 +36,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
     public v1_9SlimeWorld deserializeWorld(byte version, SlimeLoader loader, String worldName, DataInputStream dataStream, SlimePropertyMap propertyMap, boolean readOnly)
             throws IOException, CorruptedWorldException {
 
-        try {
+        try (dataStream) {
 
             // World version
             byte worldVersion;
@@ -235,79 +235,81 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
     }
 
     private static Map<ChunkPos, v1_9SlimeChunk> readChunks(byte worldVersion, int version, String worldName, int minX, int minZ, int width, int depth, BitSet chunkBitset, byte[] chunkData) throws IOException {
-        DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(chunkData));
-        Map<ChunkPos, v1_9SlimeChunk> chunkMap = new HashMap<>();
+        Map<ChunkPos, v1_9SlimeChunk> chunkMap;
+        try (DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(chunkData))) {
+            chunkMap = new HashMap<>();
 
-        for (int z = 0; z < depth; z++) {
-            for (int x = 0; x < width; x++) {
-                int bitsetIndex = z * width + x;
+            for (int z = 0; z < depth; z++) {
+                for (int x = 0; x < width; x++) {
+                    int bitsetIndex = z * width + x;
 
-                if (chunkBitset.get(bitsetIndex)) {
-                    // Height Maps
-                    CompoundTag heightMaps;
+                    if (chunkBitset.get(bitsetIndex)) {
+                        // Height Maps
+                        CompoundTag heightMaps;
 
-                    if (worldVersion >= 0x04) {
-                        int heightMapsLength = dataStream.readInt();
-                        byte[] heightMapsArray = new byte[heightMapsLength];
-                        dataStream.read(heightMapsArray);
-                        heightMaps = readCompoundTag(heightMapsArray);
+                        if (worldVersion >= 0x04) {
+                            int heightMapsLength = dataStream.readInt();
+                            byte[] heightMapsArray = new byte[heightMapsLength];
+                            dataStream.read(heightMapsArray);
+                            heightMaps = readCompoundTag(heightMapsArray);
 
-                        // Height Maps might be null if empty
-                        if (heightMaps == null) {
-                            heightMaps = new CompoundTag("", new CompoundMap());
+                            // Height Maps might be null if empty
+                            if (heightMaps == null) {
+                                heightMaps = new CompoundTag("", new CompoundMap());
+                            }
+                        } else {
+                            int[] heightMap = new int[256];
+
+                            for (int i = 0; i < 256; i++) {
+                                heightMap[i] = dataStream.readInt();
+                            }
+
+                            CompoundMap map = new CompoundMap();
+                            map.put("heightMap", new IntArrayTag("heightMap", heightMap));
+
+                            heightMaps = new CompoundTag("", map);
                         }
-                    } else {
-                        int[] heightMap = new int[256];
 
-                        for (int i = 0; i < 256; i++) {
-                            heightMap[i] = dataStream.readInt();
+                        // Biome array
+                        int[] biomes = null;
+
+                        if (version == 8 && worldVersion < 0x04) {
+                            // Patch the v8 bug: biome array size is wrong for old worlds
+                            dataStream.readInt();
                         }
 
-                        CompoundMap map = new CompoundMap();
-                        map.put("heightMap", new IntArrayTag("heightMap", heightMap));
+                        if (worldVersion < 0x04) {
+                            byte[] byteBiomes = new byte[256];
+                            dataStream.read(byteBiomes);
+                            biomes = toIntArray(byteBiomes);
+                        } else if (worldVersion < 0x08) {
+                            int biomesArrayLength = version >= 8 ? dataStream.readInt() : 256;
+                            biomes = new int[biomesArrayLength];
 
-                        heightMaps = new CompoundTag("", map);
-                    }
-
-                    // Biome array
-                    int[] biomes = null;
-
-                    if (version == 8 && worldVersion < 0x04) {
-                        // Patch the v8 bug: biome array size is wrong for old worlds
-                        dataStream.readInt();
-                    }
-
-                    if (worldVersion < 0x04) {
-                        byte[] byteBiomes = new byte[256];
-                        dataStream.read(byteBiomes);
-                        biomes = toIntArray(byteBiomes);
-                    } else if (worldVersion < 0x08) {
-                        int biomesArrayLength = version >= 8 ? dataStream.readInt() : 256;
-                        biomes = new int[biomesArrayLength];
-
-                        for (int i = 0; i < biomes.length; i++) {
-                            biomes[i] = dataStream.readInt();
+                            for (int i = 0; i < biomes.length; i++) {
+                                biomes[i] = dataStream.readInt();
+                            }
                         }
+
+                        // Chunk Sections
+                        ChunkSectionData data = worldVersion < 0x08 ? readChunkSections(dataStream, worldVersion, version) : readChunkSectionsNew(dataStream, worldVersion, version);
+
+                        int chunkX = minX + x;
+                        int chunkZ = minZ + z;
+
+                        chunkMap.put(new ChunkPos(chunkX, chunkZ), new v1_9SlimeChunk(
+                                worldName,
+                                chunkX,
+                                chunkZ,
+                                data.sections,
+                                data.minSectionY,
+                                data.maxSectionY,
+                                heightMaps,
+                                biomes,
+                                new ArrayList<>(),
+                                new ArrayList<>()
+                        ));
                     }
-
-                    // Chunk Sections
-                    ChunkSectionData data = worldVersion < 0x08 ? readChunkSections(dataStream, worldVersion, version) : readChunkSectionsNew(dataStream, worldVersion, version);
-
-                    int chunkX = minX + x;
-                    int chunkZ = minZ + z;
-
-                    chunkMap.put(new ChunkPos(chunkX, chunkZ), new v1_9SlimeChunk(
-                            worldName,
-                            chunkX,
-                            chunkZ,
-                            data.sections,
-                            data.minSectionY,
-                            data.maxSectionY,
-                            heightMaps,
-                            biomes,
-                            new ArrayList<>(),
-                            new ArrayList<>()
-                    ));
                 }
             }
         }
