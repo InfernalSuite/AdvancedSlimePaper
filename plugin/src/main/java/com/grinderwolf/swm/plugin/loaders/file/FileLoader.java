@@ -54,21 +54,22 @@ public class FileLoader implements SlimeLoader {
 //
 //        });
 
-        RandomAccessFile file = new RandomAccessFile(new File(worldDir, worldName + ".slime"), "rw");
-
-
-        if (file != null && file.length() > Integer.MAX_VALUE) {
-            throw new IndexOutOfBoundsException("World is too big!");
+        File worldFile = new File(worldDir, worldName + ".slime");
+        if (!worldFile.exists()) {
+            throw new UnknownWorldException(worldName);
         }
+        try (RandomAccessFile file = new RandomAccessFile(worldFile, "rw")) {
+            if (file.length() > Integer.MAX_VALUE) {
+                throw new IndexOutOfBoundsException("World is too big!");
+            }
 
-        byte[] serializedWorld = new byte[0];
-        if (file != null) {
+            byte[] serializedWorld = new byte[0];
             serializedWorld = new byte[(int) file.length()];
             file.seek(0); // Make sure we're at the start of the file
             file.readFully(serializedWorld);
-        }
 
-        return serializedWorld;
+            return serializedWorld;
+        }
     }
 
     @Override
