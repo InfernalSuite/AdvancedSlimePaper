@@ -63,8 +63,7 @@ public class FileLoader implements SlimeLoader {
                 throw new IndexOutOfBoundsException("World is too big!");
             }
 
-            byte[] serializedWorld = new byte[0];
-            serializedWorld = new byte[(int) file.length()];
+            byte[] serializedWorld = new byte[(int) file.length()];
             file.seek(0); // Make sure we're at the start of the file
             file.readFully(serializedWorld);
 
