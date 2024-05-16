@@ -44,6 +44,24 @@ public interface SlimePlugin {
             UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLockedException;
 
     /**
+     * Reads a world using a specificied {@link SlimeLoader}.
+     * This world won't be loaded into the server's world list.
+     *
+     * @param loader      {@link SlimeLoader} used to retrieve the world.
+     * @param worldName   Name of the world.
+     * @param readOnly    Whether read-only mode is enabled.
+     * @param propertyMap A {@link SlimePropertyMap} object containing all the properties of the world.
+     * @return A {@link SlimeWorld}, which is the in-memory representation of the world.
+     * @throws UnknownWorldException   if the world cannot be found.
+     * @throws IOException             if the world cannot be obtained from the speficied data source.
+     * @throws CorruptedWorldException if the world retrieved cannot be parsed into a {@link SlimeWorld} object.
+     * @throws NewerFormatException    if the world uses a newer version of the SRF.
+     * @throws WorldLockedException    if the world is already being used on another server when trying to open it without read-only mode enabled.
+     */
+    SlimeWorld readWorldWithoutLoading(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
+            UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLockedException;
+
+    /**
      * Gets a world which has already been loaded by ASWM.
      *
      * @param worldName the name of the world to get

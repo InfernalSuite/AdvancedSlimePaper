@@ -263,6 +263,28 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
+    public SlimeWorld readWorldWithoutLoading(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLockedException {
+        Objects.requireNonNull(loader, "Loader cannot be null");
+        Objects.requireNonNull(worldName, "World name cannot be null");
+        Objects.requireNonNull(propertyMap, "Properties cannot be null");
+
+        long start = System.currentTimeMillis();
+
+        Logging.info("Reading world " + worldName + ".");
+        byte[] serializedWorld = loader.loadWorld(worldName);
+
+        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
+        Logging.info("Applying datafixers for " + worldName + ".");
+        SlimeWorld dataFixed = SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
+
+        if (!readOnly) loader.saveWorld(worldName, SlimeSerializer.serialize(dataFixed)); // Write dataFixed world back to loader
+
+        Logging.info("World " + worldName + " read in " + (System.currentTimeMillis() - start) + "ms.");
+
+        return dataFixed;
+    }
+
+    @Override
     public SlimeWorld getWorld(String worldName) {
         return loadedWorlds.get(worldName);
     }
