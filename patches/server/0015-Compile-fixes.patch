@@ -4,6 +4,20 @@ Date: Sat, 4 May 2024 20:18:16 +0200
 Subject: [PATCH] Compile fixes
 
 
+diff --git a/build.gradle.kts b/build.gradle.kts
+index f947b82537e5858dd0020a7a6fff48c54f3b49a3..316d03791a97af50f882c0271cbacf3d2a7af5b3 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -17,9 +17,6 @@ dependencies {
+     // ASWM start
+     implementation(project(":slimeworldmanager-api"))
+     implementation(project(":core"))
+-    implementation("io.papermc.paper:paper-mojangapi:1.20.4-R0.1-SNAPSHOT") {
+-        exclude("io.papermc.paper", "paper-api")
+-    }
+     // ASWM end
+     // Paper start
+     implementation("org.jline:jline-terminal-jansi:3.21.0")
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e09b756bb2 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
@@ -57,7 +71,7 @@ index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e0
          }
  
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 586f5020e168de0dabec37015237aa5b4e50fae7..cdd964e57b6857c2da2010fa953c47195cecd49e 100644
+index 75bb1e9355141215c4850f1b57db9434d8212637..003778f3ba9db1f52d7746d3b4b1132e373dd365 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
 @@ -78,7 +78,7 @@ public class SlimeChunkConverter {
