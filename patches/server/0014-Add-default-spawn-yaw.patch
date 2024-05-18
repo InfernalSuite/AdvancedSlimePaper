@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 18 May 2024 20:34:06 +0200
+Subject: [PATCH] Add default spawn yaw
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index a525fa1781535d458c5ecb67e261520692c858ac..69ddeec6201ffc8647961d0b816d67b95329de58 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -95,7 +95,11 @@ public class SlimeLevelInstance extends ServerLevel {
+         SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
+ 
+         this.serverLevelData.setDifficulty(Difficulty.valueOf(propertyMap.getValue(SlimeProperties.DIFFICULTY).toUpperCase()));
+-        this.serverLevelData.setSpawn(new BlockPos(propertyMap.getValue(SlimeProperties.SPAWN_X), propertyMap.getValue(SlimeProperties.SPAWN_Y), propertyMap.getValue(SlimeProperties.SPAWN_Z)), 0);
++        this.serverLevelData.setSpawn(new BlockPos(
++                propertyMap.getValue(SlimeProperties.SPAWN_X),
++                propertyMap.getValue(SlimeProperties.SPAWN_Y),
++                propertyMap.getValue(SlimeProperties.SPAWN_Z)),
++                propertyMap.getValue(SlimeProperties.SPAWN_YAW));
+         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+ 
+         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
