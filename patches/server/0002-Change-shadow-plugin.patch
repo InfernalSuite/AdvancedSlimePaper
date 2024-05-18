@@ -5,10 +5,10 @@ Subject: [PATCH] Change shadow plugin
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index fbdce1cf7cd1c27f94e011e921af48716ae81ea1..088c97e15466e1deba8b2e0bfd7ed7d4757ee81f 100644
+index 6096e61162231d1168bd072ada18c8a115a6b659..b0c24037ed2ab876e696eccf819e07e67e00ac61 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -3,6 +3,7 @@ import io.papermc.paperweight.util.*
+@@ -4,6 +4,7 @@ import java.time.Instant
  plugins {
      java
      `maven-publish`

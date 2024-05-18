@@ -5,19 +5,30 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 5d448d8a7cf6626a11791f30ad52baf41a099272..fbdce1cf7cd1c27f94e011e921af48716ae81ea1 100644
+index 4998aff0b7cb084dcda15c6a18bbe45e99b6000a..6096e61162231d1168bd072ada18c8a115a6b659 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -79,7 +79,7 @@ tasks.jar {
+@@ -80,14 +80,14 @@ tasks.jar {
+         val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim() // Paper
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
-             "Implementation-Title" to "CraftBukkit",
--            "Implementation-Version" to "git-Paper-$implementationVersion",
-+            "Implementation-Version" to "git-SlimeWorldManager-$implementationVersion",
+-            "Implementation-Title" to "Paper",
++            "Implementation-Title" to "AdvancedSlimePaper",
+             "Implementation-Version" to implementationVersion,
              "Implementation-Vendor" to date, // Paper
-             "Specification-Title" to "Bukkit",
+-            "Specification-Title" to "Paper",
++            "Specification-Title" to "AdvancedSlimePaper",
              "Specification-Version" to project.version,
-@@ -138,7 +138,7 @@ fun TaskContainer.registerRunTask(
+-            "Specification-Vendor" to "Paper Team",
+-            "Brand-Id" to "papermc:paper",
+-            "Brand-Name" to "Paper",
++            "Specification-Vendor" to "InfernalSuite Team",
++            "Brand-Id" to "infernalsuite:advancedslimepaper",
++            "Brand-Name" to "AdvancedSlimePaper",
+             "Build-Number" to (build ?: ""),
+             "Build-Time" to Instant.now().toString(),
+             "Git-Branch" to gitBranch, // Paper
+@@ -144,7 +144,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
@@ -26,6 +37,58 @@ index 5d448d8a7cf6626a11791f30ad52baf41a099272..fbdce1cf7cd1c27f94e011e921af4871
      mainClass.set("org.bukkit.craftbukkit.Main")
      standardInput = System.`in`
      workingDir = rootProject.layout.projectDirectory
+diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
+index 532306cacd52579cdf37e4aca25887b1ed3ba6a1..55864e5f9ba2ccca0160760e90d8f77819688b8e 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
++++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
+@@ -35,7 +35,7 @@ public class PaperVersionFetcher implements VersionFetcher {
+     private static final Logger LOGGER = LogUtils.getClassLogger();
+     private static final int DISTANCE_ERROR = -1;
+     private static final int DISTANCE_UNKNOWN = -2;
+-    private static final String DOWNLOAD_PAGE = "https://papermc.io/downloads/paper";
++    private static final String DOWNLOAD_PAGE = "https://discord.gg/YevvsMa";
+ 
+     @Override
+     public long getCacheTime() {
+@@ -49,7 +49,7 @@ public class PaperVersionFetcher implements VersionFetcher {
+         if (build.buildNumber().isEmpty() && build.gitCommit().isEmpty()) {
+             updateMessage = text("You are running a development version without access to version information", color(0xFF5300));
+         } else {
+-            updateMessage = getUpdateStatusMessage("PaperMC/Paper", build);
++            updateMessage = getUpdateStatusMessage("InfernalSuite/AdvancedSlimePaper", build);
+         }
+         final @Nullable Component history = this.getHistory();
+ 
+@@ -58,17 +58,18 @@ public class PaperVersionFetcher implements VersionFetcher {
+ 
+     private static Component getUpdateStatusMessage(final String repo, final ServerBuildInfo build) {
+         int distance = DISTANCE_ERROR;
+-
++        /* // AdvancedSlimePaper start
+         final OptionalInt buildNumber = build.buildNumber();
+         if (buildNumber.isPresent()) {
+             distance = fetchDistanceFromSiteApi(build, buildNumber.getAsInt());
+         } else {
++        */ // AdvancedSlimePaper end
+             final Optional<String> gitBranch = build.gitBranch();
+             final Optional<String> gitCommit = build.gitCommit();
+             if (gitBranch.isPresent() && gitCommit.isPresent()) {
+                 distance = fetchDistanceFromGitHub(repo, gitBranch.get(), gitCommit.get());
+             }
+-        }
++        //} // AdvancedSlimePaper
+ 
+         return switch (distance) {
+             case DISTANCE_ERROR -> text("Error obtaining version information", NamedTextColor.YELLOW);
+@@ -76,7 +77,7 @@ public class PaperVersionFetcher implements VersionFetcher {
+             case DISTANCE_UNKNOWN -> text("Unknown version", NamedTextColor.YELLOW);
+             default -> text("You are " + distance + " version(s) behind", NamedTextColor.YELLOW)
+                 .append(Component.newline())
+-                .append(text("Download the new version at: ")
++                .append(text("Download the new version from our Discord: ")
+                     .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
+                         .hoverEvent(text("Click to open", NamedTextColor.WHITE))
+                         .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
 diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..7d1753c0b7e89bbf0c245a0231b62773eca2779e
@@ -1867,6 +1930,39 @@ index 0000000000000000000000000000000000000000..3500005bb09dc484bc333f1e0799613d
 +    }
 +}
 \ No newline at end of file
+diff --git a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
+index 790bad0494454ca12ee152e3de6da3da634d9b20..2d6b062c4a3cf682d8e4cdbb7b7c84a7699285f2 100644
+--- a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
++++ b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
+@@ -31,6 +31,7 @@ public record ServerBuildInfoImpl(
+     private static final String ATTRIBUTE_GIT_COMMIT = "Git-Commit";
+ 
+     private static final String BRAND_PAPER_NAME = "Paper";
++    private static final String BRAND_ADVANCED_SLIME_PAPER_NAME = "Paper";
+ 
+     private static final String BUILD_DEV = "DEV";
+ 
+@@ -42,9 +43,9 @@ public record ServerBuildInfoImpl(
+         this(
+             getManifestAttribute(manifest, ATTRIBUTE_BRAND_ID)
+                 .map(Key::key)
+-                .orElse(BRAND_PAPER_ID),
++                .orElse(BRAND_ADVANCED_SLIME_PAPER_ID),
+             getManifestAttribute(manifest, ATTRIBUTE_BRAND_NAME)
+-                .orElse(BRAND_PAPER_NAME),
++                .orElse(BRAND_ADVANCED_SLIME_PAPER_NAME),
+             SharedConstants.getCurrentVersion().getId(),
+             SharedConstants.getCurrentVersion().getName(),
+             getManifestAttribute(manifest, ATTRIBUTE_BUILD_NUMBER)
+@@ -61,7 +62,7 @@ public record ServerBuildInfoImpl(
+ 
+     @Override
+     public boolean isBrandCompatible(final @NotNull Key brandId) {
+-        return brandId.equals(this.brandId);
++        return brandId.equals(this.brandId) || brandId.equals(BRAND_PAPER_ID) || brandId.equals(BRAND_ADVANCED_SLIME_PAPER_ID);
+     }
+ 
+     @Override
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
 index 6bc7c6f16a1649fc9e24e7cf90fca401e5bd4875..3efc1638e615a7c49bf95bb6a99e4771239f18d2 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/ChunkHolderManager.java
@@ -1953,10 +2049,10 @@ index c78cbec447032de9fe69748591bef6be300160ed..e74c54398373fb1f17ab719dbc63d72b
      public FullChunkStatus status;
  
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e6fdf9352 100644
+index dbc86b8d4d2af6e5f7e678f2bb77fd39b85c04c5..42ea1dcb10a2586a4eb4ee7b049a07705bbe4017 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -279,7 +279,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -276,7 +276,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      private final PackRepository packRepository;
      private final ServerScoreboard scoreboard;
      @Nullable
@@ -1965,7 +2061,7 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private boolean enforceWhitelist;
-@@ -471,51 +471,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -467,51 +467,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.isNetherEnabled()) {
                      dimension = -1;
@@ -2045,7 +2141,7 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
                          MinecraftServer.LOGGER.warn("Could not create path for " + newWorld + "!");
                          MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
                      }
-@@ -523,7 +538,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -519,7 +534,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
                  try {
                      worldSession = LevelStorageSource.createDefault(this.server.getWorldContainer().toPath()).validateAndCreateAccess(name, dimensionKey);
@@ -2054,15 +2150,6 @@ index 8dc2f9df367c849ca333bf1a1fd92ff91617b548..f0e752447222f3f5fcfb263241e2992e
                      throw new RuntimeException(ex);
                  }
              }
-@@ -1924,7 +1939,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
- 
-     @DontObfuscate
-     public String getServerModName() {
--        return "Paper"; // Paper
-+        return "SlimeWorldManager"; // ASWM // Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
-     }
- 
-     public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 index b99f50604bafecbc68835974c9ed0caa91911a40..d3fdc1f72b02508e0f2126e3f995d41611169740 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
@@ -2081,7 +2168,7 @@ index b99f50604bafecbc68835974c9ed0caa91911a40..d3fdc1f72b02508e0f2126e3f995d416
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 0981d440d0dbfe4df668d1f3f1b5706a93bc4434..ff38b841a8a494ee42307c7d0aa68c6beb9f8645 100644
+index ca56a0b596976448da6bb2a0e82b3d5cd4133e12..699d7d9c000b21bdfe850b2a0899668649e87cf9 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -693,6 +693,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
@@ -2158,10 +2245,10 @@ index 81368bf186365878db2e1ed305bb7bf36c26f61f..ca6d53d4535d0f92c4ffa1f35452574c
              for (int i = 0; i < storage.getSize(); i++) {
                  T object = palette.valueFor(storage.get(i));
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index db932f8e9d48e1e47a89526d1d76947e91b55eea..dc5fc249ae434143688aecd2c8962acca2a8956e 100644
+index 26431a814f6472689484dcc7cd8183fe1676e17e..7da17001d9f676c906e94bcfaaeafc0a1668d210 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-@@ -433,7 +433,7 @@ public class ChunkSerializer {
+@@ -434,7 +434,7 @@ public class ChunkSerializer {
          ChunkSerializer.LOGGER.error("Recoverable errors when loading section [" + chunkPos.x + ", " + y + ", " + chunkPos.z + "]: " + message);
      }
  
@@ -2170,19 +2257,6 @@ index db932f8e9d48e1e47a89526d1d76947e91b55eea..dc5fc249ae434143688aecd2c8962acc
          return PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
      }
  
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 05e304f9fc8d0291fa779da589bd060ef4165b49..b3083ea25a6a91942e8028a18d465d320220342a 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -268,7 +268,7 @@ import javax.annotation.Nullable; // Paper
- import javax.annotation.Nonnull; // Paper
- 
- public final class CraftServer implements Server {
--    private final String serverName = "Paper"; // Paper
-+    private final String serverName = "SlimeWorldManager"; // Paper // SWM
-     private final String serverVersion;
-     private final String bukkitVersion = Versioning.getBukkitVersion();
-     private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 index 774556a62eb240da42e84db4502e2ed43495be17..29e29fb2228f08dff3edd8bf651220b83b16ed7b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
