@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class UnloadWorldCmd implements Subcommand {
@@ -75,19 +74,20 @@ public class UnloadWorldCmd implements Subcommand {
         // Teleport all players outside the world before unloading it
         var players = world.getPlayers();
 
-        AtomicBoolean success = new AtomicBoolean();
-
         if (!players.isEmpty()) {
             Location spawnLocation = findValidDefaultSpawn();
             CompletableFuture<Void> cf = CompletableFuture.allOf(players.stream().map(player -> player.teleportAsync(spawnLocation)).collect(Collectors.toList()).toArray(CompletableFuture[]::new));
             cf.thenRun(() -> {
-                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> success.set(Bukkit.unloadWorld(world, true)));
-                if (!success.get()) {
-                    sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
-                } else {
-                    world.save();
-                }
-                sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
+                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
+                    boolean success = Bukkit.unloadWorld(world, true);
+
+                    if (!success) {
+                        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
+                    } else {
+                        world.save();
+                        sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
+                    }
+                });
             });
         } else {
             Bukkit.unloadWorld(world, true);
