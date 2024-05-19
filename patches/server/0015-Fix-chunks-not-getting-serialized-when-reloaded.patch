@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sun, 19 May 2024 19:17:07 +0200
+Subject: [PATCH] Fix chunks not getting serialized when reloaded.
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+index b159fc8751e9840b311cc1eda01e496e2dbc5f2e..2ebabf20c37d2b5c479de5bb241aa334f92a1104 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+@@ -24,4 +24,10 @@ public class SlimeChunkLevel extends LevelChunk {
+         super.unloadCallback();
+         this.inMemoryWorld.unload(this);
+     }
++
++    @Override
++    public void loadCallback() {
++        super.loadCallback();
++        this.inMemoryWorld.ensureChunkMarkedAsLoaded(this);
++    }
+ }
+\ No newline at end of file
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index 95133e0ff8a8bdfc84c1dd7ff6b2c7ed7ae9a2f9..b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -219,7 +219,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+                     } else {
+                         chunk = safeNmsChunkWrapper.getWrapper().getChunk();
+                     }
+-                } else if  (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
++                } else if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                     chunk = nmsSlimeChunk.getChunk();
+                 }
+ 
+@@ -279,4 +279,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+     public @NotNull PersistentDataContainer getPersistentDataContainer() {
+         return this.extraPDC;
+     }
++
++    public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {
++        if (chunkStorage.get(new ChunkPos(chunk.locX, chunk.locZ)) instanceof SlimeChunkSkeleton skeleton) {
++            chunkStorage.put(new ChunkPos(chunk.locX, chunk.locZ), new NMSSlimeChunk(chunk, skeleton));
++        }
++    }
+ }
