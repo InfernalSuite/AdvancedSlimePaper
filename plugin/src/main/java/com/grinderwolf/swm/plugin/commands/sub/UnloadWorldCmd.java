@@ -84,7 +84,6 @@ public class UnloadWorldCmd implements Subcommand {
                     if (!success) {
                         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Failed to unload world " + worldName + ".");
                     } else {
-                        world.save();
                         sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " unloaded correctly.");
                     }
                 });
