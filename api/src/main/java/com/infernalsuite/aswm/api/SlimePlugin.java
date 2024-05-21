@@ -45,7 +45,7 @@ public interface SlimePlugin {
 
     /**
      * Reads a world using a specificied {@link SlimeLoader}.
-     * This world won't be loaded into the server's world list.
+     * <strong>This world won't be loaded into the server's world list.</strong>
      *
      * @param loader      {@link SlimeLoader} used to retrieve the world.
      * @param worldName   Name of the world.
@@ -58,7 +58,7 @@ public interface SlimePlugin {
      * @throws NewerFormatException    if the world uses a newer version of the SRF.
      * @throws WorldLockedException    if the world is already being used on another server when trying to open it without read-only mode enabled.
      */
-    SlimeWorld readWorldWithoutLoading(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
+    SlimeWorld readWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
             UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException, WorldLockedException;
 
     /**
