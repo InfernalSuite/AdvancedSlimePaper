@@ -1,11 +1,14 @@
 package com.infernalsuite.aswm.serialization.slime;
 
 import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.ListTag;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+
+import java.util.List;
 
 public class ChunkPruner {
 
@@ -47,15 +50,22 @@ public class ChunkPruner {
     private static boolean areSectionsEmpty(SlimeChunkSection[] sections) {
         for (SlimeChunkSection chunkSection : sections) {
             try {
-                CompoundTag compoundTag = chunkSection.getBlockStatesTag().getAsListTag("palette").get().getAsCompoundTagList().get().getValue().get(0);
-                if (!compoundTag.getStringValue("Name").get().equals("minecraft:air")) {
+                List<CompoundTag> palettes = chunkSection.getBlockStatesTag().getAsListTag("palette")
+                        .get().getAsCompoundTagList()
+                        .get().getValue();
+
+                if (palettes.size() > 1) return false; // If there is more than one palette, the section is not empty
+                if (!palettes.get(0).getStringValue("Name").get().equals("minecraft:air")) {
                     return false;
                 }
             } catch (Exception e) {
                 return false;
             }
+
+            // The section is empty, continue to the next one
         }
 
-        return false;
+        // All sections are empty, we can omit this chunk
+        return true;
     }
 }
