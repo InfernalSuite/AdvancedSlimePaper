@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
+    implementation(project(":slimeworldmanager-api"))
 }
 
 tasks {
@@ -12,6 +13,9 @@ tasks {
         manifest {
             attributes["Main-Class"] = "com.infernalsuite.aswm.importer.SWMImporter"
         }
+    }
+    shadowJar {
+        minimize()
     }
 }
 
