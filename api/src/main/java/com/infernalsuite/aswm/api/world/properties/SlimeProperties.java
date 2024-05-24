@@ -1,6 +1,7 @@
 package com.infernalsuite.aswm.api.world.properties;
 
 import com.infernalsuite.aswm.api.world.properties.type.SlimePropertyBoolean;
+import com.infernalsuite.aswm.api.world.properties.type.SlimePropertyFloat;
 import com.infernalsuite.aswm.api.world.properties.type.SlimePropertyInt;
 import com.infernalsuite.aswm.api.world.properties.type.SlimePropertyString;
 import org.jetbrains.annotations.ApiStatus;
@@ -24,6 +25,11 @@ public class SlimeProperties {
      * The Z coordinate of the world spawn
      */
     public static final SlimeProperty<Integer> SPAWN_Z = new SlimePropertyInt("spawnZ", 0);
+
+    /**
+     * The yaw of the world spawn
+     */
+    public static final SlimeProperty<Float> SPAWN_YAW = new SlimePropertyFloat("spawnYaw", 0.0f);
 
     /**
      * The difficulty set for the world

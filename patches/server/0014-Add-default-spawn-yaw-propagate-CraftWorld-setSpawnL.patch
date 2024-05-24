@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 18 May 2024 20:34:06 +0200
+Subject: [PATCH] Add default spawn yaw, propagate CraftWorld#setSpawnLocation
+ to the SlimeProperties.
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index a525fa1781535d458c5ecb67e261520692c858ac..1d5547a74042743e388f77f70b9ebbd37be3f1bc 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -95,7 +95,11 @@ public class SlimeLevelInstance extends ServerLevel {
+         SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
+ 
+         this.serverLevelData.setDifficulty(Difficulty.valueOf(propertyMap.getValue(SlimeProperties.DIFFICULTY).toUpperCase()));
+-        this.serverLevelData.setSpawn(new BlockPos(propertyMap.getValue(SlimeProperties.SPAWN_X), propertyMap.getValue(SlimeProperties.SPAWN_Y), propertyMap.getValue(SlimeProperties.SPAWN_Z)), 0);
++        this.serverLevelData.setSpawn(new BlockPos(
++                propertyMap.getValue(SlimeProperties.SPAWN_X),
++                propertyMap.getValue(SlimeProperties.SPAWN_Y),
++                propertyMap.getValue(SlimeProperties.SPAWN_Z)),
++                propertyMap.getValue(SlimeProperties.SPAWN_YAW));
+         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+ 
+         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
+@@ -187,6 +191,17 @@ public class SlimeLevelInstance extends ServerLevel {
+         }
+     }
+ 
++    @Override
++    public void setDefaultSpawnPos(BlockPos pos, float angle) {
++        super.setDefaultSpawnPos(pos, angle);
++
++        SlimePropertyMap propertyMap = this.slimeInstance.getPropertyMap();
++        propertyMap.setValue(SlimeProperties.SPAWN_X, pos.getX());
++        propertyMap.setValue(SlimeProperties.SPAWN_Y, pos.getY());
++        propertyMap.setValue(SlimeProperties.SPAWN_Z, pos.getZ());
++        propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
++    }
++
+     //    @Override
+     //    public void unload(LevelChunk chunk) {
+     //        this.slimeInstance.unload(chunk);
