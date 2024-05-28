@@ -125,7 +125,7 @@ index 91a7f41db47c7df3ecc301e0827a1d07305f604e..27af3aa6ba8ffb100a6b1b50ba584e65
          EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
          CompoundMap heightMaps = chunk.getHeightMaps().getValue();
 diff --git a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
-index b66a7d4aab887309579154815a0d4abf9de506b0..1654d7ec66e5077810494992e3c56fb692301269 100644
+index 56b07a3306e5735816c8d89601b519cb0db6379a..ac857db9e858cdcdbe7a6e3c71dfdf95eb2c5721 100644
 --- a/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/io/papermc/paper/chunk/system/scheduling/NewChunkHolder.java
 @@ -112,7 +112,7 @@ public final class NewChunkHolder {

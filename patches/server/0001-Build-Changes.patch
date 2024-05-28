@@ -3,12 +3,36 @@ From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
 Date: Mon, 26 Dec 2022 11:25:35 -0500
 Subject: [PATCH] Build Changes
 
+Change shadow plugin
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 4998aff0b7cb084dcda15c6a18bbe45e99b6000a..6096e61162231d1168bd072ada18c8a115a6b659 100644
+index 4998aff0b7cb084dcda15c6a18bbe45e99b6000a..f947b82537e5858dd0020a7a6fff48c54f3b49a3 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -80,14 +80,14 @@ tasks.jar {
+@@ -4,6 +4,7 @@ import java.time.Instant
+ plugins {
+     java
+     `maven-publish`
++    id("io.github.goooler.shadow")
+ }
+ 
+ val log4jPlugins = sourceSets.create("log4jPlugins")
+@@ -13,7 +14,13 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
+ val alsoShade: Configuration by configurations.creating
+ 
+ dependencies {
+-    implementation(project(":paper-api"))
++    // ASWM start
++    implementation(project(":slimeworldmanager-api"))
++    implementation(project(":core"))
++    implementation("io.papermc.paper:paper-mojangapi:1.20.4-R0.1-SNAPSHOT") {
++        exclude("io.papermc.paper", "paper-api")
++    }
++    // ASWM end
+     // Paper start
+     implementation("org.jline:jline-terminal-jansi:3.21.0")
+     implementation("net.minecrell:terminalconsoleappender:1.3.0")
+@@ -80,14 +87,14 @@ tasks.jar {
          val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim() // Paper
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
@@ -28,7 +52,7 @@ index 4998aff0b7cb084dcda15c6a18bbe45e99b6000a..6096e61162231d1168bd072ada18c8a1
              "Build-Number" to (build ?: ""),
              "Build-Time" to Instant.now().toString(),
              "Git-Branch" to gitBranch, // Paper
-@@ -144,7 +144,7 @@ fun TaskContainer.registerRunTask(
+@@ -144,7 +151,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
