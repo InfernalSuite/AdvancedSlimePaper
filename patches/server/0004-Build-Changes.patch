@@ -5,15 +5,14 @@ Subject: [PATCH] Build Changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index be5c4212aebed4a932ee2c688b2a31640eca3dc7..d03c9c385d6d969f0de33fa7d8dc547699f64493 100644
+index b0c24037ed2ab876e696eccf819e07e67e00ac61..f947b82537e5858dd0020a7a6fff48c54f3b49a3 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -13,8 +13,13 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
+@@ -14,7 +14,13 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
  val alsoShade: Configuration by configurations.creating
  
  dependencies {
 -    implementation(project(":paper-api"))
--    implementation(project(":paper-mojangapi"))
 +    // ASWM start
 +    implementation(project(":slimeworldmanager-api"))
 +    implementation(project(":core"))
