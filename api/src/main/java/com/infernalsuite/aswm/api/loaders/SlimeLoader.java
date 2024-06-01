@@ -1,7 +1,6 @@
 package com.infernalsuite.aswm.api.loaders;
 
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
-import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,17 +13,17 @@ import java.util.List;
 public interface SlimeLoader {
 
     /**
-     * Load a world's data file.
+     * Read a world's data file.
      *
      * @param worldName The name of the world.
      * @return The world's data file, contained inside a byte array.
      * @throws UnknownWorldException if the world cannot be found.
      * @throws IOException           if the world could not be obtained.
      */
-    byte[] loadWorld(String worldName) throws UnknownWorldException, IOException;
+    byte[] readWorld(String worldName) throws UnknownWorldException, IOException;
 
     /**
-     * Checks whether or not a world exists
+     * Checks whether a world exists
      * inside the data source.
      *
      * @param worldName The name of the world.
@@ -59,37 +58,5 @@ public interface SlimeLoader {
      * @throws IOException           if the world could not be deleted.
      */
     void deleteWorld(String worldName) throws UnknownWorldException, IOException;
-
-    /**
-     * Attempts to lock the world.
-     *
-     * @param worldName name of the world
-     * @throws UnknownWorldException If the world could not be found
-     * @throws WorldLockedException  If the world is already locked
-     * @throws IOException If the world could not be locked
-     */
-    @Deprecated(forRemoval = true)
-    void acquireLock(String worldName) throws UnknownWorldException, WorldLockedException, IOException;
-
-    /**
-     * Checks whether or not a world is locked.
-     *
-     * @param worldName The name of the world.
-     * @return <code>true</code> if the world is locked, <code>false</code> otherwhise.
-     * @throws UnknownWorldException if the world could not be found.
-     * @throws IOException           if the world could not be obtained.
-     */
-    @Deprecated(forRemoval = true)
-    boolean isWorldLocked(String worldName) throws UnknownWorldException, IOException;
-
-    /**
-     * Attempts to unlock the world.
-     *
-     * @param worldName name of the world
-     * @throws UnknownWorldException If the world could not be found
-     * @throws IOException If the world could not be unlocked
-     */
-    @Deprecated(forRemoval = true)
-    void unlockWorld(String worldName) throws UnknownWorldException, IOException;
 
 }

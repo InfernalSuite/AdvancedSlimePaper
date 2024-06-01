@@ -27,7 +27,6 @@ public interface SlimeNMSBridge {
 
     SlimeWorldInstance getInstance(World world);
 
-
     // Will return new (fixed) instance
     SlimeWorld applyDataFixers(SlimeWorld world);
 
@@ -42,10 +41,8 @@ public interface SlimeNMSBridge {
     PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundMap source);
 
     @ApiStatus.Internal
-    static class Holder {
-
+    class Holder {
         private static final SlimeNMSBridge INSTANCE = Services.service(SlimeNMSBridge.class).orElseThrow();
-
     }
 
     CompoundTag convertChunkTo1_13(CompoundTag tag);

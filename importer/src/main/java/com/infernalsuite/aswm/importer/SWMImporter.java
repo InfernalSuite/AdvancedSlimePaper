@@ -1,6 +1,7 @@
 package com.infernalsuite.aswm.importer;
 
 import com.infernalsuite.aswm.api.exceptions.InvalidWorldException;
+import com.infernalsuite.aswm.serialization.anvil.AnvilImportData;
 import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 
@@ -49,7 +50,7 @@ public class SWMImporter {
     public static void importWorld(File worldDir, File outputFile, boolean shouldPrintDebug) {
         try {
             outputFile.createNewFile();
-            Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.INSTANCE.readFromData(worldDir)));
+            Files.write(outputFile.toPath(), SlimeSerializer.serialize(AnvilWorldReader.INSTANCE.readFromData(new AnvilImportData(worldDir, outputFile.getName(), null))));
         } catch (IndexOutOfBoundsException ex) {
             System.err.println("Oops, it looks like the world provided is too big to be imported. " +
                     "Please trim it by using the MCEdit tool and try again.");

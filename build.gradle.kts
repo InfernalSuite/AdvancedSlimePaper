@@ -34,6 +34,7 @@ allprojects {
         maven("https://repo.rapture.pw/repository/maven-releases/")
         maven("https://repo.glaremasters.me/repository/concuncan/")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 

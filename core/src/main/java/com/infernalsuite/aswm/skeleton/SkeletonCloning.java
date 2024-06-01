@@ -19,7 +19,7 @@ public class SkeletonCloning {
     public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
         return new SkeletonSlimeWorld(worldName,
                 loader == null ? world.getLoader() : loader,
-                world.isReadOnly(),
+                loader == null,
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
                 world.getPropertyMap().clone(),

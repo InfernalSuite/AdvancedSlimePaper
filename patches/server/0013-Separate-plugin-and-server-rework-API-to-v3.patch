@@ -1,0 +1,534 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 1 Jun 2024 18:57:39 +0200
+Subject: [PATCH] Separate plugin and server, rework API (to v3)
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 316d03791a97af50f882c0271cbacf3d2a7af5b3..1dcef8475092ca55d2dc810a1559b53ab14e9319 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -17,6 +17,7 @@ dependencies {
+     // ASWM start
+     implementation(project(":slimeworldmanager-api"))
+     implementation(project(":core"))
++    implementation("commons-io:commons-io:2.11.0")
+     // ASWM end
+     // Paper start
+     implementation("org.jline:jline-terminal-jansi:3.21.0")
+diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaperImpl.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaperImpl.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..d4513a37ee55287c740fe085e12f957f23ca72b0
+--- /dev/null
++++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaperImpl.java
+@@ -0,0 +1,240 @@
++package com.infernalsuite.aswm;
++
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.infernalsuite.aswm.api.SlimeNMSBridge;
++import com.infernalsuite.aswm.api.AdvancedSlimePaper;
++import com.infernalsuite.aswm.api.events.LoadSlimeWorldEvent;
++import com.infernalsuite.aswm.api.exceptions.*;
++import com.infernalsuite.aswm.api.loaders.SlimeLoader;
++import com.infernalsuite.aswm.api.world.SlimeWorld;
++import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
++import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.aswm.level.SlimeLevelInstance;
++import com.infernalsuite.aswm.serialization.anvil.AnvilImportData;
++import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
++import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
++import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
++import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
++import com.infernalsuite.aswm.util.NmsUtil;
++import net.minecraft.server.level.ServerLevel;
++import org.bukkit.Bukkit;
++import org.bukkit.World;
++import org.bukkit.craftbukkit.CraftWorld;
++import org.bukkit.event.world.WorldLoadEvent;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.spigotmc.AsyncCatcher;
++
++import java.io.File;
++import java.io.IOException;
++import java.util.List;
++import java.util.Map;
++import java.util.Objects;
++import java.util.concurrent.CompletionException;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.Future;
++
++public class AdvancedSlimePaperImpl implements AdvancedSlimePaper {
++
++    private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSlimePaperImpl.class);
++    private static final SlimeNMSBridge BRIDGE_INSTANCE = SlimeNMSBridge.instance();
++
++    private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
++
++    static {
++        System.setProperty("org.slf4j.simpleLogger.showShortLogName", "true");
++    }
++
++    public static AdvancedSlimePaperImpl instance() {
++        return (AdvancedSlimePaperImpl) AdvancedSlimePaper.instance();
++    }
++
++    @Override
++    public SlimeWorld readWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException {
++        Objects.requireNonNull(loader, "Loader cannot be null");
++        Objects.requireNonNull(worldName, "World name cannot be null");
++        Objects.requireNonNull(propertyMap, "Properties cannot be null");
++
++        long start = System.currentTimeMillis();
++
++        LOGGER.info("Reading world {}.", worldName);
++        byte[] serializedWorld = loader.readWorld(worldName);
++
++        SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
++        LOGGER.info("Applying datafixers for {}.", worldName);
++        SlimeWorld dataFixed = SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
++
++        // If the dataFixed and slimeWorld are same, then no datafixers were applied
++        if (!readOnly && dataFixed != slimeWorld)
++            loader.saveWorld(worldName, SlimeSerializer.serialize(dataFixed)); // Write dataFixed world back to loader
++
++        LOGGER.info("World {} read in {}ms.", worldName, System.currentTimeMillis() - start);
++
++        return dataFixed;
++    }
++
++    @Override
++    public SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) {
++        AsyncCatcher.catchOp("SWM world load");
++        Objects.requireNonNull(world, "SlimeWorld cannot be null");
++
++        LOGGER.info("Loading world {}...", world.getName());
++        long start = System.currentTimeMillis();
++
++        SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(world);
++        SlimeWorld mirror = instance.getSlimeWorldMirror();
++
++        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
++        if (callWorldLoadEvent) {
++            Bukkit.getPluginManager().callEvent(new WorldLoadEvent(instance.getBukkitWorld()));
++        }
++
++        registerWorld(mirror);
++
++        LOGGER.info("World {} loaded in {}ms.", world.getName(), System.currentTimeMillis() - start);
++        return mirror;
++    }
++
++    @Override
++    public boolean worldLoaded(SlimeWorld world) {
++        return loadedWorlds.containsKey(world.getName());
++    }
++
++    @Override
++    public void saveWorld(SlimeWorld world) throws IOException {
++        Objects.requireNonNull(world, "SlimeWorld cannot be null");
++        if (worldLoaded(world)) {
++            Future<?>[] future = new Future[1];
++
++            // This is not pretty, but we really need to hop onto the main thread
++            NmsUtil.runSyncAndWait(() -> {
++                World bukkitWorld = Bukkit.getWorld(world.getName());
++
++                ServerLevel level = ((CraftWorld) bukkitWorld).getHandle();
++                if (level instanceof SlimeLevelInstance slimeLevel) {
++                    future[0] = slimeLevel.save();
++                } else {
++                    // Shouldn't happen
++                    LOGGER.warn("ServerLevel based off of SlimeWorld is not an instance of SlimeLevelInstance. Falling back to default save method.");
++                    bukkitWorld.save();
++                }
++            });
++
++            if (future[0] != null) {
++                try {
++                    future[0].get();
++                } catch (InterruptedException exception) {
++                    throw new RuntimeException(exception);
++                } catch (ExecutionException e) {
++                    if (e.getCause() instanceof IOException ioException) {
++                        throw ioException;
++                    } else {
++                        throw new RuntimeException(e.getCause());
++                    }
++                }
++            }
++        } else {
++            LOGGER.info("Saving unloaded world {}...", world.getName());
++            Objects.requireNonNull(world.getLoader(), "World loader cannot be null");
++            long start = System.currentTimeMillis();
++
++            byte[] serializedWorld = SlimeSerializer.serialize(world);
++
++            long saveStart = System.currentTimeMillis();
++            world.getLoader().saveWorld(world.getName(), serializedWorld);
++
++            LOGGER.info("World {} serialized in {}ms and saved in {}ms.", world.getName(), saveStart - start, System.currentTimeMillis() - saveStart);
++        }
++
++    }
++
++    @Override
++    public SlimeWorld getLoadedWorld(String worldName) {
++        return loadedWorlds.get(worldName);
++    }
++
++    @Override
++    public List<SlimeWorld> getLoadedWorlds() {
++        return List.copyOf(loadedWorlds.values());
++    }
++
++    @Override
++    public SlimeWorld createEmptyWorld(String worldName, boolean readOnly, SlimePropertyMap propertyMap, SlimeLoader loader) {
++        Objects.requireNonNull(worldName, "World name cannot be null");
++        Objects.requireNonNull(propertyMap, "Properties cannot be null");
++
++        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
++    }
++
++    @Override
++    public void migrateWorld(String worldName, SlimeLoader currentLoader, SlimeLoader newLoader) throws IOException, WorldAlreadyExistsException, UnknownWorldException {
++        Objects.requireNonNull(worldName, "World name cannot be null");
++        Objects.requireNonNull(currentLoader, "Current loader cannot be null");
++        Objects.requireNonNull(newLoader, "New loader cannot be null");
++
++        if (newLoader.worldExists(worldName)) {
++            throw new WorldAlreadyExistsException(worldName);
++        }
++
++        byte[] serializedWorld = currentLoader.readWorld(worldName);
++        newLoader.saveWorld(worldName, serializedWorld);
++        currentLoader.deleteWorld(worldName);
++    }
++
++    @Override
++    public SlimeWorld readVanillaWorld(File worldDir, String worldName, SlimeLoader loader) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException {
++        Objects.requireNonNull(worldDir, "World directory cannot be null");
++        Objects.requireNonNull(worldName, "World name cannot be null");
++
++        if (loader != null && loader.worldExists(worldName)) {
++            throw new WorldAlreadyExistsException(worldName);
++        }
++
++        World bukkitWorld = Bukkit.getWorld(worldName);
++
++        if (bukkitWorld != null && BRIDGE_INSTANCE.getInstance(bukkitWorld) == null) {
++            throw new WorldLoadedException(worldDir.getName());
++        }
++
++        SlimeWorld world;
++
++        try {
++            world = AnvilWorldReader.INSTANCE.readFromData(new AnvilImportData(worldDir, worldName, loader));
++        } catch (RuntimeException e) {
++            if (e.getCause() == null) {
++                throw e;
++            }
++            if (e.getCause() instanceof IOException ioException) {
++                throw ioException;
++            } else if (e.getCause() instanceof InvalidWorldException invalidWorldException) {
++                throw invalidWorldException;
++            } else {
++                throw e;
++            }
++        }
++
++        // A sanity check to make sure the world is not too big to be serialized
++        try {
++            SlimeSerializer.serialize(world);
++        } catch (IndexOutOfBoundsException ex) {
++            throw new WorldTooBigException(worldDir.getName());
++        }
++
++        return world;
++    }
++
++    /**
++     * Utility method to register a <b>loaded</b> {@link SlimeWorld} with the internal map (for {@link #getLoadedWorld} calls)
++     *
++     * @param world the world to register
++     */
++    private void registerWorld(SlimeWorld world) {
++        this.loadedWorlds.put(world.getName(), world);
++    }
++
++    public void onWorldUnload(String name) {
++        this.loadedWorlds.remove(name);
++    }
++}
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 18f0f7933c42a7609a3d7bd775b24c372baae175..b86643ecce62d9cde2bb3015180ae38386e864d6 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -48,8 +48,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+     private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
+     private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
+ 
+-    private static final Logger LOGGER = LogManager.getLogger("SWM");
+-
+     private SlimeWorld defaultWorld;
+     private SlimeWorld defaultNetherWorld;
+     private SlimeWorld defaultEndWorld;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index b295d159200e3bf0e48f851ac206b2e09b756bb2..6ef45be4a76c00be5fbfcdb543882fcf41ea6271 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -31,13 +31,14 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.levelgen.Heightmap;
+ import net.minecraft.world.level.lighting.LevelLightEngine;
+ import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
+ 
+ public class NMSSlimeChunk implements SlimeChunk {
+-    private static final Logger LOGGER = LogUtils.getClassLogger();
++    private static final Logger LOGGER = LoggerFactory.getLogger(NMSSlimeChunk.class);
+ 
+     private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
+     private static final CompoundTag EMPTY_BIOME_PALETTE;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+index 004d7bcc5b35c76855787dcf32fe460e73cab38f..249761b7c9f495e3aceb49e0fbd3984f69a42d97 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+@@ -35,7 +35,7 @@ public class NMSSlimeWorld implements SlimeWorld {
+ 
+     @Override
+     public SlimeLoader getLoader() {
+-        return this.instance.slimeInstance.getSaveStrategy();
++        return this.instance.slimeInstance.getLoader();
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..114da62698c2897b16042327a4171f785bc58cec 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -145,7 +145,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+ 
+     @Override
+     public boolean isReadOnly() {
+-        return this.getSaveStrategy() == null || this.readOnly;
++        return this.getLoader() == null || this.readOnly;
+     }
+ 
+     @Override
+@@ -185,11 +185,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+         return this.liveWorld.getDataVersion();
+     }
+ 
+-    @Override
+-    public SlimeLoader getSaveStrategy() {
+-        return this.loader;
+-    }
+-
+     @Override
+     public CompoundTag getExtraData() {
+         return this.extra;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index b28c2b917accc0249e5df19a65db8820336b7279..2265f83768c4dc29f67d29730c4be45a194727da 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -24,7 +24,6 @@ import net.minecraft.util.ProgressListener;
+ import net.minecraft.util.Unit;
+ import net.minecraft.util.datafix.DataFixers;
+ import net.minecraft.world.Difficulty;
+-import net.minecraft.world.RandomSequences;
+ import net.minecraft.world.entity.EntityType;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.biome.Biome;
+@@ -34,11 +33,11 @@ import net.minecraft.world.level.dimension.LevelStem;
+ import net.minecraft.world.level.storage.LevelStorageSource;
+ import net.minecraft.world.level.storage.PrimaryLevelData;
+ import net.minecraft.world.level.validation.DirectoryValidator;
+-import net.minecraft.world.level.validation.PathAllowList;
+ import org.apache.commons.io.FileUtils;
+ import org.bukkit.Bukkit;
+ import org.bukkit.event.world.WorldSaveEvent;
+ import org.jetbrains.annotations.Nullable;
++import org.spigotmc.AsyncCatcher;
+ 
+ import java.io.IOException;
+ import java.nio.file.Files;
+@@ -46,6 +45,7 @@ import java.nio.file.Path;
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.UUID;
++import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
+@@ -77,8 +77,6 @@ public class SlimeLevelInstance extends ServerLevel {
+ 
+     private final Object saveLock = new Object();
+ 
+-    private boolean ready = false;
+-
+     public SlimeLevelInstance(SlimeBootstrap slimeBootstrap, PrimaryLevelData primaryLevelData,
+                               ResourceKey<net.minecraft.world.level.Level> worldKey,
+                               ResourceKey<LevelStem> dimensionKey, LevelStem worldDimension,
+@@ -115,8 +113,13 @@ public class SlimeLevelInstance extends ServerLevel {
+ 
+     @Override
+     public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled, boolean close) {
++        if (!savingDisabled) save();
++    }
++
++    public Future<?> save() {
++        AsyncCatcher.catchOp("SWM world save");
+         try {
+-            if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
++            if (!this.slimeInstance.isReadOnly() && this.slimeInstance.getLoader() != null) {
+                 Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
+ 
+                 //this.getChunkSource().save(forceSave);
+@@ -128,16 +131,17 @@ public class SlimeLevelInstance extends ServerLevel {
+                 net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
+ 
+                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
+-                    save().get(); // Async wait for it to finish
+-                    this.slimeInstance.getLoader().unlockWorld(this.slimeInstance.getName()); // Unlock
++                    saveInternal().get(); // Async wait for it to finish
+                 } else {
+-                    this.save();
++                    return this.saveInternal();
+                     //WORLD_SAVER_SERVICE.execute(this::save);
+                 }
+             }
+         } catch (Throwable e) {
+             e.printStackTrace();
++            return CompletableFuture.failedFuture(e);
+         }
++        return CompletableFuture.completedFuture(null);
+     }
+ 
+     @Override
+@@ -147,7 +151,7 @@ public class SlimeLevelInstance extends ServerLevel {
+         }
+     }
+ 
+-    private Future<?> save() {
++    private Future<?> saveInternal() {
+         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
+             SlimeWorldInstance slimeWorld = this.slimeInstance;
+             Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
+@@ -158,7 +162,7 @@ public class SlimeLevelInstance extends ServerLevel {
+                 try {
+                     byte[] serializedWorld = SlimeSerializer.serialize(world);
+                     long saveStart = System.currentTimeMillis();
+-                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
++                    slimeWorld.getLoader().saveWorld(slimeWorld.getName(), serializedWorld);
+                     Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
+                 } catch (IOException | IllegalStateException ex) {
+                     ex.printStackTrace();
+diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+index 3500005bb09dc484bc333f1e0799613d097a37d3..4a5a6f208ad91fd861bd6f2b2c008ef14a547d6e 100644
+--- a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
++++ b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+@@ -1,9 +1,46 @@
+ package com.infernalsuite.aswm.util;
+ 
++import com.infernalsuite.aswm.InternalPlugin;
++import org.bukkit.Bukkit;
++import org.bukkit.craftbukkit.scheduler.CraftScheduler;
++import org.bukkit.plugin.Plugin;
++
++import java.util.concurrent.CountDownLatch;
++
+ public class NmsUtil {
+ 
+     public static long asLong(int chunkX, int chunkZ) {
+         return (((long) chunkZ) * Integer.MAX_VALUE + ((long) chunkX));
+         //return (long)chunkX & 4294967295L | ((long)chunkZ & 4294967295L) << 32;
+     }
++
++    public static void runSyncAndWait(Runnable runnable) {
++        if (Bukkit.isPrimaryThread()) {
++            runnable.run();
++            return;
++        }
++
++        CountDownLatch latch = new CountDownLatch(1);
++        RuntimeException[] runtimeException = new RuntimeException[1];
++
++        Bukkit.getScheduler().runTask(new InternalPlugin(), () -> {
++            try {
++                runnable.run();
++            } catch (RuntimeException e) {
++                runtimeException[0] = e;
++            } finally {
++                latch.countDown();
++            }
++        });
++
++        try {
++            latch.await();
++        } catch (InterruptedException e) {
++            throw new RuntimeException(e); // Rather propagate the interrupt (and thus prevent further execution) than continue
++        }
++
++        if (runtimeException[0] != null) {
++            throw runtimeException[0];
++        }
++    }
+ }
+\ No newline at end of file
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index f030be9fdad11ac7838afe6fbb472416f837900c..6736cc9234fcbc1b5023900379123974b7d90e94 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.Iterators;
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.MapMaker;
++import com.infernalsuite.aswm.AdvancedSlimePaperImpl;
+ import com.mojang.authlib.GameProfile;
+ import com.mojang.brigadier.StringReader;
+ import com.mojang.brigadier.exceptions.CommandSyntaxException;
+@@ -1435,6 +1436,8 @@ public final class CraftServer implements Server {
+             return false;
+         }
+ 
++        AdvancedSlimePaperImpl.instance().onWorldUnload(world.getName()); // ASP - Remove unloaded world from map
++
+         try {
+             if (save) {
+                 handle.save(null, true, false); // Paper - Fix saving in unloadWorld
+diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.AdvancedSlimePaper b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.AdvancedSlimePaper
+new file mode 100644
+index 0000000000000000000000000000000000000000..3ab149e6b4808c9a18d939809c0fd80aab6e480f
+--- /dev/null
++++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.AdvancedSlimePaper
+@@ -0,0 +1 @@
++com.infernalsuite.aswm.AdvancedSlimePaperImpl
+\ No newline at end of file
+diff --git a/src/main/resources/log4j2.xml b/src/main/resources/log4j2.xml
+index d2a75850af9c6ad2aca66a5f994f1b587d73eac4..3b090baf12044e19150ec66017c76fc48358f1b7 100644
+--- a/src/main/resources/log4j2.xml
++++ b/src/main/resources/log4j2.xml
+@@ -6,7 +6,7 @@
+         </Queue>
+         <TerminalConsole name="TerminalConsole">
+             <PatternLayout>
+-                <LoggerNamePatternSelector defaultPattern="%highlightError{[%d{HH:mm:ss} %level]: [%logger] %msg%n%xEx{full}}">
++                <LoggerNamePatternSelector defaultPattern="%highlightError{[%d{HH:mm:ss} %level]: [%c{1}] %msg%n%xEx{full}}">
+                     <!-- Log root, Minecraft, Mojang and Bukkit loggers without prefix -->
+                     <!-- Disable prefix for various plugins that bypass the plugin logger -->
+                     <PatternMatch key=",net.minecraft.,Minecraft,com.mojang.,com.sk89q.,ru.tehkode.,Minecraft.AWE"
+@@ -16,7 +16,7 @@
+         </TerminalConsole>
+         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+             <PatternLayout>
+-                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level]: [%logger] %stripAnsi{%msg}%n%xEx{full}">
++                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level]: [%c{1}] %stripAnsi{%msg}%n%xEx{full}">
+                     <!-- Log root, Minecraft, Mojang and Bukkit loggers without prefix -->
+                     <!-- Disable prefix for various plugins that bypass the plugin logger -->
+                     <PatternMatch key=",net.minecraft.,Minecraft,com.mojang.,com.sk89q.,ru.tehkode.,Minecraft.AWE"

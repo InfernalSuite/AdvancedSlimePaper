@@ -1,7 +1,7 @@
 package com.infernalsuite.aswm.api.world;
 
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.api.SlimePlugin;
+import com.infernalsuite.aswm.api.AdvancedSlimePaper;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -73,7 +73,7 @@ public interface SlimeWorld extends PersistentDataHolder {
     SlimePropertyMap getPropertyMap();
 
     /**
-     * Returns whether or not read-only is enabled.
+     * Returns whether read-only is enabled.
      *
      * @return true if read-only is enabled, false otherwise.
      */
@@ -112,8 +112,8 @@ public interface SlimeWorld extends PersistentDataHolder {
     }
 
     /**
-     * Returns whether or not this world is locked and, therefore, can be loaded on the server by
-     * using the {@link SlimePlugin#loadWorld(SlimeWorld)} method.
+     * Returns whether this world is locked and, therefore, can be loaded on the server by
+     * using the {@link AdvancedSlimePaper#loadWorld(SlimeWorld)} method.
      *
      * @return true if the world is locked, false otherwise
      */

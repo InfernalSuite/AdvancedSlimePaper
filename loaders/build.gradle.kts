@@ -1,21 +1,26 @@
 plugins {
+    id("java")
     `java-library`
-     `maven-publish`
+    `maven-publish`
     signing
 }
 
-dependencies {
-    api("com.flowpowered:flow-nbt:2.0.2")
-    api("org.jetbrains:annotations:23.0.0")
-
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-}
-
+group = "com.infernalsuite.aswm"
 version = "3.0.0-SNAPSHOT"
 
-java {
-    withSourcesJar()
-    withJavadocJar()
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly(project(":api"))
+
+    api("com.zaxxer:HikariCP:5.1.0")
+    api("org.mongodb:mongodb-driver-sync:5.1.0")
+    api("io.lettuce:lettuce-core:6.3.2.RELEASE")
+
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("commons-io:commons-io:2.11.0")
 }
 
 profiles {
@@ -37,8 +42,8 @@ profiles {
                         from(components["java"])
 
                         pom {
-                            name.set("Advanced Slime Paper API")
-                            description.set("API for ASP")
+                            name.set("Advanced Slime Paper Reference Loaders")
+                            description.set("Reference loader implementations for ASP")
                             url.set("https://github.com/InfernalSuite/AdvancedSlimePaper")
                             licenses {
                                 license {
