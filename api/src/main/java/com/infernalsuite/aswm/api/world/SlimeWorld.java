@@ -43,11 +43,6 @@ public interface SlimeWorld extends PersistentDataHolder {
 
      Collection<SlimeChunk> getChunkStorage();
 
-    @Deprecated(forRemoval = true)
-    default Map<Long, SlimeChunk> getChunks() {
-         throw new UnsupportedOperationException();
-     }
-
     /**
      * Returns the extra data of the world. Inside this {@link CompoundTag}
      * can be stored any information to then be retrieved later, as it's
@@ -105,23 +100,6 @@ public interface SlimeWorld extends PersistentDataHolder {
      * @throws IOException if the world could not be stored.
      */
     SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException;
-
-    @Deprecated(forRemoval = true)
-    default SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException {
-         return clone(worldName, loader);
-    }
-
-    /**
-     * Returns whether this world is locked and, therefore, can be loaded on the server by
-     * using the {@link AdvancedSlimePaper#loadWorld(SlimeWorld)} method.
-     *
-     * @return true if the world is locked, false otherwise
-     */
-    // Locking mechanism has been retired
-    @Deprecated(forRemoval = true)
-    default boolean isLocked() {
-        return false;
-    }
 
     int getDataVersion();
 }

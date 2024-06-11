@@ -99,7 +99,7 @@ public interface AdvancedSlimePaper {
     /**
      * Creates an empty world.
      * <br>
-     * <b>This method does not load the world, nor save it to a datasource.</b> Use {@link #loadWorld(SlimeWorld, boolean)}, and {@link #saveUnloadedWorld(SlimeWorld, SlimeLoader)} for that.
+     * <b>This method does not load the world, nor save it to a datasource.</b> Use {@link #loadWorld(SlimeWorld, boolean)}, and {@link #saveWorld(SlimeWorld)} for that.
      *
      * @param worldName   Name of the world.
      * @param readOnly    Whether read-only mode is enabled.
@@ -112,7 +112,7 @@ public interface AdvancedSlimePaper {
     /**
      * Reads a vanilla world and converts it to SRF.
      * <br>
-     * <b>This method does not load the world, nor save it to a datasource.</b> Use {@link #loadWorld(SlimeWorld, boolean)}, and {@link #saveUnloadedWorld(SlimeWorld, SlimeLoader)} for that.
+     * <b>This method does not load the world, nor save it to a datasource.</b> Use {@link #loadWorld(SlimeWorld, boolean)}, and {@link #saveWorld(SlimeWorld)} for that.
      *
      * @param worldDir  The directory where the world is.
      * @param worldName The name of the world.
