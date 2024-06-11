@@ -5,7 +5,7 @@ Subject: [PATCH] poi data loader
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index 41e652b568598926e838e81fdc338e51f8e97ef8..3980d993f5d441587675a0f07cda6416aebab96d 100644
+index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4aded1c4574 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 @@ -14,6 +14,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
@@ -16,17 +16,35 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..3980d993f5d441587675a0f07cda6416
  import net.minecraft.world.level.material.Fluid;
  import net.minecraft.world.ticks.LevelChunkTicks;
  import org.slf4j.Logger;
-@@ -63,7 +64,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
+@@ -63,13 +64,6 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
      }
  
      protected ChunkAccess runOnMain(final SlimeChunk data) {
 -        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
-+        final PoiChunk poiChunk = this.world.chunkTaskScheduler.chunkHolderManager.getPoiChunkIfLoaded(this.chunkX, this.chunkZ, true);
-         if (poiChunk == null) {
-             LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
-         } else {
+-        if (poiChunk == null) {
+-            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
+-        } else {
+-            poiChunk.load();
+-        }
+-
+         // have tasks to run (at this point, it's just the POI consistency checking)
+         try {
+             //                if (data.tasks != null) {
+diff --git a/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java b/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
+index d72041aa814ff179e6e29a45dcd359a91d426d47..9c16cd0728d2252cf4dadb45779e2ad0e8ca4c0e 100644
+--- a/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
++++ b/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
+@@ -18,7 +18,7 @@ import org.slf4j.Logger;
+ 
+ import java.util.Optional;
+ 
+-public final class PoiChunk {
++public class PoiChunk {
+ 
+     private static final Logger LOGGER = LogUtils.getClassLogger();
+ 
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index ed6bb6663b3cd61595f19010330121760fdc6bed..815786a943e640ea1cc93fef9fa1d38656b83306 100644
+index 7da17001d9f676c906e94bcfaaeafc0a1668d210..06d78da89f557ba0786b0261c33c74660e6ff661 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 @@ -1,6 +1,9 @@
@@ -39,15 +57,15 @@ index ed6bb6663b3cd61595f19010330121760fdc6bed..815786a943e640ea1cc93fef9fa1d386
  import com.mojang.logging.LogUtils;
  import com.mojang.serialization.Codec;
  import com.mojang.serialization.DataResult;
-@@ -144,6 +147,7 @@ public class ChunkSerializer {
-         }
-         // Paper end - Do not let the server load chunks from newer versions
+@@ -138,6 +141,7 @@ public class ChunkSerializer {
+     public static ProtoChunk read(ServerLevel world, PoiManager poiStorage, ChunkPos chunkPos, CompoundTag nbt) {
+         // Paper start - rewrite chunk system
          InProgressChunkHolder holder = readInProgressChunkHolder(world, poiStorage, chunkPos, nbt);
 +
          return holder.protoChunk;
      }
  
-@@ -257,6 +261,10 @@ public class ChunkSerializer {
+@@ -251,6 +255,10 @@ public class ChunkSerializer {
                      flag = false;
                  }
                  // Paper end - rewrite light engine
