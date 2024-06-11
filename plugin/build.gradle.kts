@@ -1,5 +1,18 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("net.kyori.blossom") version "2.1.0"
+}
+
+version = "3.0.0-SNAPSHOT"
+
+sourceSets {
+    main {
+        blossom {
+            resources {
+                property("version", version.toString())
+            }
+        }
+    }
 }
 
 dependencies {
@@ -30,7 +43,5 @@ tasks {
         dependsOn(shadowJar)
     }
 }
-
-
 
 description = "slimeworldmanager-plugin"
