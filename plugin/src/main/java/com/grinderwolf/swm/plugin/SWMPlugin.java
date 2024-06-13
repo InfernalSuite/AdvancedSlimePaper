@@ -285,6 +285,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return loadedWorlds.get(worldName);
     }
 
+    @Override
+    public Optional<SlimeWorld> getWorldOptional(String worldName) {
+        return Optional.ofNullable(getWorld(worldName));
+    }
+
     public List<SlimeWorld> getLoadedWorlds() {
         return ImmutableList.copyOf(loadedWorlds.values());
     }

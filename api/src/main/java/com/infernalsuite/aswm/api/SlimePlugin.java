@@ -71,6 +71,14 @@ public interface SlimePlugin {
     SlimeWorld getWorld(String worldName);
 
     /**
+     * Gets a world which has already been loaded by ASWM.
+     *
+     * @param worldName the name of the world to get
+     * @return the loaded world as an {@link Optional} object
+     */
+    Optional<SlimeWorld> getWorldOptional(String worldName);
+
+    /**
      * Gets a list of worlds which have been loaded by ASWM.
      * Note: The returned list is immutable, and encompasses a view of the loaded worlds at the time of the method call.
      *
