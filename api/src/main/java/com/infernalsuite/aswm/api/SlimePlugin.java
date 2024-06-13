@@ -15,6 +15,7 @@ import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Main class of the SWM API. From here, you can load
@@ -133,6 +134,22 @@ public interface SlimePlugin {
      * @return The {@link SlimeLoader} capable of reading and writing to the data source.
      */
     SlimeLoader getLoader(String dataSource);
+
+    /**
+     * Returns the {@link SlimeLoader} that is able to
+     * read and store worlds from a specified data source.
+     *
+     * @param dataSource {@link String} containing the data source.
+     * @return The {@link SlimeLoader} as an {@link Optional} capable of reading and writing to the data source.
+     */
+    Optional<SlimeLoader> getLoaderOptional(String dataSource);
+
+    /**
+     * Returns a list of all the {@link SlimeLoader} that have been registered in the sources.yml file
+     *
+     * @return A list of all the {@link SlimeLoader}
+     */
+    List<SlimeLoader> getLoaders();
 
     /**
      * Registers a custom {@link SlimeLoader}. This loader can

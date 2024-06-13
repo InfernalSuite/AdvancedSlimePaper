@@ -69,7 +69,7 @@ public class UnloadWorldCmd implements Subcommand {
             }
         }
 
-        var loader = source == null ? null : LoaderUtils.getLoader(source);
+        var loader = source == null ? null : LoaderUtils.getLoader(source).orElse(null); // ???
 
         // Teleport all players outside the world before unloading it
         var players = world.getPlayers();

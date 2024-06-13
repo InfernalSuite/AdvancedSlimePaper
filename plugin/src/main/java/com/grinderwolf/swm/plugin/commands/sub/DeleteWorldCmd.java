@@ -18,10 +18,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class DeleteWorldCmd implements Subcommand {
@@ -73,9 +70,9 @@ public class DeleteWorldCmd implements Subcommand {
                 source = worldData.getDataSource();
             }
 
-            SlimeLoader loader = LoaderUtils.getLoader(source);
+            Optional<SlimeLoader> optionalSlimeLoader = LoaderUtils.getLoader(source);
 
-            if (loader == null) {
+            if (optionalSlimeLoader.isEmpty()) {
                 sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Unknown data source " + source + "!  Are you sure you've typed it correctly?");
 
                 return true;
@@ -101,7 +98,7 @@ public class DeleteWorldCmd implements Subcommand {
 
                         try {
                             long start = System.currentTimeMillis();
-                            loader.deleteWorld(worldName);
+                            optionalSlimeLoader.get().deleteWorld(worldName);
 
                             // Now let's delete it from the config file
                             WorldsConfig config = ConfigManager.getWorldConfig();

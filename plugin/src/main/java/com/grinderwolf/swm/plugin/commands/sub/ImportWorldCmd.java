@@ -22,10 +22,7 @@ import org.bukkit.command.ConsoleCommandSender;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ImportWorldCmd implements Subcommand {
@@ -51,9 +48,9 @@ public class ImportWorldCmd implements Subcommand {
     public boolean onCommand(CommandSender sender, String[] args) {
         if (args.length > 1) {
             String dataSource = args[1];
-            SlimeLoader loader = LoaderUtils.getLoader(dataSource);
+            Optional<SlimeLoader> optionalSlimeLoader = LoaderUtils.getLoader(dataSource);
 
-            if (loader == null) {
+            if (optionalSlimeLoader.isEmpty()) {
                 sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Data source " + dataSource + " does not exist.");
 
                 return true;
@@ -88,7 +85,7 @@ public class ImportWorldCmd implements Subcommand {
 
                         try {
                             long start = System.currentTimeMillis();
-                            SlimeWorld world = SWMPlugin.getInstance().importVanillaWorld(worldDir, worldName, loader);
+                            SlimeWorld world = SWMPlugin.getInstance().importVanillaWorld(worldDir, worldName, optionalSlimeLoader.get());
 
                             sender.sendMessage(Logging.COMMAND_PREFIX +  ChatColor.GREEN + "World " + ChatColor.YELLOW + worldName + ChatColor.GREEN + " imported " +
                                     "successfully in " + (System.currentTimeMillis() - start) + "ms.");

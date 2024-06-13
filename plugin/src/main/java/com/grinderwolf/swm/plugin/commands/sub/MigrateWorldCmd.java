@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class MigrateWorldCmd implements Subcommand {
 
@@ -52,9 +53,9 @@ public class MigrateWorldCmd implements Subcommand {
             }
 
             String newSource = args[1];
-            SlimeLoader newLoader = LoaderUtils.getLoader(newSource);
+            Optional<SlimeLoader> newLoaderOptional = LoaderUtils.getLoader(newSource);
 
-            if (newLoader == null) {
+            if (newLoaderOptional.isEmpty()) {
                 sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Unknown data source " + newSource + "!");
 
                 return true;
@@ -68,9 +69,9 @@ public class MigrateWorldCmd implements Subcommand {
                 return true;
             }
 
-            SlimeLoader oldLoader = LoaderUtils.getLoader(currentSource);
+            Optional<SlimeLoader> oldLoaderOptional = LoaderUtils.getLoader(currentSource);
 
-            if (oldLoader == null) {
+            if (oldLoaderOptional.isEmpty()) {
                 sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Unknown data source " + currentSource + "! Are you sure you configured it correctly?");
 
                 return true;
@@ -88,7 +89,7 @@ public class MigrateWorldCmd implements Subcommand {
 
                 try {
                     long start = System.currentTimeMillis();
-                    SWMPlugin.getInstance().migrateWorld(worldName, oldLoader, newLoader);
+                    SWMPlugin.getInstance().migrateWorld(worldName, oldLoaderOptional.get(), newLoaderOptional.get());
 
                     worldData.setDataSource(newSource);
                     config.save();

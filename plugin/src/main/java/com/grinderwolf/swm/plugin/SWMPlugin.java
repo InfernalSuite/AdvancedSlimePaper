@@ -41,11 +41,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
@@ -368,8 +364,18 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     @Override
     public SlimeLoader getLoader(String dataSource) {
         Objects.requireNonNull(dataSource, "Data source cannot be null");
+        return LoaderUtils.getLoader(dataSource).orElse(null);
+    }
 
+    @Override
+    public Optional<SlimeLoader> getLoaderOptional(String dataSource) {
+        Objects.requireNonNull(dataSource, "Data source cannot be null");
         return LoaderUtils.getLoader(dataSource);
+    }
+
+    @Override
+    public List<SlimeLoader> getLoaders() {
+        return LoaderUtils.getLoaders();
     }
 
     @Override

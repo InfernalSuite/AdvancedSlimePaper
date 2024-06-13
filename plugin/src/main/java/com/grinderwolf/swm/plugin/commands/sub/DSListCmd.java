@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class DSListCmd implements Subcommand {
 
@@ -60,14 +61,14 @@ public class DSListCmd implements Subcommand {
             }
 
             String source = args[0];
-            SlimeLoader loader = LoaderUtils.getLoader(source);
+            Optional<SlimeLoader> optionalLoader = LoaderUtils.getLoader(source);
 
-            if (loader == null) {
+            if (optionalLoader.isEmpty()) {
                 sender.sendMessage(Logging.COMMAND_PREFIX + ChatColor.RED + "Unknown data source " + source + ".");
-
                 return true;
             }
 
+            SlimeLoader loader = optionalLoader.get();
             Bukkit.getScheduler().runTaskAsynchronously(SWMPlugin.getInstance(), () -> {
 
                 List<String> worldList;

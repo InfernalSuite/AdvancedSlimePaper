@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LoaderUtils {
 
@@ -76,9 +73,8 @@ public class LoaderUtils {
         return new LinkedList<>(loaderMap.keySet());
     }
 
-
-    public static SlimeLoader getLoader(String dataSource) {
-        return loaderMap.get(dataSource);
+    public static Optional<SlimeLoader> getLoader(String dataSource) {
+        return Optional.ofNullable(loaderMap.get(dataSource));
     }
 
     public static void registerLoader(String dataSource, SlimeLoader loader) {
@@ -100,6 +96,10 @@ public class LoaderUtils {
         }
 
         loaderMap.put(dataSource, loader);
+    }
+
+    public static List<SlimeLoader> getLoaders() {
+        return new LinkedList<>(loaderMap.values());
     }
 
 }
