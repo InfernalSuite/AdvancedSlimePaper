@@ -5,13 +5,13 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import org.bukkit.World;
 
-public interface SlimeWorldInstance {
+public interface SlimeWorldInstance extends ActiveSlimeWorld {
 
     String getName();
 
     World getBukkitWorld();
 
-    SlimeWorld getSlimeWorldMirror();
+    ActiveSlimeWorld getSlimeWorldMirror();
 
     SlimePropertyMap getPropertyMap();
 

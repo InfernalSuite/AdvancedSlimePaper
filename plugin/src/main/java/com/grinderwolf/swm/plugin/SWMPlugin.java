@@ -20,8 +20,11 @@ import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.exceptions.WorldLoadedException;
 import com.infernalsuite.aswm.api.exceptions.WorldLockedException;
 import com.infernalsuite.aswm.api.exceptions.WorldTooBigException;
+import com.infernalsuite.aswm.api.loaders.SlimeFormatAdapter;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
+import com.infernalsuite.aswm.api.world.ActiveSlimeWorld;
 import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
+import com.infernalsuite.aswm.serialization.slime.DefaultSlimeFormatAdapter;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
 import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
@@ -37,6 +40,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,6 +57,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     private static final SlimeNMSBridge BRIDGE_INSTANCE = SlimeNMSBridge.instance();
 
     private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
+    private final SlimeFormatAdapter defaultFormatAdapter = new DefaultSlimeFormatAdapter(Logging::info);
 
     private static boolean isPaperMC = false;
 
@@ -289,6 +294,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return loadedWorlds.get(worldName);
     }
 
+    @Override
+    public ActiveSlimeWorld getActiveWorld(@NotNull World bukkitWorld) {
+        return BRIDGE_INSTANCE.getInstance(bukkitWorld);
+    }
+
     public List<SlimeWorld> getLoadedWorlds() {
         return ImmutableList.copyOf(loadedWorlds.values());
     }
@@ -315,6 +325,12 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
         return blackhole;
     }
 
+    @Override
+    public SlimeWorld createUnboundEmptyWorld(@NotNull String worldName, @NotNull SlimePropertyMap propertyMap) {
+        return new SkeletonSlimeWorld(worldName, null, true, Map.of(), new CompoundTag("", new CompoundMap()),
+                propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+    }
+
     /**
      * Utility method to register a <b>loaded</b> {@link SlimeWorld} with the internal map (for {@link #getWorld} calls)
      *
@@ -334,11 +350,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
     }
 
     @Override
-    public SlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
+    public ActiveSlimeWorld loadWorld(SlimeWorld slimeWorld, boolean callWorldLoadEvent) throws WorldLockedException, UnknownWorldException, IOException {
         Objects.requireNonNull(slimeWorld, "SlimeWorld cannot be null");
 
         SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(slimeWorld);
-        SlimeWorld mirror = instance.getSlimeWorldMirror();
+        ActiveSlimeWorld mirror = instance.getSlimeWorldMirror();
 
         Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
         if (callWorldLoadEvent) {
@@ -413,6 +429,11 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin, Listener {
 
         loader.saveWorld(worldName, serializedWorld);
         return world;
+    }
+
+    @Override
+    public SlimeFormatAdapter getDefaultFormatAdapter() {
+        return defaultFormatAdapter;
     }
 
     public static boolean isPaperMC() {
