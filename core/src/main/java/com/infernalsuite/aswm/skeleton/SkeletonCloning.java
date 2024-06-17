@@ -8,18 +8,14 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SkeletonCloning {
 
     public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
         return new SkeletonSlimeWorld(worldName,
                 loader == null ? world.getLoader() : loader,
-                loader == null,
+                loader == null || world.isReadOnly(),
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
                 world.getPropertyMap().clone(),
@@ -45,6 +41,7 @@ public class SkeletonCloning {
 
 
     private static Map<ChunkPos, SlimeChunk> cloneChunkStorage(Collection<SlimeChunk> slimeChunkMap) {
+        slimeChunkMap = new HashSet<>(slimeChunkMap); // Create a point-in-time copy to avoid concurrent modification exceptions
         Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
         for (SlimeChunk chunk : slimeChunkMap) {
             ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());
