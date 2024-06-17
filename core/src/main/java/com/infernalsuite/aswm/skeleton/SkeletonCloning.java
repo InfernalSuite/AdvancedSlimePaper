@@ -41,7 +41,6 @@ public class SkeletonCloning {
 
 
     private static Map<ChunkPos, SlimeChunk> cloneChunkStorage(Collection<SlimeChunk> slimeChunkMap) {
-        slimeChunkMap = new HashSet<>(slimeChunkMap); // Create a point-in-time copy to avoid concurrent modification exceptions
         Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
         for (SlimeChunk chunk : slimeChunkMap) {
             ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());

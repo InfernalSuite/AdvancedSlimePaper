@@ -27,13 +27,8 @@ public class SlimeCommand {
         this.plugin = commandManager.getPlugin();
     }
 
+    // This method is here so that we can easily change the behavior in the future
     protected SlimeWorld getWorldReadyForCloning(String name, SlimeLoader loader, SlimePropertyMap propertyMap) throws CorruptedWorldException, NewerFormatException, UnknownWorldException, IOException {
-        SlimeWorld world = asp.getLoadedWorld(name);
-
-        if (world == null) {
-            world = asp.readWorld(loader, name, false, propertyMap);
-        }
-
-        return world;
+        return asp.readWorld(loader, name, false, propertyMap);
     }
 }
