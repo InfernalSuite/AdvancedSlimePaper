@@ -1,7 +1,6 @@
 package com.infernalsuite.aswm.api.world;
 
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.api.AdvancedSlimePaper;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -9,7 +8,6 @@ import org.bukkit.persistence.PersistentDataHolder;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * In-memory representation of a SRF world.

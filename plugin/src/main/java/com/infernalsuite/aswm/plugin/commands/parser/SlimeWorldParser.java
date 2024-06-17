@@ -1,6 +1,6 @@
 package com.infernalsuite.aswm.plugin.commands.parser;
 
-import com.infernalsuite.aswm.api.AdvancedSlimePaper;
+import com.infernalsuite.aswm.api.AdvancedSlimePaperAPI;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -21,7 +21,7 @@ public class SlimeWorldParser implements ArgumentParser<CommandSender, SlimeWorl
     @Override
     public @NonNull ArgumentParseResult<@NonNull SlimeWorld> parse(@NonNull CommandContext<@NonNull CommandSender> commandContext, @NonNull CommandInput commandInput) {
         String input = commandInput.peekString();
-        SlimeWorld loaded = AdvancedSlimePaper.instance().getLoadedWorld(input);
+        SlimeWorld loaded = AdvancedSlimePaperAPI.instance().getLoadedWorld(input);
 
         if (loaded == null) {
             return ArgumentParseResult.failure(new MessageCommandException(SlimeCommand.COMMAND_PREFIX.append(
@@ -35,7 +35,7 @@ public class SlimeWorldParser implements ArgumentParser<CommandSender, SlimeWorl
     @Override
     public @NonNull SuggestionProvider<CommandSender> suggestionProvider() {
         return (context, input) -> CompletableFuture.supplyAsync(() ->
-                AdvancedSlimePaper.instance().getLoadedWorlds()
+                AdvancedSlimePaperAPI.instance().getLoadedWorlds()
                         .stream()
                         .map(SlimeWorld::getName)
                         .map(Suggestion::suggestion)

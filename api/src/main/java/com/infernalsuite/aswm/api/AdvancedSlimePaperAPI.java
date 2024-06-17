@@ -19,7 +19,7 @@ import java.util.List;
  * <br>
  * <b>All methods are allowed to be called asynchronously unless specifically stated in the javadoc</b>
  */
-public interface AdvancedSlimePaper {
+public interface AdvancedSlimePaperAPI {
 
     /**
      * Reads a world using a specified {@link SlimeLoader}.
@@ -130,12 +130,12 @@ public interface AdvancedSlimePaper {
      *
      * @return the instance of the AdvancedSlimePaper API
      */
-    static AdvancedSlimePaper instance() {
+    static AdvancedSlimePaperAPI instance() {
         return Holder.INSTANCE;
     }
 
     @ApiStatus.Internal
     class Holder {
-        private static final AdvancedSlimePaper INSTANCE = Services.service(AdvancedSlimePaper.class).orElseThrow();
+        private static final AdvancedSlimePaperAPI INSTANCE = Services.service(AdvancedSlimePaperAPI.class).orElseThrow();
     }
 }

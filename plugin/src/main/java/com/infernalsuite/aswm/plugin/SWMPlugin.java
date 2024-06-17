@@ -5,7 +5,7 @@ import com.infernalsuite.aswm.plugin.config.ConfigManager;
 import com.infernalsuite.aswm.plugin.config.WorldData;
 import com.infernalsuite.aswm.plugin.config.WorldsConfig;
 import com.infernalsuite.aswm.plugin.loader.LoaderManager;
-import com.infernalsuite.aswm.api.AdvancedSlimePaper;
+import com.infernalsuite.aswm.api.AdvancedSlimePaperAPI;
 import com.infernalsuite.aswm.api.SlimeNMSBridge;
 import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
@@ -23,7 +23,7 @@ import java.util.*;
 
 public class SWMPlugin extends JavaPlugin {
 
-    private static final AdvancedSlimePaper ASP = AdvancedSlimePaper.instance();
+    private static final AdvancedSlimePaperAPI ASP = AdvancedSlimePaperAPI.instance();
     private static final int BSTATS_ID = 5419;
 
     private final List<SlimeWorld> worldsToLoad = new ArrayList<>();

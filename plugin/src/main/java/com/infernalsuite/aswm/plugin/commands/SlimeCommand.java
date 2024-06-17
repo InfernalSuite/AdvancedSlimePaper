@@ -1,6 +1,6 @@
 package com.infernalsuite.aswm.plugin.commands;
 
-import com.infernalsuite.aswm.api.AdvancedSlimePaper;
+import com.infernalsuite.aswm.api.AdvancedSlimePaperAPI;
 import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
@@ -20,7 +20,7 @@ public class SlimeCommand {
 
     protected final CommandManager commandManager;
     protected final SWMPlugin plugin;
-    protected final AdvancedSlimePaper asp = AdvancedSlimePaper.instance();
+    protected final AdvancedSlimePaperAPI asp = AdvancedSlimePaperAPI.instance();
 
     public SlimeCommand(CommandManager commandManager) {
         this.commandManager = commandManager;
