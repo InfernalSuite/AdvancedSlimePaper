@@ -1,6 +1,6 @@
 package com.infernalsuite.aswm.plugin.config;
 
-import com.infernalsuite.aswm.plugin.SWMPlugin;
+import com.infernalsuite.aswm.plugin.SWPlugin;
 import io.leangen.geantyref.TypeToken;
 import org.spongepowered.configurate.loader.HeaderMode;
 import org.spongepowered.configurate.yaml.NodeStyle;
@@ -40,11 +40,11 @@ public class ConfigManager {
         PLUGIN_DIR.mkdirs();
 
         if (!WORLDS_FILE.exists()) {
-            Files.copy(SWMPlugin.getInstance().getResource("worlds.yml"), WORLDS_FILE.toPath());
+            Files.copy(SWPlugin.getInstance().getResource("worlds.yml"), WORLDS_FILE.toPath());
         }
 
         if (!SOURCES_FILE.exists()) {
-            Files.copy(SWMPlugin.getInstance().getResource("worlds.yml"), SOURCES_FILE.toPath());
+            Files.copy(SWPlugin.getInstance().getResource("worlds.yml"), SOURCES_FILE.toPath());
         }
     }
 

@@ -1,8 +1,6 @@
 package com.infernalsuite.aswm.plugin.commands.sub;
 
 
-import com.infernalsuite.aswm.api.exceptions.WorldLoadedException;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -38,7 +36,7 @@ public class CreateWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm create <world> <data-source>")
+    @Command("swp|aswm|swm create <world> <data-source>")
     @CommandDescription("Create an empty world")
     @Permission("swm.createworld")
     public CompletableFuture<Void> createWorld(CommandSender sender, @Argument(value = "world") String worldName,

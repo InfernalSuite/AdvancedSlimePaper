@@ -31,7 +31,7 @@ public class SetSpawnCmd extends SlimeCommand {
     }
 
     //TODO: It seems like originally this command was supposed to allow to set a spawnpoint based on a provided location, but it was never implemented.
-    @Command("swm|aswm setspawn")
+    @Command("swp|aswm|swm setspawn")
     @CommandDescription("Set the spawnpoint of a world based on your location")
     @Permission("swm.setspawn")
     public void setSpawn(CommandSender sender) {

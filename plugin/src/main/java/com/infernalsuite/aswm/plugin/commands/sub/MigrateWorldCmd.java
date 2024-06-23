@@ -30,7 +30,7 @@ public class MigrateWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm migrate <world> <new-data-source>")
+    @Command("swp|aswm|swm migrate <world> <new-data-source>")
     @CommandDescription("Migrate a world from one data source to another.")
     @Permission("swm.migrate")
     public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "world") NamedWorldData worldData,

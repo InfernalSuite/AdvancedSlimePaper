@@ -1,7 +1,7 @@
 package com.infernalsuite.aswm.plugin.commands;
 
 import com.infernalsuite.aswm.api.world.SlimeWorld;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
+import com.infernalsuite.aswm.plugin.SWPlugin;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
 import com.infernalsuite.aswm.plugin.commands.parser.*;
 import com.infernalsuite.aswm.plugin.commands.parser.suggestion.KnownSlimeWorldSuggestionProvider;
@@ -14,13 +14,14 @@ import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
-import org.incendo.cloud.context.CommandInput;
+import org.incendo.cloud.component.DefaultValue;
 import org.incendo.cloud.exception.ArgumentParseException;
 import org.incendo.cloud.exception.CommandExecutionException;
 import org.incendo.cloud.exception.InvalidSyntaxException;
 import org.incendo.cloud.exception.NoPermissionException;
 import org.incendo.cloud.exception.handling.ExceptionHandler;
 import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.minecraft.extras.MinecraftHelp;
 import org.incendo.cloud.paper.PaperCommandManager;
 import org.incendo.cloud.parser.ParserRegistry;
 import org.slf4j.Logger;
@@ -29,15 +30,17 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
+
 public class CommandManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandManager.class);
 
     // A list containing all the worlds that are being performed operations on, so two commands cannot be run at the same time
     private final Set<String> worldsInUse = new HashSet<>();
 
-    private final SWMPlugin plugin;
+    private final SWPlugin plugin;
 
-    public CommandManager(SWMPlugin plugin) {
+    public CommandManager(SWPlugin plugin) {
 
         PaperCommandManager<CommandSender> commandManager = PaperCommandManager.createNative(
                 plugin,
@@ -118,20 +121,28 @@ public class CommandManager {
                 new SetSpawnCmd(this),
                 new UnloadWorldCmd(this),
                 new VersionCmd(this),
-                new WorldListCmd(this)
+                new WorldListCmd(this),
+                new HelpCmd(this, commandManager)
         );
+
     }
 
     public Set<String> getWorldsInUse() {
         return worldsInUse;
     }
 
-    @Command("swm|aswm")
+    @Command("swp|aswm|swm")
     public void onCommand(CommandSender sender) {
-        sender.sendMessage(Component.text("HI!"));
+        sender.sendMessage(SlimeCommand.COMMAND_PREFIX.append(
+                Component.text("This is the main command for the Slime World Plugin. Type ").color(NamedTextColor.GRAY)
+                        .append(Component.text("/swp help").color(NamedTextColor.YELLOW))
+                        .append(Component.text(" to see all available commands.")).color(NamedTextColor.GRAY)
+        ));
     }
 
-    SWMPlugin getPlugin() {
+    SWPlugin getPlugin() {
         return plugin;
     }
+
+
 }

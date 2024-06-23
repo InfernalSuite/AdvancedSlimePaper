@@ -30,7 +30,7 @@ public class SaveWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm save <world>")
+    @Command("swp|aswm|swm save <world>")
     @CommandDescription("Saves a world.")
     @Permission("swm.saveworld")
     public void saveWorld(CommandSender sender, @Argument(value = "world") SlimeWorld slimeWorld) {

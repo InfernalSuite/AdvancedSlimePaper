@@ -27,7 +27,7 @@ public class ReloadConfigCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm reload")
+    @Command("swp|aswm|swm reload")
     @CommandDescription("Reloads the config files.")
     @Permission("swm.reload")
     public CompletableFuture<Void> reloadConfig(CommandSender sender) {

@@ -4,7 +4,6 @@ package com.infernalsuite.aswm.plugin.commands.sub;
 import com.infernalsuite.aswm.api.exceptions.*;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -38,7 +37,7 @@ public class CloneWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm clone-world <template-world> <world-name> [new-data-source]")
+    @Command("swp|aswm|swm clone-world <template-world> <world-name> [new-data-source]")
     @CommandDescription("Clones a world")
     @Permission("swm.cloneworld")
     public CompletableFuture<Void> cloneWorld(CommandSender sender, @Argument(value = "template-world") NamedWorldData templateWorld,

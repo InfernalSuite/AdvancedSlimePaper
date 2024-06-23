@@ -33,7 +33,7 @@ public class LoadWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm load <world>")
+    @Command("swp|aswm|swm load <world>")
     @CommandDescription("Load a world")
     @Permission("swm.loadworld")
     public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "world") NamedWorldData worldData) {

@@ -43,7 +43,7 @@ public class ImportWorldCmd extends SlimeCommand {
 
     private final Cache<String, String[]> importCache = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).build();
 
-    @Command("swm|aswm import <path-to-world> <data-source> [new-world-name]")
+    @Command("swp|aswm|swm import <path-to-world> <data-source> [new-world-name]")
     @CommandDescription("Convert a world to the slime format and save it.")
     @Permission("swm.importworld")
     @RawArgs

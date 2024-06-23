@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -14,7 +13,6 @@ import com.infernalsuite.aswm.plugin.config.WorldData;
 import com.infernalsuite.aswm.plugin.config.WorldsConfig;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -42,7 +40,7 @@ public class DeleteWorldCmd extends SlimeCommand {
 
     private final Cache<String, String[]> deleteCache = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).build();
 
-    @Command("swm|aswm delete <world> [data-source]")
+    @Command("swp|aswm|swm delete <world> [data-source]")
     @CommandDescription("Delete a world")
     @Permission("swm.deleteworld")
     @RawArgs

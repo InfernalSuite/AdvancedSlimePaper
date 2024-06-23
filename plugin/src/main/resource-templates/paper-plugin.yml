@@ -1,6 +1,6 @@
-name: "SlimeWorldManager"
+name: "SlimeWorldPlugin"
 version: "{{ version }}"
-main: "com.infernalsuite.aswm.plugin.SWMPlugin"
+main: "com.infernalsuite.aswm.plugin.SWPlugin"
 authors:
   - Grinderwolf
   - Paul19988

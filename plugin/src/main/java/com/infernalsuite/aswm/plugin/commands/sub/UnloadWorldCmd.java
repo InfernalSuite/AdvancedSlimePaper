@@ -1,7 +1,7 @@
 package com.infernalsuite.aswm.plugin.commands.sub;
 
 import com.infernalsuite.aswm.api.world.SlimeWorld;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
+import com.infernalsuite.aswm.plugin.SWPlugin;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import net.kyori.adventure.text.Component;
@@ -18,7 +18,6 @@ import org.incendo.cloud.annotations.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class UnloadWorldCmd extends SlimeCommand {
 
@@ -26,7 +25,7 @@ public class UnloadWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm unload <world>")
+    @Command("swp|aswm|swm unload <world>")
     @CommandDescription("Unload a world.")
     @Permission("swm.unloadworld")
     public void unloadWorld(CommandSender sender, @Argument(value = "world") SlimeWorld slimeWorld) {
@@ -39,7 +38,7 @@ public class UnloadWorldCmd extends SlimeCommand {
             Location spawnLocation = findValidDefaultSpawn();
             CompletableFuture<Void> cf = CompletableFuture.allOf(players.stream().map(player -> player.teleportAsync(spawnLocation)).toList().toArray(CompletableFuture[]::new));
             cf.thenRun(() -> {
-                Bukkit.getScheduler().runTask(SWMPlugin.getInstance(), () -> {
+                Bukkit.getScheduler().runTask(SWPlugin.getInstance(), () -> {
                     boolean success = Bukkit.unloadWorld(bukkitWorld, true);
 
                     if (!success) {

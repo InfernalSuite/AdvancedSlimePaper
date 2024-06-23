@@ -21,7 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-public class SWMPlugin extends JavaPlugin {
+public class SWPlugin extends JavaPlugin {
 
     private static final AdvancedSlimePaperAPI ASP = AdvancedSlimePaperAPI.instance();
     private static final int BSTATS_ID = 5419;
@@ -29,8 +29,8 @@ public class SWMPlugin extends JavaPlugin {
     private final List<SlimeWorld> worldsToLoad = new ArrayList<>();
     private LoaderManager loaderManager;
 
-    public static SWMPlugin getInstance() {
-        return SWMPlugin.getPlugin(SWMPlugin.class);
+    public static SWPlugin getInstance() {
+        return SWPlugin.getPlugin(SWPlugin.class);
     }
 
     public LoaderManager getLoaderManager() {

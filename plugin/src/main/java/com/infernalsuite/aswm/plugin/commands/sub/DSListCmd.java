@@ -3,7 +3,6 @@ package com.infernalsuite.aswm.plugin.commands.sub;
 import com.infernalsuite.aswm.api.SlimeNMSBridge;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 public class DSListCmd extends SlimeCommand {
 
@@ -31,7 +29,7 @@ public class DSListCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm dslist <data-source> [page]")
+    @Command("swp|aswm|swm dslist <data-source> [page]")
     @CommandDescription("List all worlds inside a data source.")
     @Permission("swm.dslist")
     public CompletableFuture<Void> listWorlds(CommandSender sender, @Argument(value = "data-source") NamedSlimeLoader namedLoader,

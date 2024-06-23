@@ -24,7 +24,7 @@ public class GotoCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm goto <world> [player]")
+    @Command("swp|aswm|swm goto <world> [player]")
     @CommandDescription("Teleport yourself (or someone else) to a world.")
     @Permission("swm.goto")
     public void onCommand(CommandSender sender, @Argument(value = "world") World world,

@@ -6,7 +6,6 @@ import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
 import com.infernalsuite.aswm.plugin.commands.CommandManager;
 import com.infernalsuite.aswm.plugin.commands.SlimeCommand;
 import com.infernalsuite.aswm.plugin.commands.exception.MessageCommandException;
@@ -35,7 +34,7 @@ public class LoadTemplateWorldCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm load-template <template-world> <world-name>")
+    @Command("swp|aswm|swm load-template <template-world> <world-name>")
     @CommandDescription("Creates a temporary world using another as a template. This world will never be stored.")
     @Permission("swm.loadworld.template")
     public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "template-world") NamedWorldData templateWorldData,

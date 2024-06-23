@@ -7,7 +7,7 @@ import com.infernalsuite.aswm.api.exceptions.UnknownWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.plugin.SWMPlugin;
+import com.infernalsuite.aswm.plugin.SWPlugin;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
@@ -15,11 +15,11 @@ import java.io.IOException;
 
 public class SlimeCommand {
     public static final TextComponent COMMAND_PREFIX = LegacyComponentSerializer.legacySection().deserialize(
-            "§9§lSWM §7§l>> §r"
+            "§9§lSWP §7§l>> §r"
     );
 
     protected final CommandManager commandManager;
-    protected final SWMPlugin plugin;
+    protected final SWPlugin plugin;
     protected final AdvancedSlimePaperAPI asp = AdvancedSlimePaperAPI.instance();
 
     public SlimeCommand(CommandManager commandManager) {

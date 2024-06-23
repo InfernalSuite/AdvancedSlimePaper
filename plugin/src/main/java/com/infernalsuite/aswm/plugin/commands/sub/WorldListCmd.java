@@ -31,7 +31,7 @@ public class WorldListCmd extends SlimeCommand {
         super(commandManager);
     }
 
-    @Command("swm|aswm list [slime] [page]")
+    @Command("swp|aswm|swm list [slime] [page]")
     @CommandDescription("List all worlds. To only list slime worlds, use the 'slime' argument.")
     @Permission("swm.worldlist")
     @RawArgs
