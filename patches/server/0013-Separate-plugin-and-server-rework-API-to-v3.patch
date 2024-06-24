@@ -18,10 +18,10 @@ index 316d03791a97af50f882c0271cbacf3d2a7af5b3..1dcef8475092ca55d2dc810a1559b53a
      implementation("org.jline:jline-terminal-jansi:3.21.0")
 diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..82f7ab168d96050455c363eecb30ce621033bbf9
+index 0000000000000000000000000000000000000000..50350820d228e3656c569176aafd2cc534c17c15
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-@@ -0,0 +1,239 @@
+@@ -0,0 +1,243 @@
 +package com.infernalsuite.aswm;
 +
 +import com.flowpowered.nbt.CompoundMap;
@@ -99,9 +99,13 @@ index 0000000000000000000000000000000000000000..82f7ab168d96050455c363eecb30ce62
 +    }
 +
 +    @Override
-+    public SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) {
++    public SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException {
 +        AsyncCatcher.catchOp("SWM world load");
 +        Objects.requireNonNull(world, "SlimeWorld cannot be null");
++
++        if (worldLoaded(world)) {
++            throw new IllegalArgumentException("World " + world.getName() + " is already loaded");
++        }
 +
 +        LOGGER.info("Loading world {}...", world.getName());
 +        long start = System.currentTimeMillis();

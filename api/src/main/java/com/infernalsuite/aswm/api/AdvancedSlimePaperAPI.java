@@ -62,9 +62,10 @@ public interface AdvancedSlimePaperAPI {
      *
      * @param world              {@link SlimeWorld} world to be added to the server's world list
      * @param callWorldLoadEvent Whether to call {@link org.bukkit.event.world.WorldLoadEvent}
+     * @throws IllegalArgumentException if the world is already loaded
      * @return Returns a slime world representing a live minecraft world
      */
-    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent);
+    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException;
 
     /**
      * Checks if a {@link SlimeWorld} is loaded on the server.
