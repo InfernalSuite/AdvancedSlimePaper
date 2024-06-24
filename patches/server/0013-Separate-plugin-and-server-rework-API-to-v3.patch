@@ -480,6 +480,46 @@ index 3500005bb09dc484bc333f1e0799613d097a37d3..4a5a6f208ad91fd861bd6f2b2c008ef1
 +    }
  }
 \ No newline at end of file
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
+index 3e82ea07ca4194844c5528446e2c4a46ff4acee5..1f8bff31ce60f9a1b143e749916fa51cf115f5d7 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
+@@ -64,6 +64,15 @@ class PaperPluginInstanceManager {
+     }
+ 
+     public @Nullable Plugin getPlugin(@NotNull String name) {
++        // ASP start - Warn if someone tries to get the old API instance
++        if (name.equals("SlimeWorldManager")) {
++            server.getLogger().warning("""
++                    Hey! It seems like you're trying to access the old SlimeWorldManager API.
++                    Since 1.21.0 the API is now provided by the server directly.
++                    See the documentation at https://infernalsuite.com/docs/asp/migrating for more information.
++                    """);
++        }
++        // ASP end
+         return this.lookupNames.get(name.replace(' ', '_').toLowerCase(java.util.Locale.ENGLISH)); // Paper
+     }
+ 
+diff --git a/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java b/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
+index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e8e04d676 100644
+--- a/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
++++ b/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
+@@ -26,6 +26,15 @@ public abstract class SimpleProviderStorage<T> implements ProviderStorage<T> {
+ 
+     @Override
+     public void register(PluginProvider<T> provider) {
++        // ASP start - sanity check for old SlimeWorldManager
++        if (provider.getMeta().getName().equals("SlimeWorldManager")) {
++            LOGGER.warn("""
++                    Hey! It looks like you're trying to load the old SlimeWorldManager plugin.
++                    ASP no longer works like that, and you should remove the plugin from your server.
++                    See the documentation at https://infernalsuite.com/docs/asp/migrating for more information.
++                    """);
++            return;
++        } // ASP end
+         this.providers.add(provider);
+     }
+ 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 index f030be9fdad11ac7838afe6fbb472416f837900c..2c20d07cb69446286051b84a404b5226b8b51d8e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
