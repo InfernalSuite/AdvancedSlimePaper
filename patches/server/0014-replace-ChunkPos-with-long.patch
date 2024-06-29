@@ -4,6 +4,19 @@ Date: Sun, 16 Jun 2024 03:06:08 +0200
 Subject: [PATCH] replace ChunkPos with long
 
 
+diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+index 50350820d228e3656c569176aafd2cc534c17c15..72ae13b9f5f7db25a1a76b2f3855d37c44d8fcbd 100644
+--- a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
++++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+@@ -168,7 +168,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+         Objects.requireNonNull(worldName, "World name cannot be null");
+         Objects.requireNonNull(propertyMap, "Properties cannot be null");
+ 
+-        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
++        return new SkeletonSlimeWorld(worldName, loader, readOnly, new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>(0), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+     }
+ 
+     @Override
 diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
 index ba203e3dc9f6b0be5a92c30808daa0c284616f09..eb441905b43c0f2f7edc104a34f78a18d8f3bedf 100644
 --- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
