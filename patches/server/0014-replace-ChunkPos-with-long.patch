@@ -36,7 +36,7 @@ index ba203e3dc9f6b0be5a92c30808daa0c284616f09..eb441905b43c0f2f7edc104a34f78a18
              SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
              for (int i = 0; i < sections.length; i++) {
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..1f70cc97e79d532ea0e9428e3b5d462482501135 100644
+index 114da62698c2897b16042327a4171f785bc58cec..770679851baba2ddb9f8f427f4cd80ea8b32122b 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 @@ -2,8 +2,8 @@ package com.infernalsuite.aswm.level;
@@ -107,7 +107,7 @@ index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..1f70cc97e79d532ea0e9428e3b5d4624
      }
  
      @Override
-@@ -207,8 +209,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -202,8 +204,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      public SlimeWorld getForSerialization() {
          SlimeWorld world = SkeletonCloning.weakCopy(this);
  
@@ -118,7 +118,7 @@ index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..1f70cc97e79d532ea0e9428e3b5d4624
              SlimeChunk clonedChunk = entry.getValue();
              // NMS "live" chunks need to be converted
              {
-@@ -247,7 +249,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -242,7 +244,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                  }
              }
  
@@ -127,7 +127,7 @@ index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..1f70cc97e79d532ea0e9428e3b5d4624
          }
  
          // Serialize Bukkit Values (PDC)
-@@ -281,8 +283,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -276,8 +278,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      }
  
      public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {
