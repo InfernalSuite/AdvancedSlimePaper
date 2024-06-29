@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
-public class AnvilWorldReader implements SlimeWorldReader<File> {
+public class AnvilWorldReader implements SlimeWorldReader<AnvilImportData> {
 
     public static final int V1_16 = 2566;
     public static final int V1_16_5 = 2586;
@@ -48,7 +48,8 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
     public static final AnvilWorldReader INSTANCE = new AnvilWorldReader();
 
     @Override
-    public SlimeWorld readFromData(File worldDir) {
+    public SlimeWorld readFromData(AnvilImportData importData) {
+        File worldDir = importData.worldDir();
         try {
             File levelFile = new File(worldDir, "level.dat");
 
@@ -57,7 +58,6 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             }
 
             LevelData data = readLevelData(levelFile);
-
 
             // World version
             int worldVersion = data.version;
@@ -86,7 +86,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
 
             for (File file : Objects.requireNonNull(regionDir.listFiles((dir, name) -> name.endsWith(".mca")))) {
                 System.out.println("Loading region file: " + file.getName() + "...");
-                if(file.exists()) {
+                if (file.exists()) {
                     chunks.putAll(
                             loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
                     );
@@ -96,9 +96,9 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             // Entity serialization
             {
                 File entityRegion = new File(environmentDir, "entities");
-                if(entityRegion.exists()) {
-                    for(File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                        if(file != null && file.exists()) {
+                if (entityRegion.exists()) {
+                    for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
+                        if (file != null && file.exists()) {
                             loadEntities(file, worldVersion, chunks);
                         }
                     }
@@ -130,7 +130,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-            return new SkeletonSlimeWorld(worldDir.getName(), null, true, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
+            return new SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);

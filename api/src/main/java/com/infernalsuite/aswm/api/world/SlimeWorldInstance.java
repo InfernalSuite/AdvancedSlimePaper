@@ -17,7 +17,7 @@ public interface SlimeWorldInstance {
 
     boolean isReadOnly();
 
-    SlimeLoader getSaveStrategy();
+    SlimeLoader getLoader();
 
     CompoundTag getExtraData();
 
