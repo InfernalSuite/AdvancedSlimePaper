@@ -1,7 +1,6 @@
 package com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9;
 
 import com.flowpowered.nbt.*;
-import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.serialization.SlimeWorldReader;
 import com.infernalsuite.aswm.serialization.slime.reader.impl.v1_9.upgrade.*;
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
@@ -11,6 +10,8 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +35,8 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
     public SlimeWorld readFromData(v1_9SlimeWorld data) {
         int dataVersion = upgradeWorld(data);
 
-        Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
-        for (Map.Entry<ChunkPos, v1_9SlimeChunk> entry : data.chunks.entrySet()) {
+        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
+        for (Long2ObjectMap.Entry<v1_9SlimeChunk> entry : data.chunks.long2ObjectEntrySet()) {
             v1_9SlimeChunk slimeChunk = entry.getValue();
 
             SlimeChunkSection[] sections = new SlimeChunkSection[slimeChunk.sections.length];
@@ -84,7 +85,7 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
             //    slimeChunk.minY,
             //    slimeChunk.maxY,
 
-            chunks.put(entry.getKey(), new SlimeChunkSkeleton(
+            chunks.put(entry.getLongKey(), new SlimeChunkSkeleton(
                     slimeChunk.x,
                     slimeChunk.z,
                     sections,

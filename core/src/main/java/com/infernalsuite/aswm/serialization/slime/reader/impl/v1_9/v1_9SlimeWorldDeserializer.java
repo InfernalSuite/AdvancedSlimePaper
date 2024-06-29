@@ -9,14 +9,16 @@ import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.TagType;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
-import com.infernalsuite.aswm.ChunkPos;
 import com.infernalsuite.aswm.SlimeLogger;
+import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorldReader;
 import com.infernalsuite.aswm.api.utils.NibbleArray;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -25,9 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9SlimeWorld> {
@@ -134,12 +134,12 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
             Zstd.decompress(mapsTag, compressedMapsTag);
 
             // Chunk deserialization
-            Map<ChunkPos, v1_9SlimeChunk> chunks = readChunks(worldVersion, version, worldName, minX, minZ, width, depth, chunkBitset, chunkData);
+            Long2ObjectMap<v1_9SlimeChunk> chunks = readChunks(worldVersion, version, worldName, minX, minZ, width, depth, chunkBitset, chunkData);
 
             // Entity deserialization
             CompoundTag entitiesCompound = readCompoundTag(entities);
 
-            Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
+            Long2ObjectMap<List<CompoundTag>> entityStorage = new Long2ObjectOpenHashMap<>();
             if (entitiesCompound != null) {
                 List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
 
@@ -149,7 +149,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
 
                     int chunkX = floor(listTag.getValue().get(0).getValue()) >> 4;
                     int chunkZ = floor(listTag.getValue().get(2).getValue()) >> 4;
-                    ChunkPos chunkKey = new ChunkPos(chunkX, chunkZ);
+                    long chunkKey = Util.chunkPosition(chunkX, chunkZ);
                     v1_9SlimeChunk chunk = chunks.get(chunkKey);
                     if (chunk != null) {
                         chunk.entities.add(entityCompound);
@@ -172,7 +172,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                 for (CompoundTag tileEntityCompound : tileEntitiesList.getValue()) {
                     int chunkX = ((IntTag) tileEntityCompound.getValue().get("x")).getValue() >> 4;
                     int chunkZ = ((IntTag) tileEntityCompound.getValue().get("z")).getValue() >> 4;
-                    v1_9SlimeChunk chunk = chunks.get(new ChunkPos(chunkX, chunkZ));
+                    v1_9SlimeChunk chunk = chunks.get(Util.chunkPosition(chunkX, chunkZ));
 
                     if (chunk == null) {
                         throw new CorruptedWorldException(worldName);
@@ -234,9 +234,9 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
         return floor == num ? floor : floor - (int) (Double.doubleToRawLongBits(num) >>> 63);
     }
 
-    private static Map<ChunkPos, v1_9SlimeChunk> readChunks(byte worldVersion, int version, String worldName, int minX, int minZ, int width, int depth, BitSet chunkBitset, byte[] chunkData) throws IOException {
+    private static Long2ObjectMap<v1_9SlimeChunk> readChunks(byte worldVersion, int version, String worldName, int minX, int minZ, int width, int depth, BitSet chunkBitset, byte[] chunkData) throws IOException {
         DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(chunkData));
-        Map<ChunkPos, v1_9SlimeChunk> chunkMap = new HashMap<>();
+        Long2ObjectMap<v1_9SlimeChunk> chunkMap = new Long2ObjectOpenHashMap<>();
 
         for (int z = 0; z < depth; z++) {
             for (int x = 0; x < width; x++) {
@@ -296,7 +296,7 @@ class v1_9SlimeWorldDeserializer implements VersionedByteSlimeWorldReader<v1_9Sl
                     int chunkX = minX + x;
                     int chunkZ = minZ + z;
 
-                    chunkMap.put(new ChunkPos(chunkX, chunkZ), new v1_9SlimeChunk(
+                    chunkMap.put(Util.chunkPosition(chunkX, chunkZ), new v1_9SlimeChunk(
                             worldName,
                             chunkX,
                             chunkZ,
