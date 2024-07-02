@@ -5,15 +5,23 @@ Subject: [PATCH] replace ChunkPos with long
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-index 50350820d228e3656c569176aafd2cc534c17c15..72ae13b9f5f7db25a1a76b2f3855d37c44d8fcbd 100644
+index 50350820d228e3656c569176aafd2cc534c17c15..280750cd9872210cc9043deea71f76758c2925fd 100644
 --- a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 +++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-@@ -168,7 +168,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+@@ -17,6 +17,7 @@ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
+ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
+ import com.infernalsuite.aswm.util.NmsUtil;
++import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import net.minecraft.server.level.ServerLevel;
+ import org.bukkit.Bukkit;
+ import org.bukkit.World;
+@@ -168,7 +169,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
          Objects.requireNonNull(worldName, "World name cannot be null");
          Objects.requireNonNull(propertyMap, "Properties cannot be null");
  
 -        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
-+        return new SkeletonSlimeWorld(worldName, loader, readOnly, new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>(0), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
++        return new SkeletonSlimeWorld(worldName, loader, readOnly, new Long2ObjectOpenHashMap<>(0), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
      }
  
      @Override
