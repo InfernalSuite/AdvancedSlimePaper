@@ -5,7 +5,7 @@ import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
-import com.infernalsuite.aswm.ChunkPos;
+import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.aswm.api.exceptions.NewerFormatException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -19,6 +19,8 @@ import com.infernalsuite.aswm.serialization.slime.reader.VersionedByteSlimeWorld
 import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +41,7 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
         int worldVersion = dataStream.readInt();
 
         byte[] chunkBytes = readCompressed(dataStream);
-        Map<ChunkPos, SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
+        Long2ObjectMap<SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
 
         byte[] extraTagBytes = readCompressed(dataStream);
         CompoundTag extraTag = readCompound(extraTagBytes);
@@ -57,8 +59,8 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
         return new SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraTag, worldPropertyMap, worldVersion);
     }
 
-    private static Map<ChunkPos, SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, byte[] chunkBytes) throws IOException {
-        Map<ChunkPos, SlimeChunk> chunkMap = new HashMap<>();
+    private static Long2ObjectMap<SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, byte[] chunkBytes) throws IOException {
+        Long2ObjectMap<SlimeChunk> chunkMap = new Long2ObjectOpenHashMap<>();
         DataInputStream chunkData = new DataInputStream(new ByteArrayInputStream(chunkBytes));
 
         int chunks = chunkData.readInt();
@@ -138,7 +140,7 @@ public class v12SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<
                 extra = new CompoundTag("", new CompoundMap());
             }
 
-            chunkMap.put(new ChunkPos(x, z),
+            chunkMap.put(Util.chunkPosition(x, z),
                     new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra, null));
         }
         return chunkMap;
