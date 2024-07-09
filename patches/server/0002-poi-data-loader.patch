@@ -4,6 +4,19 @@ Date: Sun, 11 Jun 2023 17:19:05 +0100
 Subject: [PATCH] poi data loader
 
 
+diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
+index cd1302a3aee6f543f39d71b91725128fa1aeddcc..409e448ef4ff43210073efc05cc49ca8134857ff 100644
+--- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
++++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
+@@ -16,7 +16,7 @@ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import java.util.Optional;
+ 
+-public final class PoiChunk {
++public class PoiChunk {
+ 
+     private static final Logger LOGGER = LoggerFactory.getLogger(PoiChunk.class);
+ 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
 index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4aded1c4574 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
@@ -30,21 +43,8 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4ad
          // have tasks to run (at this point, it's just the POI consistency checking)
          try {
              //                if (data.tasks != null) {
-diff --git a/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java b/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
-index d72041aa814ff179e6e29a45dcd359a91d426d47..9c16cd0728d2252cf4dadb45779e2ad0e8ca4c0e 100644
---- a/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
-+++ b/src/main/java/io/papermc/paper/chunk/system/poi/PoiChunk.java
-@@ -18,7 +18,7 @@ import org.slf4j.Logger;
- 
- import java.util.Optional;
- 
--public final class PoiChunk {
-+public class PoiChunk {
- 
-     private static final Logger LOGGER = LogUtils.getClassLogger();
- 
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index 7da17001d9f676c906e94bcfaaeafc0a1668d210..06d78da89f557ba0786b0261c33c74660e6ff661 100644
+index 6d461849da76894244e6212a75da0c6e4fb459c3..143a3f0434d5102da15aba621348b7ad51eb6032 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 @@ -1,6 +1,9 @@
@@ -57,18 +57,10 @@ index 7da17001d9f676c906e94bcfaaeafc0a1668d210..06d78da89f557ba0786b0261c33c7466
  import com.mojang.logging.LogUtils;
  import com.mojang.serialization.Codec;
  import com.mojang.serialization.DataResult;
-@@ -138,6 +141,7 @@ public class ChunkSerializer {
-     public static ProtoChunk read(ServerLevel world, PoiManager poiStorage, ChunkPos chunkPos, CompoundTag nbt) {
-         // Paper start - rewrite chunk system
-         InProgressChunkHolder holder = readInProgressChunkHolder(world, poiStorage, chunkPos, nbt);
-+
-         return holder.protoChunk;
-     }
- 
-@@ -251,6 +255,10 @@ public class ChunkSerializer {
-                     flag = false;
+@@ -188,6 +191,10 @@ public class ChunkSerializer {
+                 if (flag4) {
+                     levellightengine.queueSectionData(LightLayer.SKY, SectionPos.of(chunkPos, b0), new DataLayer(nbttagcompound1.getByteArray("SkyLight")));
                  }
-                 // Paper end - rewrite light engine
 +
 +                if(world instanceof SlimeLevelInstance) {
 +                    poiStorage.checkConsistencyWithBlocks(SectionPos.of(chunkPos.getWorldPosition()), achunksection[j]);

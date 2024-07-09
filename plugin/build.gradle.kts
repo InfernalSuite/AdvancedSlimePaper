@@ -21,10 +21,10 @@ dependencies {
     implementation(project(":loaders"))
     implementation("org.spongepowered:configurate-yaml:4.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("org.incendo:cloud-paper:2.0.0-beta.7")
-    implementation("org.incendo:cloud-minecraft-extras:2.0.0-beta.7")
+    implementation("org.incendo:cloud-paper:2.0.0-beta.9")
+    implementation("org.incendo:cloud-minecraft-extras:2.0.0-beta.9")
     implementation("org.incendo:cloud-annotations:2.0.0-rc.1")
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 }
 
 tasks {

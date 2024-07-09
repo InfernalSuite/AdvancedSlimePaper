@@ -22,6 +22,7 @@ import org.incendo.cloud.exception.NoPermissionException;
 import org.incendo.cloud.exception.handling.ExceptionHandler;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.minecraft.extras.MinecraftHelp;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.paper.PaperCommandManager;
 import org.incendo.cloud.parser.ParserRegistry;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class CommandManager {
 
     public CommandManager(SWPlugin plugin) {
 
-        PaperCommandManager<CommandSender> commandManager = PaperCommandManager.createNative(
+        LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
                 plugin,
                 ExecutionCoordinator.coordinatorFor(ExecutionCoordinator.nonSchedulingExecutor())
         );
