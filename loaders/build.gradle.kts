@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.infernalsuite.aswm"
-version = "3.0.0-SNAPSHOT"
+version = "3.0.0"
 
 repositories {
     mavenCentral()
