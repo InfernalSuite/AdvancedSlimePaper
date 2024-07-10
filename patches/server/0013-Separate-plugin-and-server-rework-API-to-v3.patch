@@ -18,7 +18,7 @@ index ef9e73809298b2f689dffbd4ed63ca500477a653..7c96788f9517c47aaa5cedc9cd8562c4
      implementation("org.jline:jline-terminal-jansi:3.21.0")
 diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..50350820d228e3656c569176aafd2cc534c17c15
+index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf45f1eb52
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 @@ -0,0 +1,243 @@
@@ -103,7 +103,7 @@ index 0000000000000000000000000000000000000000..50350820d228e3656c569176aafd2cc5
 +        AsyncCatcher.catchOp("SWM world load");
 +        Objects.requireNonNull(world, "SlimeWorld cannot be null");
 +
-+        if (worldLoaded(world)) {
++        if (Bukkit.getWorld(world.getName()) != null) {
 +            throw new IllegalArgumentException("World " + world.getName() + " is already loaded");
 +        }
 +
@@ -266,7 +266,7 @@ index 0000000000000000000000000000000000000000..50350820d228e3656c569176aafd2cc5
 +    }
 +}
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 18f0f7933c42a7609a3d7bd775b24c372baae175..b86643ecce62d9cde2bb3015180ae38386e864d6 100644
+index 18f0f7933c42a7609a3d7bd775b24c372baae175..962c5ebf73261d0ba19b781d9269ef7ffee8b97d 100644
 --- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 @@ -48,8 +48,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
@@ -278,6 +278,20 @@ index 18f0f7933c42a7609a3d7bd775b24c372baae175..b86643ecce62d9cde2bb3015180ae383
      private SlimeWorld defaultWorld;
      private SlimeWorld defaultNetherWorld;
      private SlimeWorld defaultEndWorld;
+@@ -130,6 +128,13 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         return true;
+     }
+ 
++    /**
++     * Sets the default worlds for the server.<br>
++     * <b>NOTE: These worlds should be unloaded!</b>
++     * @param normalWorld The default overworld
++     * @param netherWorld The default nether
++     * @param endWorld The default end
++     */
+     @Override
+     public void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld) {
+         if (normalWorld != null) {
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 index b295d159200e3bf0e48f851ac206b2e09b756bb2..6ef45be4a76c00be5fbfcdb543882fcf41ea6271 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java

@@ -26,7 +26,7 @@ public class SWPlugin extends JavaPlugin {
     private static final AdvancedSlimePaperAPI ASP = AdvancedSlimePaperAPI.instance();
     private static final int BSTATS_ID = 5419;
 
-    private final List<SlimeWorld> worldsToLoad = new ArrayList<>();
+    private final Map<String, SlimeWorld> worldsToLoad = new HashMap<>();
     private LoaderManager loaderManager;
 
     public static SWPlugin getInstance() {
@@ -68,9 +68,9 @@ public class SWPlugin extends JavaPlugin {
                 Bukkit.getServer().shutdown();
             }
 
-            SlimeWorld defaultWorld = ASP.getLoadedWorld(defaultWorldName);
-            SlimeWorld netherWorld = getServer().getAllowNether() ? ASP.getLoadedWorld(defaultWorldName + "_nether") : null;
-            SlimeWorld endWorld = getServer().getAllowEnd() ? ASP.getLoadedWorld(defaultWorldName + "_the_end") : null;
+            SlimeWorld defaultWorld = worldsToLoad.get(defaultWorldName);
+            SlimeWorld netherWorld = getServer().getAllowNether() ? worldsToLoad.get(defaultWorldName + "_nether") : null;
+            SlimeWorld endWorld = getServer().getAllowEnd() ? worldsToLoad.get(defaultWorldName + "_the_end") : null;
 
             SlimeNMSBridge.instance().setDefaultWorlds(defaultWorld, netherWorld, endWorld);
         } catch (IOException ex) {
@@ -84,7 +84,7 @@ public class SWPlugin extends JavaPlugin {
 
         CommandManager commandManager = new CommandManager(this);
 
-        worldsToLoad.stream()
+        worldsToLoad.values().stream()
                 .filter(slimeWorld -> Objects.isNull(Bukkit.getWorld(slimeWorld.getName())))
                 .forEach(slimeWorld -> {
                     try {
@@ -116,7 +116,7 @@ public class SWPlugin extends JavaPlugin {
                     SlimePropertyMap propertyMap = worldData.toPropertyMap();
                     SlimeWorld world = ASP.readWorld(loader, worldName, worldData.isReadOnly(), propertyMap);
 
-                    worldsToLoad.add(world);
+                    worldsToLoad.put(worldName, world);
                 } catch (IllegalArgumentException | UnknownWorldException | NewerFormatException |
                          CorruptedWorldException | IOException ex) {
                     String message;

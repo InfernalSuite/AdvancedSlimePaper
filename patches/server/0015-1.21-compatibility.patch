@@ -5,10 +5,10 @@ Subject: [PATCH] 1.21 compatibility
 
 
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index b86643ecce62d9cde2bb3015180ae38386e864d6..66ac808621758a7f7911e15ef32b8e4d62aaf898 100644
+index 962c5ebf73261d0ba19b781d9269ef7ffee8b97d..87b6ee19fd165bde2db3a57545c58251dc6bad22 100644
 --- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 +++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-@@ -205,7 +205,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -212,7 +212,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
              default -> throw new IllegalArgumentException("Unknown dimension supplied");
          };
  
