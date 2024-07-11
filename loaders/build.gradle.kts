@@ -83,7 +83,9 @@ profiles {
                 repositories {
                     maven {
                         name = "infernalsuite"
-                        url = uri("https://repo.infernalsuite.com/repository/maven-snapshots/")
+                        url = uri("https://repo.infernalsuite.com/repository/maven-" + (if (project.version.toString()
+                                .contains("SNAPSHOT")
+                        ) "snapshots" else "releases") + "/")
                         credentials {
                             username = project.property("ISUsername") as String?
                             password = project.property("ISPassword") as String?
