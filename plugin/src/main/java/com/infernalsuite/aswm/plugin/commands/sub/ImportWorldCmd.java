@@ -81,7 +81,7 @@ public class ImportWorldCmd extends SlimeCommand {
                 return CompletableFuture.runAsync(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        SlimeWorld world = asp.readVanillaWorld(worldDir, newWorldName, loader.slimeLoader());
+                        SlimeWorld world = asp.readVanillaWorld(worldDir, worldName, loader.slimeLoader());
                         asp.saveWorld(world);
 
                         ExecutorUtil.runSyncAndWait(plugin, () -> {
