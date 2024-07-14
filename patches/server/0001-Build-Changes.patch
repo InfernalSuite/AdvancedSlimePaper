@@ -75,7 +75,7 @@ index 87d2b3ec165e2e9e4bdbedd7adddaa2130ed507b..286d63e017b8bfabbbecee0c4f994d9e
      public FullChunkStatus status;
  
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
-index 3d902f382977a194e09986419391c3ca1568885c..7b15158ead80da7deb4031a5dd5815b0fb2f5d95 100644
+index 1030e1b059f7ccdedd9c00527c3dd20c9cb81f42..9aab25e37f6ca3d969a2d61e7930f415771efb0f 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 @@ -183,7 +183,8 @@ public final class ChunkHolderManager {
@@ -2073,7 +2073,7 @@ index 790bad0494454ca12ee152e3de6da3da634d9b20..2d6b062c4a3cf682d8e4cdbb7b7c84a7
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 330bee331335454a61cf8350a6654217c8124445..1eb4bfd9e3537eb803244c0f7f98ad9babaf6820 100644
+index 54e581db732c3a104142a2bbc228ecbe16aec0fc..fd91a1385407439a8c83758bfdc160ee5e8774e3 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -282,7 +282,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2085,7 +2085,7 @@ index 330bee331335454a61cf8350a6654217c8124445..1eb4bfd9e3537eb803244c0f7f98ad9b
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private boolean enforceWhitelist;
-@@ -544,51 +544,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -545,51 +545,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.server.getAllowNether()) {
                      dimension = -1;
@@ -2165,7 +2165,7 @@ index 330bee331335454a61cf8350a6654217c8124445..1eb4bfd9e3537eb803244c0f7f98ad9b
                          MinecraftServer.LOGGER.warn("Could not create path for " + newWorld + "!");
                          MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
                      }
-@@ -596,7 +611,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -597,7 +612,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
                  try {
                      worldSession = LevelStorageSource.createDefault(this.server.getWorldContainer().toPath()).validateAndCreateAccess(name, dimensionKey);
@@ -2175,7 +2175,7 @@ index 330bee331335454a61cf8350a6654217c8124445..1eb4bfd9e3537eb803244c0f7f98ad9b
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-index 64ed296cfbe7e5d27286b8cee70454fd1d99ebb0..bf8bc9c38f3d1396e88841576e1b339d9f5286f4 100644
+index 36fbbf45ae064a345bf4aafbb9ac527197326eb9..1620f7cd184abdc58546182f43d66c5a7966fb01 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 +++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 @@ -129,7 +129,11 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
@@ -2192,10 +2192,10 @@ index 64ed296cfbe7e5d27286b8cee70454fd1d99ebb0..bf8bc9c38f3d1396e88841576e1b339d
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index e079f4db4e4738f60a6fdbdbf5e4d1baf593a62f..b6d3cd28118f43a330617e5ea0c721eb12880e4a 100644
+index 4e5fc39f3839d4d626925bcef1c83415376195f4..340e996e9e5a4f8b6635511b3d7ce387df55611a 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -515,6 +515,14 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+@@ -532,6 +532,14 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
  
      // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
      public ServerLevel(MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
@@ -2210,7 +2210,7 @@ index e079f4db4e4738f60a6fdbdbf5e4d1baf593a62f..b6d3cd28118f43a330617e5ea0c721eb
          // IRegistryCustom.Dimension iregistrycustom_dimension = minecraftserver.registryAccess(); // CraftBukkit - decompile error
          // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
  
-@@ -554,6 +562,12 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+@@ -571,6 +579,12 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
              chunkgenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkgenerator, gen);
          }
          // CraftBukkit end
@@ -2223,7 +2223,7 @@ index e079f4db4e4738f60a6fdbdbf5e4d1baf593a62f..b6d3cd28118f43a330617e5ea0c721eb
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(new SimpleRegionStorage(new RegionStorageInfo(convertable_conversionsession.getLevelId(), resourcekey, "entities"), convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, DataFixTypes.ENTITY_CHUNK), this, minecraftserver);
-@@ -564,7 +578,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+@@ -581,7 +595,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
          int k = this.spigotConfig.simulationDistance; // Spigot
          // Paper - rewrite chunk system
  
@@ -2232,7 +2232,7 @@ index e079f4db4e4738f60a6fdbdbf5e4d1baf593a62f..b6d3cd28118f43a330617e5ea0c721eb
              return minecraftserver.overworld().getDataStorage();
          });
          this.chunkSource.getGeneratorState().ensureStructuresGenerated();
-@@ -622,6 +636,12 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+@@ -639,6 +653,12 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
          this.dragonFight = enderDragonFight;
      }
  
@@ -2246,20 +2246,10 @@ index e079f4db4e4738f60a6fdbdbf5e4d1baf593a62f..b6d3cd28118f43a330617e5ea0c721eb
          this.serverLevelData.setClearWeatherTime(clearDuration);
          this.serverLevelData.setRainTime(rainDuration);
 diff --git a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-index 81368bf186365878db2e1ed305bb7bf36c26f61f..ca6d53d4535d0f92c4ffa1f35452574cb986561d 100644
+index 13d3c877b006a4975e7370713e3919c661e7890f..de9bd38cd09de67028c3218c27afc81e9eb3479b 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/PalettedContainer.java
-@@ -29,7 +29,8 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
-     private final PaletteResize<T> dummyPaletteResize = (newSize, added) -> 0;
-     public final IdMap<T> registry;
-     private final T @org.jetbrains.annotations.Nullable [] presetValues; // Paper - Anti-Xray - Add preset values
--    private volatile PalettedContainer.Data<T> data;
-+
-+    public volatile PalettedContainer.Data<T> data; // ASWM
-     private final PalettedContainer.Strategy strategy;
-     // private final ThreadingDetector threadingDetector = new ThreadingDetector("PalettedContainer"); // Paper - unused
- 
-@@ -394,7 +395,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
+@@ -386,7 +386,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
          void accept(T object, int count);
      }
  

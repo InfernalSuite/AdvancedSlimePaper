@@ -257,7 +257,7 @@ index 2265f83768c4dc29f67d29730c4be45a194727da..187336ecaa4262e3f081a88702031b17
      @Override
      public void setDefaultSpawnPos(BlockPos pos, float angle) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
-index d388fbcbff63928f0e9140c02400a63ba8f19d9c..97bc8bd1931e8825fccd7479ab089ad8ced4fcf8 100644
+index db55e9cc3d42ba01f75f6697924baaeccb564b90..c24be2f85530c618806c7ef3f46a869853e74151 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -1,5 +1,7 @@
@@ -276,7 +276,7 @@ index d388fbcbff63928f0e9140c02400a63ba8f19d9c..97bc8bd1931e8825fccd7479ab089ad8
  import net.minecraft.server.level.FullChunkStatus;
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.util.profiling.ProfilerFiller;
-@@ -266,6 +269,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
+@@ -288,6 +291,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
          }
      }
  
