@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: jtJava <ilovefuud@gmail.com>
+Date: Thu, 25 Jul 2024 04:36:04 -0500
+Subject: [PATCH] Speed up world loading
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 340e996e9e5a4f8b6635511b3d7ce387df55611a..d806827a7da96c0a8d6571ec0285ff8e073abf8b 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -544,7 +544,18 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+         // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
+ 
+         // Objects.requireNonNull(minecraftserver); // CraftBukkit - decompile error
+-        super(iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), minecraftserver::getProfiler, false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules())), executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
++        super(iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), minecraftserver::getProfiler, false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env,
++                spigotConfig ->
++                {
++                    Iterable<ServerLevel> levels = net.minecraft.server.dedicated.DedicatedServer.getServer().getAllLevels();
++                    Iterator<ServerLevel> levelIterator = levels.iterator();
++                    if (levelIterator.hasNext()) {
++                        return levelIterator.next().paperConfig();
++                    } else {
++                        return minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules()));
++                    }
++                },
++                executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
+         this.pvpMode = minecraftserver.isPvpAllowed();
+         this.convertable = convertable_conversionsession;
+         this.uuid = WorldUUID.getUUID(convertable_conversionsession.levelDirectory.path().toFile());
+diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
+index db9c812cf7267adf0bfd8be7368140e91245d640..d7f7a6c7a604bb4473ae71be8004fd8ceb5f09b1 100644
+--- a/src/main/java/org/spigotmc/SpigotConfig.java
++++ b/src/main/java/org/spigotmc/SpigotConfig.java
+@@ -124,14 +124,14 @@ public class SpigotConfig
+         SpigotConfig.save();
+     }
+     public static void save() {
+-        // Paper end
+-        try
+-        {
+-            SpigotConfig.config.save( SpigotConfig.CONFIG_FILE );
+-        } catch ( IOException ex )
+-        {
+-            Bukkit.getLogger().log( Level.SEVERE, "Could not save " + SpigotConfig.CONFIG_FILE, ex );
+-        }
++//        // Paper end
++//        try
++//        {
++//            SpigotConfig.config.save( SpigotConfig.CONFIG_FILE );
++//        } catch ( IOException ex )
++//        {
++//            Bukkit.getLogger().log( Level.SEVERE, "Could not save " + SpigotConfig.CONFIG_FILE, ex );
++//        }
+     }
+ 
+     private static void set(String path, Object val)
