@@ -27,7 +27,7 @@ index 340e996e9e5a4f8b6635511b3d7ce387df55611a..f5fa7a393567f6768d8134f4035db65c
          this.convertable = convertable_conversionsession;
          this.uuid = WorldUUID.getUUID(convertable_conversionsession.levelDirectory.path().toFile());
 diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
-index b16c3beda0fc7d7d06cfc82f450165096a88bade..be4b9e38401d222f2a237e237bdecc2d83fdf497 100644
+index b16c3beda0fc7d7d06cfc82f450165096a88bade..d6c8e2e27ae4f6964922f514809f7283ffa3ece6 100644
 --- a/src/main/java/net/minecraft/world/level/Level.java
 +++ b/src/main/java/net/minecraft/world/level/Level.java
 @@ -1,6 +1,7 @@
@@ -38,7 +38,7 @@ index b16c3beda0fc7d7d06cfc82f450165096a88bade..be4b9e38401d222f2a237e237bdecc2d
  import com.mojang.serialization.Codec;
  import java.io.IOException;
  import java.util.Iterator;
-@@ -642,9 +643,20 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -642,9 +643,23 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
      }
      // Paper end - optimise collisions
  
@@ -53,6 +53,9 @@ index b16c3beda0fc7d7d06cfc82f450165096a88bade..be4b9e38401d222f2a237e237bdecc2d
 +                ServerLevel foundLevel = levelIterator.next();
 +                this.spigotConfig = foundLevel.spigotConfig;
 +                this.paperConfig = foundLevel.paperConfig();
++            } else {
++                this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) worlddatamutable).getLevelName());
++                this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig);
 +            }
 +        } else {
 +            this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) worlddatamutable).getLevelName()); // Spigot
