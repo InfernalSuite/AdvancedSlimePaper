@@ -105,5 +105,7 @@ public class SlimeProperties {
     @ApiStatus.Experimental
     public static final SlimeProperty<Integer> CHUNK_SECTION_MAX = new SlimePropertyInt("chunkSectionMin", 19);
 
+    @ApiStatus.Experimental
+    public static final SlimeProperty<Boolean> USE_CACHED_CONFIG = new SlimePropertyBoolean("useCachedConfig", false);
 
 }
