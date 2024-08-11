@@ -6,7 +6,7 @@ import com.flowpowered.nbt.IntTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.TagType;
 import com.flowpowered.nbt.stream.NBTInputStream;
-import com.infernalsuite.aswm.ChunkPos;
+import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.exceptions.InvalidWorldException;
 import com.infernalsuite.aswm.api.utils.NibbleArray;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
@@ -19,7 +19,8 @@ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
-public class AnvilWorldReader implements SlimeWorldReader<File> {
+public class AnvilWorldReader implements SlimeWorldReader<AnvilImportData> {
 
     public static final int V1_16 = 2566;
     public static final int V1_16_5 = 2586;
@@ -48,7 +49,8 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
     public static final AnvilWorldReader INSTANCE = new AnvilWorldReader();
 
     @Override
-    public SlimeWorld readFromData(File worldDir) {
+    public SlimeWorld readFromData(AnvilImportData importData) {
+        File worldDir = importData.worldDir();
         try {
             File levelFile = new File(worldDir, "level.dat");
 
@@ -57,7 +59,6 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             }
 
             LevelData data = readLevelData(levelFile);
-
 
             // World version
             int worldVersion = data.version;
@@ -82,13 +83,13 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
                 throw new InvalidWorldException(environmentDir);
             }
 
-            Map<ChunkPos, SlimeChunk> chunks = new HashMap<>();
+            Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
 
             for (File file : Objects.requireNonNull(regionDir.listFiles((dir, name) -> name.endsWith(".mca")))) {
                 System.out.println("Loading region file: " + file.getName() + "...");
-                if(file.exists()) {
+                if (file.exists()) {
                     chunks.putAll(
-                            loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> new ChunkPos(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
+                            loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> Util.chunkPosition(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
                     );
                 }
             }
@@ -96,9 +97,9 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             // Entity serialization
             {
                 File entityRegion = new File(environmentDir, "entities");
-                if(entityRegion.exists()) {
-                    for(File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                        if(file != null && file.exists()) {
+                if (entityRegion.exists()) {
+                    for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
+                        if (file != null && file.exists()) {
                             loadEntities(file, worldVersion, chunks);
                         }
                     }
@@ -130,7 +131,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-            return new SkeletonSlimeWorld(worldDir.getName(), null, true, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
+            return new SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);
@@ -177,7 +178,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         throw new InvalidWorldException(file.getParentFile());
     }
 
-    private static void loadEntities(File file, int version, Map<ChunkPos, SlimeChunk> chunkMap) throws IOException {
+    private static void loadEntities(File file, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(file.toPath());
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
@@ -260,7 +261,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    private static void readEntityChunk(CompoundTag compound, int worldVersion, Map<ChunkPos, SlimeChunk> slimeChunkMap) {
+    private static void readEntityChunk(CompoundTag compound, int worldVersion, Long2ObjectMap<SlimeChunk> slimeChunkMap) {
         int[] position = compound.getAsIntArrayTag("Position").orElseThrow().getValue();
         int chunkX = position[0];
         int chunkZ = position[1];
@@ -271,7 +272,7 @@ public class AnvilWorldReader implements SlimeWorldReader<File> {
             return;
         }
 
-        SlimeChunk chunk = slimeChunkMap.get(new ChunkPos(chunkX, chunkZ));
+        SlimeChunk chunk = slimeChunkMap.get(Util.chunkPosition(chunkX, chunkZ));
         if (chunk == null) {
             System.out.println("Lost entity chunk data at: " + chunkX + " " + chunkZ);
         } else {

@@ -34,11 +34,12 @@ allprojects {
         maven("https://repo.rapture.pw/repository/maven-releases/")
         maven("https://repo.glaremasters.me/repository/concuncan/")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 
 dependencies {
-    remapper("net.fabricmc:tiny-remapper:0.10.1:fat")
+    remapper("net.fabricmc:tiny-remapper:0.10.3:fat")
     decompiler("org.vineflower:vineflower:1.10.1")
     paperclip("io.papermc:paperclip:3.0.3")
 }

@@ -1,0 +1,304 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Tue, 9 Jul 2024 02:00:22 +0200
+Subject: [PATCH] 1.21 compatibility
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 962c5ebf73261d0ba19b781d9269ef7ffee8b97d..87b6ee19fd165bde2db3a57545c58251dc6bad22 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -212,7 +212,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+             default -> throw new IllegalArgumentException("Unknown dimension supplied");
+         };
+ 
+-        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, new ResourceLocation(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
++        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
+         LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().registryOrThrow(Registries.LEVEL_STEM).get(dimension);
+ 
+         SlimeLevelInstance level;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+index f9ac1efca06d8debbb7894160c3e67fd23440ebb..b5a1f75314aac73fb77e139398017b16acbb8efb 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+@@ -1,12 +1,12 @@
+ package com.infernalsuite.aswm.level;
+ 
+ import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
+ import com.infernalsuite.aswm.Converter;
+ import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.mojang.logging.LogUtils;
+-import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
+-import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
+-import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.world.level.ChunkPos;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+index c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f..0f4de8602c3b897e4eb7246951a1a1db646c59fa 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
++++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+@@ -1,9 +1,9 @@
+ package com.infernalsuite.aswm.level;
+ 
++import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+ import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+-import io.papermc.paper.world.ChunkEntitySlices;
+ import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.chunk.LevelChunkSection;
+ 
+@@ -13,7 +13,7 @@ public class FastChunkPruner {
+         // Kenox <muranelp@gmail.com>
+         // It's not safe to assume that the chunk can be pruned
+         // if there isn't a loaded chunk there
+-        if (chunk == null || chunk.getChunkHolder() == null) {
++        if (chunk == null) {
+             return false;
+         }
+ 
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index 6ef45be4a76c00be5fbfcdb543882fcf41ea6271..9b4b18758d52d66e4abf9e40e49a32428de68b9a 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -1,17 +1,16 @@
+ package com.infernalsuite.aswm.level;
+ 
++import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+ import com.flowpowered.nbt.CompoundMap;
+ import com.flowpowered.nbt.CompoundTag;
+ import com.flowpowered.nbt.LongArrayTag;
+ import com.google.common.collect.Lists;
+ import com.infernalsuite.aswm.Converter;
+-import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
+ import com.infernalsuite.aswm.api.utils.NibbleArray;
+ import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+-import com.mojang.logging.LogUtils;
++import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
+ import com.mojang.serialization.Codec;
+-import io.papermc.paper.world.ChunkEntitySlices;
+ import net.minecraft.core.Holder;
+ import net.minecraft.core.Registry;
+ import net.minecraft.core.SectionPos;
+@@ -26,7 +25,10 @@ import net.minecraft.world.level.block.Block;
+ import net.minecraft.world.level.block.Blocks;
+ import net.minecraft.world.level.block.entity.BlockEntity;
+ import net.minecraft.world.level.block.state.BlockState;
+-import net.minecraft.world.level.chunk.*;
++import net.minecraft.world.level.chunk.LevelChunk;
++import net.minecraft.world.level.chunk.LevelChunkSection;
++import net.minecraft.world.level.chunk.PalettedContainer;
++import net.minecraft.world.level.chunk.PalettedContainerRO;
+ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.levelgen.Heightmap;
+ import net.minecraft.world.level.lighting.LevelLightEngine;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+index 003778f3ba9db1f52d7746d3b4b1132e373dd365..86a5b457bdca63713769d2b708be905d72ff76a3 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+@@ -1,6 +1,7 @@
+ package com.infernalsuite.aswm.level;
+ 
+-import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
++import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
++import ca.spottedleaf.moonrise.patches.starlight.light.StarLightEngine;
+ import com.flowpowered.nbt.CompoundMap;
+ import com.flowpowered.nbt.CompoundTag;
+ import com.flowpowered.nbt.LongArrayTag;
+@@ -15,8 +16,6 @@ import net.minecraft.core.Holder;
+ import net.minecraft.core.Registry;
+ import net.minecraft.core.registries.Registries;
+ import net.minecraft.nbt.NbtOps;
+-import net.minecraft.world.entity.Entity;
+-import net.minecraft.world.entity.EntityType;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.biome.Biome;
+ import net.minecraft.world.level.biome.Biomes;
+@@ -28,6 +27,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.chunk.LevelChunkSection;
+ import net.minecraft.world.level.chunk.PalettedContainer;
+ import net.minecraft.world.level.chunk.UpgradeData;
++import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
+ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+ import net.minecraft.world.level.levelgen.Heightmap;
+ import net.minecraft.world.level.material.Fluid;
+@@ -48,8 +48,8 @@ public class SlimeChunkConverter {
+         // Chunk sections
+         LevelChunkSection[] sections = new LevelChunkSection[instance.getSectionsCount()];
+ 
+-        SWMRNibbleArray[] blockNibbles = ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(instance);
+-        SWMRNibbleArray[] skyNibbles = ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(instance);
++        SWMRNibbleArray[] blockNibbles = StarLightEngine.getFilledEmptyLight(instance);
++        SWMRNibbleArray[] skyNibbles = StarLightEngine.getFilledEmptyLight(instance);
+         instance.getServer().scheduleOnMain(() -> {
+             instance.getLightEngine().retainData(pos, true);
+         });
+@@ -111,7 +111,7 @@ public class SlimeChunkConverter {
+             List<CompoundTag> entities = chunk.getEntities();
+ 
+             if (entities != null) {
+-                net.minecraft.server.level.ChunkMap.postLoadProtoChunk(instance, entities.stream()
++                ChunkStatusTasks.postLoadProtoChunk(instance, entities.stream()
+                         .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), nmsChunk.getPos());
+             }
+         };
+@@ -147,13 +147,13 @@ public class SlimeChunkConverter {
+         }
+ 
+         // Height Maps
+-        EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
++        EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getPersistedStatus().heightmapsAfter();
+         CompoundMap heightMaps = chunk.getHeightMaps().getValue();
+         EnumSet<Heightmap.Types> unsetHeightMaps = EnumSet.noneOf(Heightmap.Types.class);
+ 
+         // Light
+-        nmsChunk.setBlockNibbles(blockNibbles);
+-        nmsChunk.setSkyNibbles(skyNibbles);
++        nmsChunk.starlight$setBlockNibbles(blockNibbles);
++        nmsChunk.starlight$setSkyNibbles(skyNibbles);
+ 
+         for (Heightmap.Types type : heightMapTypes) {
+             String name = type.getSerializedName();
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 2265f83768c4dc29f67d29730c4be45a194727da..187336ecaa4262e3f081a88702031b17c6037091 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -1,17 +1,15 @@
+ package com.infernalsuite.aswm.level;
+ 
+ import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
+ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+-import com.infernalsuite.aswm.Converter;
+-import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+-import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+ import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
+ import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+-import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
+-import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
+-import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
++import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import net.minecraft.core.BlockPos;
+ import net.minecraft.core.Holder;
+ import net.minecraft.core.registries.Registries;
+@@ -24,8 +22,6 @@ import net.minecraft.util.ProgressListener;
+ import net.minecraft.util.Unit;
+ import net.minecraft.util.datafix.DataFixers;
+ import net.minecraft.world.Difficulty;
+-import net.minecraft.world.entity.EntityType;
+-import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.biome.Biome;
+ import net.minecraft.world.level.chunk.ChunkAccess;
+ import net.minecraft.world.level.chunk.ChunkGenerator;
+@@ -42,7 +38,6 @@ import org.spigotmc.AsyncCatcher;
+ import java.io.IOException;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+-import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.UUID;
+ import java.util.concurrent.CompletableFuture;
+@@ -51,7 +46,6 @@ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
+ import java.util.function.Consumer;
+ import java.util.logging.Level;
+-import java.util.stream.Collectors;
+ 
+ public class SlimeLevelInstance extends ServerLevel {
+ 
+@@ -106,7 +100,7 @@ public class SlimeLevelInstance extends ServerLevel {
+     @Override
+     public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
+         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
+-        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, new ResourceLocation(biomeStr));
++        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
+         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeKey).orElseThrow();
+         return new SlimeLevelGenerator(defaultBiome);
+     }
+@@ -144,12 +138,13 @@ public class SlimeLevelInstance extends ServerLevel {
+         return CompletableFuture.completedFuture(null);
+     }
+ 
++    /*
+     @Override
+     public void saveIncrementally(boolean doFull) {
+         if (doFull) {
+             this.save(null, false, false);
+         }
+-    }
++    }*/ // Most likely unused - kyngs
+ 
+     private Future<?> saveInternal() {
+         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
+@@ -180,6 +175,7 @@ public class SlimeLevelInstance extends ServerLevel {
+         return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
+     }
+ 
++    /*
+     public void loadEntities(int chunkX, int chunkZ) {
+         SlimeChunk slimeChunk = this.slimeInstance.getChunk(chunkX, chunkZ);
+         if (slimeChunk != null) {
+@@ -191,7 +187,7 @@ public class SlimeLevelInstance extends ServerLevel {
+                             .toList()
+             ), new ChunkPos(chunkX, chunkZ));
+         }
+-    }
++    }*/ // Most likely unused - kyngs
+ 
+     @Override
+     public void setDefaultSpawnPos(BlockPos pos, float angle) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+index 5453b7051337908ac1c8201827c1b5eec9e1608b..ca011a8803f7a35cc8e24a0b3be15c2347806709 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.world.level.chunk;
+ 
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager;
++import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.Maps;
+ import com.google.common.collect.UnmodifiableIterator;
+@@ -23,6 +25,7 @@ import net.minecraft.core.registries.Registries;
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.network.FriendlyByteBuf;
+ import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
++import net.minecraft.server.level.ChunkHolder;
+ import net.minecraft.server.level.FullChunkStatus;
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.util.profiling.ProfilerFiller;
+@@ -299,6 +302,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
+         }
+     }
+ 
++    // ASWM start - maintain binary compatibility with 1.20.6
++    public NewChunkHolder getChunkHolder() {
++        return this.level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunkPos.x, chunkPos.z);
++    }
++    // ASWM end
++
+     // Paper start - If loaded util
+     @Override
+     public final FluidState getFluidIfLoaded(BlockPos blockposition) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
+index cba780ab2eb3d37d7f54a71e248ca688f5d4179b..cd467759bc00772be411b7763d66d5451e4a72a3 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
+@@ -356,7 +356,7 @@ public class ChunkSerializer {
+         ChunkSerializer.LOGGER.error("Recoverable errors when loading section [{}, {}, {}]: {}", new Object[]{chunkPos.x, y, chunkPos.z, message});
+     }
+ 
+-    private static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> biomeRegistry) {
++    public static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> biomeRegistry) { // ASWM - Make public
+         return PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
+     }
+ 

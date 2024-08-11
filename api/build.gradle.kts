@@ -8,8 +8,10 @@ dependencies {
     api("com.flowpowered:flow-nbt:2.0.2")
     api("org.jetbrains:annotations:23.0.0")
 
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 }
+
+version = "3.0.0-SNAPSHOT"
 
 java {
     withSourcesJar()
@@ -35,7 +37,7 @@ profiles {
                         from(components["java"])
 
                         pom {
-                            name.set("Advanced Slime World Manager API")
+                            name.set("Advanced Slime Paper API")
                             description.set("API for ASP")
                             url.set("https://github.com/InfernalSuite/AdvancedSlimePaper")
                             licenses {
@@ -55,7 +57,7 @@ profiles {
                             scm {
                                 connection.set("scm:git:https://github.com:InfernalSuite/AdvancedSlimePaper.git")
                                 developerConnection.set("scm:git:ssh://github.com:InfernalSuite/AdvancedSlimePaper.git")
-                                url.set("https://github.com/Paul19988/Advanced-Slime-World-Manager/")
+                                url.set("https://github.com/InfernalSuite/AdvancedSlimePaper/")
                             }
                             issueManagement {
                                 system.set("Github")

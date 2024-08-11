@@ -1,25 +1,23 @@
 package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
-import com.infernalsuite.aswm.ChunkPos;
+import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.utils.NibbleArray;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
 import com.infernalsuite.aswm.api.world.SlimeChunkSection;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import java.util.*;
 
 public class SkeletonCloning {
 
     public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
         return new SkeletonSlimeWorld(worldName,
                 loader == null ? world.getLoader() : loader,
-                world.isReadOnly(),
+                loader == null || world.isReadOnly(),
                 cloneChunkStorage(world.getChunkStorage()),
                 world.getExtraData().clone(),
                 world.getPropertyMap().clone(),
@@ -27,9 +25,9 @@ public class SkeletonCloning {
     }
 
     public static SkeletonSlimeWorld weakCopy(SlimeWorld world) {
-        Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
+        Long2ObjectMap<SlimeChunk> cloned = new Long2ObjectOpenHashMap<>();
         for (SlimeChunk chunk : world.getChunkStorage()) {
-            ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());
+            long pos = Util.chunkPosition(chunk.getX(), chunk.getZ());
 
             cloned.put(pos, chunk);
         }
@@ -44,10 +42,10 @@ public class SkeletonCloning {
     }
 
 
-    private static Map<ChunkPos, SlimeChunk> cloneChunkStorage(Collection<SlimeChunk> slimeChunkMap) {
-        Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
+    private static Long2ObjectMap<SlimeChunk> cloneChunkStorage(Collection<SlimeChunk> slimeChunkMap) {
+        Long2ObjectMap<SlimeChunk> cloned = new Long2ObjectOpenHashMap<>();
         for (SlimeChunk chunk : slimeChunkMap) {
-            ChunkPos pos = new ChunkPos(chunk.getX(), chunk.getZ());
+            long pos = Util.chunkPosition(chunk.getX(), chunk.getZ());
 
             SlimeChunkSection[] copied = new SlimeChunkSection[chunk.getSections().length];
             for (int i = 0; i < copied.length; i++) {

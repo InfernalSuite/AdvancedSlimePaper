@@ -57,30 +57,6 @@ public class SlimePropertyMap {
     }
 
     /**
-     * @deprecated Use setValue()
-     */
-    @Deprecated
-    public void setInt(SlimeProperty<Integer> property, int value) {
-        setValue(property, value);
-    }
-
-    /**
-     * @deprecated Use setValue()
-     */
-    @Deprecated
-    public void setBoolean(SlimeProperty<Boolean> property, boolean value) {
-        setValue(property, value);
-    }
-
-    /**
-     * @deprecated Use setValue()
-     */
-    @Deprecated
-    public void setString(SlimeProperty<String> property, String value) {
-        setValue(property, value);
-    }
-
-    /**
      * Copies all values from the specified {@link SlimePropertyMap}.
      * If the same property has different values on both maps, the one
      * on the providen map will be used.

@@ -1,7 +1,6 @@
 package com.infernalsuite.aswm.api.world;
 
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.aswm.api.SlimePlugin;
 import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -9,7 +8,6 @@ import org.bukkit.persistence.PersistentDataHolder;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * In-memory representation of a SRF world.
@@ -43,11 +41,6 @@ public interface SlimeWorld extends PersistentDataHolder {
 
      Collection<SlimeChunk> getChunkStorage();
 
-    @Deprecated(forRemoval = true)
-    default Map<Long, SlimeChunk> getChunks() {
-         throw new UnsupportedOperationException();
-     }
-
     /**
      * Returns the extra data of the world. Inside this {@link CompoundTag}
      * can be stored any information to then be retrieved later, as it's
@@ -73,7 +66,7 @@ public interface SlimeWorld extends PersistentDataHolder {
     SlimePropertyMap getPropertyMap();
 
     /**
-     * Returns whether or not read-only is enabled.
+     * Returns whether read-only is enabled.
      *
      * @return true if read-only is enabled, false otherwise.
      */
@@ -105,23 +98,6 @@ public interface SlimeWorld extends PersistentDataHolder {
      * @throws IOException if the world could not be stored.
      */
     SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException;
-
-    @Deprecated(forRemoval = true)
-    default SlimeWorld clone(String worldName, SlimeLoader loader, boolean lock) throws WorldAlreadyExistsException, IOException {
-         return clone(worldName, loader);
-    }
-
-    /**
-     * Returns whether or not this world is locked and, therefore, can be loaded on the server by
-     * using the {@link SlimePlugin#loadWorld(SlimeWorld)} method.
-     *
-     * @return true if the world is locked, false otherwise
-     */
-    // Locking mechanism has been retired
-    @Deprecated(forRemoval = true)
-    default boolean isLocked() {
-        return false;
-    }
 
     int getDataVersion();
 }

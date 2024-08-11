@@ -1,7 +1,7 @@
 package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
-import com.infernalsuite.aswm.ChunkPos;
+import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import com.infernalsuite.aswm.api.world.SlimeChunk;
@@ -9,6 +9,7 @@ import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.pdc.FlowPersistentDataContainer;
 import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,7 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
     private final String name;
     private final @Nullable SlimeLoader loader;
     private final boolean readOnly;
-    private final Map<ChunkPos, SlimeChunk> chunkStorage;
+    private final Long2ObjectMap<SlimeChunk> chunkStorage;
     private final CompoundTag extraSerialized;
     private final SlimePropertyMap slimePropertyMap;
     private final int dataVersion;
@@ -33,7 +34,7 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
             String name,
             @Nullable SlimeLoader loader,
             boolean readOnly,
-            Map<ChunkPos, SlimeChunk> chunkStorage,
+            Long2ObjectMap<SlimeChunk> chunkStorage,
             CompoundTag extraSerialized,
             SlimePropertyMap slimePropertyMap,
             int dataVersion
@@ -60,7 +61,7 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
 
     @Override
     public SlimeChunk getChunk(int x, int z) {
-        return this.chunkStorage.get(new ChunkPos(x, z));
+        return this.chunkStorage.get(Util.chunkPosition(x, z));
     }
 
     @Override
@@ -142,7 +143,7 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
         return readOnly;
     }
 
-    public Map<ChunkPos, SlimeChunk> chunkStorage() {
+    public Long2ObjectMap<SlimeChunk> chunkStorage() {
         return chunkStorage;
     }
 
