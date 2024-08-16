@@ -5,10 +5,10 @@ Subject: [PATCH] poi data loader
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
-index cd1302a3aee6f543f39d71b91725128fa1aeddcc..409e448ef4ff43210073efc05cc49ca8134857ff 100644
+index fd35e4db0c8fec8f86b8743bcc2b15ed2e7433f1..212595f0533f152384e010089660ebdd8d6fc395 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
-@@ -16,7 +16,7 @@ import org.slf4j.Logger;
+@@ -17,7 +17,7 @@ import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
  import java.util.Optional;
  
@@ -44,7 +44,7 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4ad
          try {
              //                if (data.tasks != null) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index 6d461849da76894244e6212a75da0c6e4fb459c3..143a3f0434d5102da15aba621348b7ad51eb6032 100644
+index 4bd048387651250135f963303c78c17f8473cfee..cba780ab2eb3d37d7f54a71e248ca688f5d4179b 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
 @@ -1,6 +1,9 @@
@@ -57,7 +57,7 @@ index 6d461849da76894244e6212a75da0c6e4fb459c3..143a3f0434d5102da15aba621348b7ad
  import com.mojang.logging.LogUtils;
  import com.mojang.serialization.Codec;
  import com.mojang.serialization.DataResult;
-@@ -188,6 +191,10 @@ public class ChunkSerializer {
+@@ -200,6 +203,10 @@ public class ChunkSerializer {
                  if (flag4) {
                      levellightengine.queueSectionData(LightLayer.SKY, SectionPos.of(chunkPos, b0), new DataLayer(nbttagcompound1.getByteArray("SkyLight")));
                  }

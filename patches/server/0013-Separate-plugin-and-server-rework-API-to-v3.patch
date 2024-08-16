@@ -5,7 +5,7 @@ Subject: [PATCH] Separate plugin and server, rework API (to v3)
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index ef9e73809298b2f689dffbd4ed63ca500477a653..7c96788f9517c47aaa5cedc9cd8562c41acbf991 100644
+index 61cf2ec3d053f15b69dbc7865755b7a820f369c0..e361a0b6964908a21ebcd6f09a5accf91307b66a 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -17,6 +17,7 @@ dependencies {
@@ -265,6 +265,164 @@ index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf
 +        this.loadedWorlds.remove(name);
 +    }
 +}
+diff --git a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
+index 61518ab2b68e7a41500f3c8c8a5ec1230597f0e5..875960d0c9fdcbcb3250abc05cfbde48eec0f15a 100644
+--- a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
++++ b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
+@@ -1,14 +1,36 @@
+ package com.infernalsuite.aswm;
+ 
++import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
+ import net.minecraft.server.MinecraftServer;
+ import org.bukkit.Server;
+-import org.bukkit.craftbukkit.scheduler.MinecraftInternalPlugin;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++import org.bukkit.configuration.file.FileConfiguration;
++import org.bukkit.generator.BiomeProvider;
++import org.bukkit.generator.ChunkGenerator;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.plugin.PluginBase;
++import org.bukkit.plugin.PluginDescriptionFile;
++import org.bukkit.plugin.PluginLoader;
+ import org.bukkit.plugin.PluginLogger;
+ import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
+ 
+ import java.util.logging.LogRecord;
++import java.io.File;
++import java.io.InputStream;
++import java.util.List;
+ 
+-public class InternalPlugin extends MinecraftInternalPlugin {
++public class InternalPlugin extends PluginBase {
++    private boolean enabled = true;
++
++    private final String pluginName;
++    private PluginDescriptionFile pdf;
++
++    public InternalPlugin() {
++        this.pluginName = "Minecraft";
++        pdf = new PluginDescriptionFile(pluginName, "1.0", "nms");
++    }
+ 
+     @Override
+     public @NotNull Server getServer() {
+@@ -25,4 +47,113 @@ public class InternalPlugin extends MinecraftInternalPlugin {
+         };
+     }
+ 
++    public void setEnabled(boolean enabled) {
++        this.enabled = enabled;
++    }
++
++    @Override
++    public File getDataFolder() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public PluginDescriptionFile getDescription() {
++        return pdf;
++    }
++    // Paper start
++    @Override
++    public io.papermc.paper.plugin.configuration.PluginMeta getPluginMeta() {
++        return pdf;
++    }
++    // Paper end
++
++    @Override
++    public FileConfiguration getConfig() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public InputStream getResource(String filename) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void saveConfig() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void saveDefaultConfig() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void saveResource(String resourcePath, boolean replace) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void reloadConfig() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public PluginLoader getPluginLoader() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public boolean isEnabled() {
++        return enabled;
++    }
++
++    @Override
++    public void onDisable() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void onLoad() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void onEnable() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public boolean isNaggable() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public void setNaggable(boolean canNag) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public @Nullable BiomeProvider getDefaultBiomeProvider(@NotNull String worldName, @Nullable String id) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
++        throw new UnsupportedOperationException("Not supported.");
++    }
++
++    @Override
++    public LifecycleEventManager<Plugin> getLifecycleManager() {
++        throw new UnsupportedOperationException("Not supported.");
++    }
+ }
+\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
 index 18f0f7933c42a7609a3d7bd775b24c372baae175..962c5ebf73261d0ba19b781d9269ef7ffee8b97d 100644
 --- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
@@ -313,7 +471,7 @@ index b295d159200e3bf0e48f851ac206b2e09b756bb2..6ef45be4a76c00be5fbfcdb543882fcf
      private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
      private static final CompoundTag EMPTY_BIOME_PALETTE;
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-index 004d7bcc5b35c76855787dcf32fe460e73cab38f..249761b7c9f495e3aceb49e0fbd3984f69a42d97 100644
+index 004d7bcc5b35c76855787dcf32fe460e73cab38f..56c5db9a22af8ddd1d459bcf1f5b3fc7ca809b72 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
 @@ -35,7 +35,7 @@ public class NMSSlimeWorld implements SlimeWorld {
@@ -325,6 +483,15 @@ index 004d7bcc5b35c76855787dcf32fe460e73cab38f..249761b7c9f495e3aceb49e0fbd3984f
      }
  
      @Override
+@@ -50,7 +50,7 @@ public class NMSSlimeWorld implements SlimeWorld {
+ 
+     @Override
+     public Collection<SlimeChunk> getChunkStorage() {
+-        List<ChunkHolder> chunks = io.papermc.paper.chunk.system.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
++        List<ChunkHolder> chunks = ca.spottedleaf.moonrise.common.util.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
+         return chunks.stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull)
+                 .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
+                 .collect(Collectors.toList());
 diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
 index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..114da62698c2897b16042327a4171f785bc58cec 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
@@ -539,7 +706,7 @@ index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index caf6ff33b42472d30f28629470e12889f50490cc..2fcc16ab32408d8d067a4e12da1261ad3b549362 100644
+index c8b82bc41f2042bb4b067f06265a3a22e51f7629..de34afd3ad9858ea0d1ff9f03ff376e22852b953 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
@@ -550,7 +717,7 @@ index caf6ff33b42472d30f28629470e12889f50490cc..2fcc16ab32408d8d067a4e12da1261ad
  import com.mojang.authlib.GameProfile;
  import com.mojang.brigadier.StringReader;
  import com.mojang.brigadier.exceptions.CommandSyntaxException;
-@@ -1458,6 +1459,8 @@ public final class CraftServer implements Server {
+@@ -1471,6 +1472,8 @@ public final class CraftServer implements Server {
              return false;
          }
  
