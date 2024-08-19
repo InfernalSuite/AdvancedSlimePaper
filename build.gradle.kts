@@ -1,7 +1,7 @@
 plugins {
     java
     `maven-publish`
-    id("io.github.goooler.shadow") version "8.1.7" apply false
+    id("com.gradleup.shadow") version "8.3.0" apply false
     id("io.papermc.paperweight.patcher") version "1.7.1"
     id("org.kordamp.gradle.profiles") version "0.47.0"
 }
