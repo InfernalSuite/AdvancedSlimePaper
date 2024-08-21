@@ -38,7 +38,7 @@ index f9ac1efca06d8debbb7894160c3e67fd23440ebb..b5a1f75314aac73fb77e139398017b16
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.world.level.ChunkPos;
 diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
-index c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f..0f4de8602c3b897e4eb7246951a1a1db646c59fa 100644
+index c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f..4e5eb92e0aa40ca02e58f988ec39a6461f63ac2f 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
 @@ -1,9 +1,9 @@
@@ -51,15 +51,6 @@ index c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f..0f4de8602c3b897e4eb7246951a1a1db
 -import io.papermc.paper.world.ChunkEntitySlices;
  import net.minecraft.world.level.chunk.LevelChunk;
  import net.minecraft.world.level.chunk.LevelChunkSection;
- 
-@@ -13,7 +13,7 @@ public class FastChunkPruner {
-         // Kenox <muranelp@gmail.com>
-         // It's not safe to assume that the chunk can be pruned
-         // if there isn't a loaded chunk there
--        if (chunk == null || chunk.getChunkHolder() == null) {
-+        if (chunk == null) {
-             return false;
-         }
  
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 index 6ef45be4a76c00be5fbfcdb543882fcf41ea6271..9b4b18758d52d66e4abf9e40e49a32428de68b9a 100644
@@ -257,7 +248,7 @@ index 2265f83768c4dc29f67d29730c4be45a194727da..187336ecaa4262e3f081a88702031b17
      @Override
      public void setDefaultSpawnPos(BlockPos pos, float angle) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
-index 5453b7051337908ac1c8201827c1b5eec9e1608b..ca011a8803f7a35cc8e24a0b3be15c2347806709 100644
+index 7c11853c5090fbc4fa5b3e73a69acf166158fdec..8e1c3e50f0bc46245488ffa23056120e4500c4f1 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -1,5 +1,7 @@
