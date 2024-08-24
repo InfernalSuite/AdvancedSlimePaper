@@ -111,7 +111,7 @@ public class LoadWorldCmd extends SlimeCommand {
                         Component.text("Failed to load world " + worldData.name() + ". Take a look at the server console for more information.").color(NamedTextColor.RED)
                 ));
             } finally {
-                commandManager.getWorldsInUse().add(worldData.name());
+                commandManager.getWorldsInUse().remove(worldData.name());
             }
         });
     }
