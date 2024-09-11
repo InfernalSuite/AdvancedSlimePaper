@@ -6,6 +6,7 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import net.kyori.adventure.util.Services;
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,8 @@ public interface AdvancedSlimePaperAPI {
      */
     SlimeWorld readWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
             UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException;
+
+    void addPluginClassLoader(Plugin plugin);
 
     /**
      * Gets a world which has already been loaded by ASWM.
