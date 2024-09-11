@@ -39,6 +39,12 @@ public interface AdvancedSlimePaperAPI {
     SlimeWorld readWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
             UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException;
 
+    /**
+     * Adds a plugin to the CLASS_LOADER_STOP_BYPASS list of bukkit to bypass default class unload behavior of bukkit since 1.20.4.
+     * This method can be used in order to fix "Zip file closed" error, occurring sometimes when your plugin is saving a world during onDisable phase.
+     *
+     * @param plugin The plugin which will be added to the existing list
+     */
     void addPluginClassLoader(Plugin plugin);
 
     /**
