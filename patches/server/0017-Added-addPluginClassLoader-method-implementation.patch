@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?L=C3=A9o=20M=2E=20-=20GrayR0ot?= <thisis41@protonmail.com>
+Date: Wed, 11 Sep 2024 22:17:40 +0200
+Subject: [PATCH] Added addPluginClassLoader method implementation
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+index 85a5b184a1795fe3756596634e883757a980525b..2a8f991ebbd48b63f43d0e87e70fbac70feee370 100644
+--- a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
++++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+@@ -23,6 +23,8 @@ import org.bukkit.Bukkit;
+ import org.bukkit.World;
+ import org.bukkit.craftbukkit.CraftWorld;
+ import org.bukkit.event.world.WorldLoadEvent;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.plugin.java.PluginClassLoader;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.spigotmc.AsyncCatcher;
+@@ -229,6 +231,11 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+         return world;
+     }
+ 
++    @Override
++    public void addPluginClassLoader(Plugin plugin) {
++        PluginClassLoader.CLASS_LOADER_STOP_BYPASS.add(plugin.getName());
++    }
++
+     /**
+      * Utility method to register a <b>loaded</b> {@link SlimeWorld} with the internal map (for {@link #getLoadedWorld} calls)
+      *
