@@ -6,6 +6,7 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
 import net.kyori.adventure.util.Services;
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,14 @@ public interface AdvancedSlimePaperAPI {
      */
     SlimeWorld readWorld(SlimeLoader loader, String worldName, boolean readOnly, SlimePropertyMap propertyMap) throws
             UnknownWorldException, IOException, CorruptedWorldException, NewerFormatException;
+
+    /**
+     * Adds a plugin to the CLASS_LOADER_STOP_BYPASS list of bukkit to bypass default class unload behavior of bukkit since 1.20.4.
+     * This method can be used in order to fix "Zip file closed" error, occurring sometimes when your plugin is saving a world during onDisable phase.
+     *
+     * @param plugin The plugin which will be added to the existing list
+     */
+    void addPluginClassLoader(Plugin plugin);
 
     /**
      * Gets a world which has already been loaded by ASWM.

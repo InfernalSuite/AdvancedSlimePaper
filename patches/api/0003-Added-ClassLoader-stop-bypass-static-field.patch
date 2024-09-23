@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?L=C3=A9o=20M=2E=20-=20GrayR0ot?= <thisis41@protonmail.com>
+Date: Wed, 11 Sep 2024 22:17:12 +0200
+Subject: [PATCH] Added ClassLoader stop bypass static field
+
+
+diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+index fd4f33ea605cee201913cefdb4540de5ebeb4ede..b74ae05fd0025ee7bd50f0a14b6657e28229f900 100644
+--- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+@@ -16,6 +16,8 @@ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.Enumeration;
+ import java.util.Map;
++import java.util.List;
++import java.util.HashSet;
+ import java.util.Set;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.jar.JarEntry;
+@@ -50,6 +52,8 @@ public final class PluginClassLoader extends URLClassLoader implements io.paperm
+     private io.papermc.paper.plugin.provider.classloader.PluginClassLoaderGroup classLoaderGroup; // Paper
+     public io.papermc.paper.plugin.provider.entrypoint.DependencyContext dependencyContext; // Paper
+ 
++    public static final Set<String> CLASS_LOADER_STOP_BYPASS = new HashSet<>(List.of("SlimeWorldManager"));
++
+     static {
+         ClassLoader.registerAsParallelCapable();
+     }
+@@ -265,8 +269,8 @@ public final class PluginClassLoader extends URLClassLoader implements io.paperm
+             // Paper end
+             super.close();
+         } finally {
+-            if (this.plugin == null || !this.plugin.getName().equals("SlimeWorldManager")) { // ASWM - Don't close
+-            jar.close();
++            if (this.plugin == null || !CLASS_LOADER_STOP_BYPASS.contains(this.plugin.getName())) { // ASWM - Don't close
++                jar.close();
+             } // ASWM - Don't close
+         }
+     }
