@@ -1,14 +1,11 @@
-From 1aa484ebd84203862ec7abe41c9e30a01e5ac90c Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: evlad <emmanuelvlad@gmail.com>
 Date: Thu, 19 Sep 2024 20:47:32 +0300
 Subject: [PATCH] fix chunk pdc getting wiped on chunk unload
 
----
- src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index 9b4b18758..f0d773977 100644
+index 9b4b18758d52d66e4abf9e40e49a32428de68b9a..f0d773977609597f2da7bf691d8f4cb983743981 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 @@ -68,7 +68,9 @@ public class NMSSlimeChunk implements SlimeChunk {
@@ -22,6 +19,3 @@ index 9b4b18758..f0d773977 100644
          this.upgradeData = reference == null ? null : reference.getUpgradeData();
      }
  
--- 
-2.46.0
-
