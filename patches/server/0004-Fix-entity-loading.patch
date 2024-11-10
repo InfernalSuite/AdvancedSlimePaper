@@ -5,10 +5,10 @@ Subject: [PATCH] Fix entity loading
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index 9fcd1b6eef82cd0bbcddab26cf5aaf880d236969..c3afb4a4a8ecb92a85615b176cb04ff2097f4b59 100644
+index eafa4e6d55cd0f9314ac0f2b96a7f48fbb5e1a4c..bc0990458df745c92e5bc0530ff35ab992365b3a 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-@@ -112,7 +112,7 @@ public final class NewChunkHolder {
+@@ -117,7 +117,7 @@ public final class NewChunkHolder {
          }
  
          if (!transientChunk) {

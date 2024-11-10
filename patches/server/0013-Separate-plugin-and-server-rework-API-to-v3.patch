@@ -5,7 +5,7 @@ Subject: [PATCH] Separate plugin and server, rework API (to v3)
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 61cf2ec3d053f15b69dbc7865755b7a820f369c0..e361a0b6964908a21ebcd6f09a5accf91307b66a 100644
+index b9f1df889cf7d87f988aecf04b75c77da1152eb0..c323b9a523593dcfa4a5ec012c9c65887fcf3dce 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -17,6 +17,7 @@ dependencies {
@@ -706,7 +706,7 @@ index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index c8b82bc41f2042bb4b067f06265a3a22e51f7629..de34afd3ad9858ea0d1ff9f03ff376e22852b953 100644
+index b185a9b474121b8a4067816b3c3c39270c2a202e..81ca05a02652c610a8a3c5054b0af82fe2a2bbdc 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
@@ -717,7 +717,7 @@ index c8b82bc41f2042bb4b067f06265a3a22e51f7629..de34afd3ad9858ea0d1ff9f03ff376e2
  import com.mojang.authlib.GameProfile;
  import com.mojang.brigadier.StringReader;
  import com.mojang.brigadier.exceptions.CommandSyntaxException;
-@@ -1471,6 +1472,8 @@ public final class CraftServer implements Server {
+@@ -1475,6 +1476,8 @@ public final class CraftServer implements Server {
              return false;
          }
  
