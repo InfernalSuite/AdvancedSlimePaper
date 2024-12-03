@@ -281,10 +281,10 @@ index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81d
      @Override
      public final FluidState getFluidIfLoaded(BlockPos blockposition) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-index d558e53b91e38c55fe25273b468b1e8a480ecced..c1e5a630d6cafca91398f55203994879bcac6fe4 100644
+index faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37..8832efbf9f68fb0466fdc9d6eb0d0acf5d5930dd 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-@@ -457,7 +457,7 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
+@@ -469,7 +469,7 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
          SerializableChunkData.LOGGER.error("Recoverable errors when loading section [{}, {}, {}]: {}", new Object[]{chunkPos.x, y, chunkPos.z, message});
      }
  

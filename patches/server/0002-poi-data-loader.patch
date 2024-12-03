@@ -44,10 +44,10 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4ad
          try {
              //                if (data.tasks != null) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-index 057c92d182e643cebb1f27e296e0fc4b0e688bea..d558e53b91e38c55fe25273b468b1e8a480ecced 100644
+index 018b24d7611c3fd11536441431abf8f125850129..faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-@@ -357,6 +357,10 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
+@@ -369,6 +369,10 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
                  if (flag3) {
                      levellightengine.queueSectionData(LightLayer.SKY, sectionposition, serializablechunkdata_b.skyLight);
                  }
