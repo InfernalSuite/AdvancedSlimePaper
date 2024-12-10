@@ -248,7 +248,7 @@ index 2265f83768c4dc29f67d29730c4be45a194727da..187336ecaa4262e3f081a88702031b17
      @Override
      public void setDefaultSpawnPos(BlockPos pos, float angle) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
-index 7c11853c5090fbc4fa5b3e73a69acf166158fdec..8e1c3e50f0bc46245488ffa23056120e4500c4f1 100644
+index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81dc02a4761 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -1,5 +1,7 @@
@@ -266,8 +266,8 @@ index 7c11853c5090fbc4fa5b3e73a69acf166158fdec..8e1c3e50f0bc46245488ffa23056120e
 +import net.minecraft.server.level.ChunkHolder;
  import net.minecraft.server.level.FullChunkStatus;
  import net.minecraft.server.level.ServerLevel;
- import net.minecraft.util.profiling.ProfilerFiller;
-@@ -299,6 +302,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
+ import net.minecraft.util.profiling.Profiler;
+@@ -322,6 +325,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
          }
      }
  
@@ -280,16 +280,16 @@ index 7c11853c5090fbc4fa5b3e73a69acf166158fdec..8e1c3e50f0bc46245488ffa23056120e
      // Paper start - If loaded util
      @Override
      public final FluidState getFluidIfLoaded(BlockPos blockposition) {
-diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index cba780ab2eb3d37d7f54a71e248ca688f5d4179b..cd467759bc00772be411b7763d66d5451e4a72a3 100644
---- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-+++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-@@ -356,7 +356,7 @@ public class ChunkSerializer {
-         ChunkSerializer.LOGGER.error("Recoverable errors when loading section [{}, {}, {}]: {}", new Object[]{chunkPos.x, y, chunkPos.z, message});
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
+index faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37..8832efbf9f68fb0466fdc9d6eb0d0acf5d5930dd 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
+@@ -469,7 +469,7 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
+         SerializableChunkData.LOGGER.error("Recoverable errors when loading section [{}, {}, {}]: {}", new Object[]{chunkPos.x, y, chunkPos.z, message});
      }
  
 -    private static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> biomeRegistry) {
-+    public static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> biomeRegistry) { // ASWM - Make public
-         return PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
++    public static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> biomeRegistry) {
+         return PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getOrThrow(Biomes.PLAINS));
      }
  

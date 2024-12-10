@@ -5,10 +5,10 @@ Subject: [PATCH] poi data loader
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
-index fd35e4db0c8fec8f86b8743bcc2b15ed2e7433f1..212595f0533f152384e010089660ebdd8d6fc395 100644
+index bbf9d6c1c9525d97160806819a57be03eca290f1..38ca7bd039bc1b60a63ff68c53e3ec315545a175 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/poi/PoiChunk.java
-@@ -17,7 +17,7 @@ import org.slf4j.Logger;
+@@ -16,7 +16,7 @@ import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
  import java.util.Optional;
  
@@ -43,26 +43,16 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4ad
          // have tasks to run (at this point, it's just the POI consistency checking)
          try {
              //                if (data.tasks != null) {
-diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-index 4bd048387651250135f963303c78c17f8473cfee..cba780ab2eb3d37d7f54a71e248ca688f5d4179b 100644
---- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-+++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkSerializer.java
-@@ -1,6 +1,9 @@
- package net.minecraft.world.level.chunk.storage;
- 
- import com.google.common.collect.Maps;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.level.NMSSlimeWorld;
-+import com.infernalsuite.aswm.level.SlimeLevelInstance;
- import com.mojang.logging.LogUtils;
- import com.mojang.serialization.Codec;
- import com.mojang.serialization.DataResult;
-@@ -200,6 +203,10 @@ public class ChunkSerializer {
-                 if (flag4) {
-                     levellightengine.queueSectionData(LightLayer.SKY, SectionPos.of(chunkPos, b0), new DataLayer(nbttagcompound1.getByteArray("SkyLight")));
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
+index 018b24d7611c3fd11536441431abf8f125850129..faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
+@@ -369,6 +369,10 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
+                 if (flag3) {
+                     levellightengine.queueSectionData(LightLayer.SKY, sectionposition, serializablechunkdata_b.skyLight);
                  }
 +
-+                if(world instanceof SlimeLevelInstance) {
++                if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) {
 +                    poiStorage.checkConsistencyWithBlocks(SectionPos.of(chunkPos.getWorldPosition()), achunksection[j]);
 +                }
              }

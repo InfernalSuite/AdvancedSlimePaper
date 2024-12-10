@@ -5,10 +5,10 @@ Subject: [PATCH] Compile fixes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index f947b82537e5858dd0020a7a6fff48c54f3b49a3..316d03791a97af50f882c0271cbacf3d2a7af5b3 100644
+index 41ed3865710e9732f7662e1d3bf287ad9cf80c74..bb915dc69af63cab992a5b7f8654b5390340c89e 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -17,9 +17,6 @@ dependencies {
+@@ -29,9 +29,6 @@ dependencies {
      // ASWM start
      implementation(project(":slimeworldmanager-api"))
      implementation(project(":core"))
@@ -17,7 +17,7 @@ index f947b82537e5858dd0020a7a6fff48c54f3b49a3..316d03791a97af50f882c0271cbacf3d
 -    }
      // ASWM end
      // Paper start
-     implementation("org.jline:jline-terminal-jansi:3.21.0")
+     implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
 index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e09b756bb2 100644
 --- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
