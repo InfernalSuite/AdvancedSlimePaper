@@ -36,7 +36,7 @@ public class MongoLoader extends UpdatableLoader {
 
         String authParams = username != null && password != null ? username + ":" + password + "@" : "";
         String parsedAuthSource = authSource != null ? "/?authSource=" + authSource : "";
-        String parsedUri = uri != null ? uri : "mongodb://" + authParams + host + ":" + port + parsedAuthSource;
+        String parsedUri = uri != null && !uri.isBlank() ? uri : "mongodb://" + authParams + host + ":" + port + parsedAuthSource;
 
         this.client = MongoClients.create(parsedUri);
 
