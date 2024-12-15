@@ -1,6 +1,7 @@
 package com.infernalsuite.aswm.skeleton;
 
 import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.StringTag;
 import com.infernalsuite.aswm.Util;
 import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -119,6 +120,8 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
         }
 
         SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
+        cloned.getExtraData().getValue().put(new StringTag("clonedFrom", this.name));
+
         if (loader != null) {
             loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
         }

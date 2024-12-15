@@ -1,0 +1,154 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: jtJava <ilovefuud@gmail.com>
+Date: Thu, 25 Jul 2024 04:36:04 -0500
+Subject: [PATCH] Speed up world loading
+
+Don't create a new config for each slime world
+
+diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+index 85a5b184a1795fe3756596634e883757a980525b..2a246f47117a36d5b58c93e5a59cb79a6fd72029 100644
+--- a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
++++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+@@ -17,6 +17,7 @@ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
+ import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
+ import com.infernalsuite.aswm.util.NmsUtil;
++import io.papermc.paper.configuration.WorldConfiguration;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import net.minecraft.server.level.ServerLevel;
+ import org.bukkit.Bukkit;
+@@ -26,6 +27,7 @@ import org.bukkit.event.world.WorldLoadEvent;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.spigotmc.AsyncCatcher;
++import org.spigotmc.SpigotWorldConfig;
+ 
+ import java.io.File;
+ import java.io.IOException;
+@@ -43,6 +45,9 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+ 
+     private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
+ 
++    private final Map<String, WorldConfiguration> cachedPaperConfigs = new ConcurrentHashMap<>();
++    private final Map<String, SpigotWorldConfig> cachedSpigotConfigs = new ConcurrentHashMap<>();
++
+     static {
+         System.setProperty("org.slf4j.simpleLogger.showShortLogName", "true");
+     }
+@@ -240,5 +245,15 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+ 
+     public void onWorldUnload(String name) {
+         this.loadedWorlds.remove(name);
++        this.cachedPaperConfigs.remove(name);
++        this.cachedSpigotConfigs.remove(name);
++    }
++
++    public Map<String, WorldConfiguration> getCachedPaperConfigs() {
++        return cachedPaperConfigs;
++    }
++
++    public Map<String, SpigotWorldConfig> getCachedSpigotConfigs() {
++        return cachedSpigotConfigs;
+     }
+ }
+diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+index 87b6ee19fd165bde2db3a57545c58251dc6bad22..0709ce1720137963d06de757eefc2f5786dc4df6 100644
+--- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+@@ -4,6 +4,7 @@ import ca.spottedleaf.dataconverter.converters.DataConverter;
+ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+ import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+ import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.StringTag;
+ import com.infernalsuite.aswm.api.SlimeNMSBridge;
+ import com.infernalsuite.aswm.api.world.SlimeWorld;
+ import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
+@@ -42,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
+ import java.io.IOException;
+ import java.util.Locale;
+ import java.util.Map;
++import java.util.Optional;
+ 
+ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+ 
+@@ -167,6 +169,13 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+         }
+ 
+         SlimeLevelInstance server = createCustomWorld(slimeWorld, dimensionOverride);
++
++        Optional<StringTag> tag = slimeWorld.getExtraData().getAsStringTag("clonedFrom");
++        if (tag.isEmpty()) {
++            AdvancedSlimePaper.instance().getCachedPaperConfigs().put(slimeWorld.getName(), server.paperConfig());
++            AdvancedSlimePaper.instance().getCachedSpigotConfigs().put(slimeWorld.getName(), server.spigotConfig);
++        }
++
+         registerWorld(server);
+         return server.getSlimeInstance();
+     }
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 5aae3c7692a6e4bc04b843878da063f6d2a5c7f2..bb62fdd27ac881ff90ab28e3445e6c36c4549d43 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -3,6 +3,7 @@ package net.minecraft.server.level;
+ import com.google.common.annotations.VisibleForTesting;
+ import co.aikar.timings.TimingHistory; // Paper
+ import com.google.common.collect.Lists;
++import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+ import com.mojang.datafixers.DataFixer;
+ import com.mojang.datafixers.util.Pair;
+ import com.mojang.logging.LogUtils;
+@@ -511,7 +512,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ca.spottedleaf.
+         // Holder holder = worlddimension.type(); // CraftBukkit - decompile error
+ 
+         // Objects.requireNonNull(minecraftserver); // CraftBukkit - decompile error
+-        super(iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), minecraftserver::getProfiler, false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules())), executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
++        super(bootstrap, iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), minecraftserver::getProfiler, false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules())), executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
+         this.pvpMode = minecraftserver.isPvpAllowed();
+         this.convertable = convertable_conversionsession;
+         this.uuid = WorldUUID.getUUID(convertable_conversionsession.levelDirectory.path().toFile());
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index e2a0487089eb5a7bdc1433e4c75f69d8e9f9d5f9..fdf49f560492462dacd74836956cd67971dc429a 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -1,11 +1,12 @@
+ package net.minecraft.world.level;
+ 
++import com.flowpowered.nbt.StringTag;
+ import com.google.common.collect.Lists;
++import com.infernalsuite.aswm.AdvancedSlimePaper;
++import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
+ import com.mojang.serialization.Codec;
+ import java.io.IOException;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Objects;
++import java.util.*;
+ import java.util.function.Consumer;
+ import java.util.function.Predicate;
+ import java.util.function.Supplier;
+@@ -684,9 +685,22 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     }
+     // Paper end - optimise random ticking
+ 
+-    protected Level(WritableLevelData worlddatamutable, ResourceKey<Level> resourcekey, RegistryAccess iregistrycustom, Holder<DimensionType> holder, Supplier<ProfilerFiller> supplier, boolean flag, boolean flag1, long i, int j, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider, org.bukkit.World.Environment env, java.util.function.Function<org.spigotmc.SpigotWorldConfig, io.papermc.paper.configuration.WorldConfiguration> paperWorldConfigCreator, java.util.concurrent.Executor executor) { // Paper - create paper world config & Anti-Xray
+-        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) worlddatamutable).getLevelName()); // Spigot
+-        this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
++    protected Level(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, WritableLevelData worlddatamutable, ResourceKey<Level> resourcekey, RegistryAccess iregistrycustom, Holder<DimensionType> holder, Supplier<ProfilerFiller> supplier, boolean flag, boolean flag1, long i, int j, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider, org.bukkit.World.Environment env, java.util.function.Function<org.spigotmc.SpigotWorldConfig, io.papermc.paper.configuration.WorldConfiguration> paperWorldConfigCreator, java.util.concurrent.Executor executor) { // Paper - create paper world config & Anti-Xray
++        if (bootstrap != null && bootstrap.initial().getPropertyMap().getValue(SlimeProperties.USE_CACHED_CONFIG)) {
++            Optional<StringTag> optional = bootstrap.initial().getExtraData().getAsStringTag("clonedFrom");
++            if (optional.isPresent()) {
++                String clonedFrom = optional.get().getValue();
++                this.spigotConfig = AdvancedSlimePaper.instance().getCachedSpigotConfigs().get(clonedFrom);
++                this.paperConfig = AdvancedSlimePaper.instance().getCachedPaperConfigs().get(clonedFrom);
++            } else {
++                this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) worlddatamutable).getLevelName()); // Spigot
++                this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
++            }
++        } else {
++            this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) worlddatamutable).getLevelName()); // Spigot
++            this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
++        }
++
+         this.generator = gen;
+         this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);
+ 
