@@ -5,7 +5,7 @@ Subject: [PATCH] Separate plugin and server, rework API (to v3)
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 22931927ac8c1fcdc45d44f8d4a898a44831039c..e10d95ce805d03fa43f526dc0a1a1123a67b4f0c 100644
+index 777bbfa22a4e33bc706fa46e3dbf1b471f42be2a..0217773e2cfd1ba3d0c2028297be082a8aa63412 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -29,6 +29,7 @@ dependencies {
@@ -14,8 +14,8 @@ index 22931927ac8c1fcdc45d44f8d4a898a44831039c..e10d95ce805d03fa43f526dc0a1a1123
      implementation(project(":core"))
 +    implementation("commons-io:commons-io:2.11.0")
      // ASWM end
+     implementation("ca.spottedleaf:concurrentutil:0.0.2") // Paper - Add ConcurrentUtil dependency
      // Paper start
-     implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf45f1eb52
@@ -706,7 +706,7 @@ index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index ac8af406180bc680d46e8edc3da0fc2e5211345a..4936c074ad73d92f3b5ed6463126abb5017e221c 100644
+index 97b5d6ba2b19a7c730730c74175a29157aed1840..0c1940e363072a8359dc7f784cfb8a1753352b67 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
