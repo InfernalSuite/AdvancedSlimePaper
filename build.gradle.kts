@@ -2,7 +2,7 @@ plugins {
     java
     `maven-publish`
     id("com.gradleup.shadow") version "8.3.5" apply false
-    id("io.papermc.paperweight.patcher") version "1.7.5"
+    id("io.papermc.paperweight.patcher") version "1.7.7"
     id("org.kordamp.gradle.profiles") version "0.54.0"
 }
 
