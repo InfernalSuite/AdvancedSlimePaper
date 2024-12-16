@@ -3,8 +3,8 @@ plugins {
     id("com.gorylenko.gradle-git-properties")
 }
 
-group = rootProject.providers.gradleProperty("group")
-version = rootProject.providers.gradleProperty("apiVersion")
+group = rootProject.providers.gradleProperty("group").get()
+version = rootProject.providers.gradleProperty("apiVersion").get()
 
 java {
     toolchain {
