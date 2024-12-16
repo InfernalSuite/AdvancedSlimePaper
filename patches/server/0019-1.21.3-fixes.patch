@@ -4,10 +4,10 @@ Date: Sun, 10 Nov 2024 13:06:42 +0100
 Subject: [PATCH] 1.21.3 fixes
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 87b6ee19fd165bde2db3a57545c58251dc6bad22..7b65a8d9137cd160b1c69dfafe70c693e9cfd508 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index 8c80b611c00ac09d9d45db5a712435c6534f937a..28d49e4e23b300b3b53de9cc4c276d5c40f43a0c 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -213,7 +213,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
          };
  
@@ -35,12 +35,12 @@ index 87b6ee19fd165bde2db3a57545c58251dc6bad22..7b65a8d9137cd160b1c69dfafe70c693
  
          WorldOptions worldoptions = new WorldOptions(0, false, false);
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index b5a1f75314aac73fb77e139398017b16acbb8efb..547e8e8824795a601b2028a6007057808eddbb65 100644
---- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
+index 2f0e34e105a27b12eb28dfc2b3c3b6590d76cbb2..2b700ec76e0eca7441676d48cf842cb944261668 100644
+--- a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -1,6 +1,7 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
@@ -84,12 +84,12 @@ index b5a1f75314aac73fb77e139398017b16acbb8efb..547e8e8824795a601b2028a600705780
          this.task.lowerPriority(priority);
      }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
-index fc6e46972bcc77134ed718c8c157ec3893d4bcdf..ceaa09deabf53f061185639660a7706c3ff27801 100644
---- a/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
+index 9954db3eabd60ac0600af1efc6f8a1650ef4d85b..b8d82510cf66700abf0c1820c561b5cc78c7d318 100644
+--- a/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
 @@ -1,18 +1,19 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
@@ -114,10 +114,10 @@ index fc6e46972bcc77134ed718c8c157ec3893d4bcdf..ceaa09deabf53f061185639660a7706c
 +    void setPriority(Priority priority);
  }
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index f0d773977609597f2da7bf691d8f4cb983743981..cbcbbc8410b24daf685d74791ad80989d4830d7b 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index c2dd10e46bd4c73b0db641b0a057e6e599033521..43790021bdc50a37d4bda7a89586eb56eb032791 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -29,7 +29,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
  import net.minecraft.world.level.chunk.LevelChunkSection;
  import net.minecraft.world.level.chunk.PalettedContainer;
@@ -168,10 +168,10 @@ index f0d773977609597f2da7bf691d8f4cb983743981..cbcbbc8410b24daf685d74791ad80989
                  blockStateTag = (CompoundTag) Converter.convertTag("", data);
              }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 86a5b457bdca63713769d2b708be905d72ff76a3..7623584e60dddd5558f22eed4403944fafee0696 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc09e03eaa 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -28,7 +28,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
  import net.minecraft.world.level.chunk.PalettedContainer;
  import net.minecraft.world.level.chunk.UpgradeData;
@@ -212,12 +212,12 @@ index 86a5b457bdca63713769d2b708be905d72ff76a3..7623584e60dddd5558f22eed4403944f
                  }
  
                  if (sectionId < sections.length) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index 6a5a8fbd8ee013828685495267283d9518d32d20..acb6ea84fbc40a6907edb237b834feeb66075af8 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..d672504eee439d96a9054b3308ba3a5d18cca867 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -1,6 +1,7 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
@@ -264,13 +264,13 @@ index 6a5a8fbd8ee013828685495267283d9518d32d20..acb6ea84fbc40a6907edb237b834feeb
      }
  
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-index 8832efbf9f68fb0466fdc9d6eb0d0acf5d5930dd..d03db9b8e78c795408b336beb53d6940a75ed759 100644
+index cb0c551bb3899201e2ca55a72babc76b3704501b..def0ae9a3a3e7a884d24275bb5f0f9b8e87f7d64 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 @@ -371,7 +371,7 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
                  }
  
-                 if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) {
+                 if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
 -                    poiStorage.checkConsistencyWithBlocks(SectionPos.of(chunkPos.getWorldPosition()), achunksection[j]);
 +                    poiStorage.checkConsistencyWithBlocks(sectionposition, serializablechunkdata_b.chunkSection);
                  }

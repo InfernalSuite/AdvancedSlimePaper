@@ -4,10 +4,10 @@ Date: Tue, 9 Jul 2024 02:00:22 +0200
 Subject: [PATCH] 1.21 compatibility
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 962c5ebf73261d0ba19b781d9269ef7ffee8b97d..87b6ee19fd165bde2db3a57545c58251dc6bad22 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index 5d7afcb8e90bde6fd5aa3c1a10917f4fdb78ee3a..8c80b611c00ac09d9d45db5a712435c6534f937a 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -212,7 +212,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
              default -> throw new IllegalArgumentException("Unknown dimension supplied");
          };
@@ -17,19 +17,19 @@ index 962c5ebf73261d0ba19b781d9269ef7ffee8b97d..87b6ee19fd165bde2db3a57545c58251
          LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().registryOrThrow(Registries.LEVEL_STEM).get(dimension);
  
          SlimeLevelInstance level;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index f9ac1efca06d8debbb7894160c3e67fd23440ebb..b5a1f75314aac73fb77e139398017b16acbb8efb 100644
---- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
+index bf44132f7614832119f798a2418e2014ec378cf9..2f0e34e105a27b12eb28dfc2b3c3b6590d76cbb2 100644
+--- a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -1,12 +1,12 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
  import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
- import com.infernalsuite.aswm.Converter;
- import com.infernalsuite.aswm.api.world.SlimeChunk;
+ import com.infernalsuite.asp.Converter;
+ import com.infernalsuite.asp.api.world.SlimeChunk;
  import com.mojang.logging.LogUtils;
 -import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
 -import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
@@ -37,40 +37,40 @@ index f9ac1efca06d8debbb7894160c3e67fd23440ebb..b5a1f75314aac73fb77e139398017b16
  import net.minecraft.nbt.CompoundTag;
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.world.level.ChunkPos;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
-index c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f..4e5eb92e0aa40ca02e58f988ec39a6461f63ac2f 100644
---- a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java
+index 10bfcb7250c01c8361375c4d9b34d2b0ae17257d..7f86b1922f179a3ff9b4238ab2da5aea5dde5564 100644
+--- a/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java
++++ b/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java
 @@ -1,9 +1,9 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 +import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
- import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
- import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
+ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
+ import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 -import io.papermc.paper.world.ChunkEntitySlices;
  import net.minecraft.world.level.chunk.LevelChunk;
  import net.minecraft.world.level.chunk.LevelChunkSection;
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index 6ef45be4a76c00be5fbfcdb543882fcf41ea6271..9b4b18758d52d66e4abf9e40e49a32428de68b9a 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index 7b31aba65e30fdef7a3eeb96cd899e6be6839aa9..844d23310b2b38cc9f6e2ae1636ba8a485c07999 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -1,17 +1,16 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 +import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
  import com.flowpowered.nbt.CompoundMap;
  import com.flowpowered.nbt.CompoundTag;
  import com.flowpowered.nbt.LongArrayTag;
  import com.google.common.collect.Lists;
- import com.infernalsuite.aswm.Converter;
--import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
- import com.infernalsuite.aswm.api.utils.NibbleArray;
- import com.infernalsuite.aswm.api.world.SlimeChunk;
- import com.infernalsuite.aswm.api.world.SlimeChunkSection;
+ import com.infernalsuite.asp.Converter;
+-import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
+ import com.infernalsuite.asp.api.utils.NibbleArray;
+ import com.infernalsuite.asp.api.world.SlimeChunk;
+ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 -import com.mojang.logging.LogUtils;
-+import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
++import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
  import com.mojang.serialization.Codec;
 -import io.papermc.paper.world.ChunkEntitySlices;
  import net.minecraft.core.Holder;
@@ -88,12 +88,12 @@ index 6ef45be4a76c00be5fbfcdb543882fcf41ea6271..9b4b18758d52d66e4abf9e40e49a3242
  import net.minecraft.world.level.chunk.storage.ChunkSerializer;
  import net.minecraft.world.level.levelgen.Heightmap;
  import net.minecraft.world.level.lighting.LevelLightEngine;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 003778f3ba9db1f52d7746d3b4b1132e373dd365..86a5b457bdca63713769d2b708be905d72ff76a3 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index 6807767a2067b62558f749da0c25f184082d0769..d04ad95b65f764560aa1ca8c7137f951ed474003 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -1,6 +1,7 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
 +import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
@@ -155,29 +155,29 @@ index 003778f3ba9db1f52d7746d3b4b1132e373dd365..86a5b457bdca63713769d2b708be905d
  
          for (Heightmap.Types type : heightMapTypes) {
              String name = type.getSerializedName();
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index 2265f83768c4dc29f67d29730c4be45a194727da..187336ecaa4262e3f081a88702031b17c6037091 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index d6e5eac7732f32cabd6ed5ac6b10af20074a39b8..33af1d7e671c5aeb06482038e205efc831641ec0 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -1,17 +1,15 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
  import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 +import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
  import com.google.common.util.concurrent.ThreadFactoryBuilder;
--import com.infernalsuite.aswm.Converter;
--import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
--import com.infernalsuite.aswm.api.world.SlimeChunk;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
- import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
- import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
- import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+-import com.infernalsuite.asp.Converter;
+-import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
+-import com.infernalsuite.asp.api.world.SlimeChunk;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
+ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
+ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
+ import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 -import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
 -import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
 -import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
-+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
++import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Holder;
  import net.minecraft.core.registries.Registries;
@@ -281,7 +281,7 @@ index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81d
      @Override
      public final FluidState getFluidIfLoaded(BlockPos blockposition) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-index faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37..8832efbf9f68fb0466fdc9d6eb0d0acf5d5930dd 100644
+index 6f482bf045cf7a14dceb5673d9d19ee87b7c03a8..cb0c551bb3899201e2ca55a72babc76b3704501b 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 @@ -469,7 +469,7 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun

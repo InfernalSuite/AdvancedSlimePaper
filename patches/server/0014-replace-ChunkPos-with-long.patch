@@ -4,14 +4,14 @@ Date: Sun, 16 Jun 2024 03:06:08 +0200
 Subject: [PATCH] replace ChunkPos with long
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-index 50350820d228e3656c569176aafd2cc534c17c15..280750cd9872210cc9043deea71f76758c2925fd 100644
---- a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-+++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
-@@ -17,6 +17,7 @@ import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
- import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
- import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
- import com.infernalsuite.aswm.util.NmsUtil;
+diff --git a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
+index 704cf0fa3d3c6114923d5b9b9594a4ba9d7ab0a6..efa3639457e89870fc0a7dac8aa632579d74800f 100644
+--- a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
++++ b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
+@@ -17,6 +17,7 @@ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.asp.serialization.slime.reader.SlimeWorldReaderRegistry;
+ import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
+ import com.infernalsuite.asp.util.NmsUtil;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  import net.minecraft.server.level.ServerLevel;
  import org.bukkit.Bukkit;
@@ -25,14 +25,14 @@ index 50350820d228e3656c569176aafd2cc534c17c15..280750cd9872210cc9043deea71f7675
      }
  
      @Override
-diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-index ba203e3dc9f6b0be5a92c30808daa0c284616f09..eb441905b43c0f2f7edc104a34f78a18d8f3bedf 100644
---- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-@@ -12,6 +12,8 @@ import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
- import com.infernalsuite.aswm.api.world.SlimeChunk;
- import com.infernalsuite.aswm.api.world.SlimeChunkSection;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
+diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
+index b2a0913290694d27151779aac5fb6be57f01da8b..f72953db6c79b62929244c56f1e76ce4ad72c0ee 100644
+--- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
+@@ -12,6 +12,8 @@ import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
+ import com.infernalsuite.asp.api.world.SlimeChunk;
+ import com.infernalsuite.asp.api.world.SlimeChunkSection;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  import net.minecraft.SharedConstants;
@@ -42,7 +42,7 @@ index ba203e3dc9f6b0be5a92c30808daa0c284616f09..eb441905b43c0f2f7edc104a34f78a18
          long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
          long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
  
--        Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
+-        Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
 +        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
          for (SlimeChunk chunk : data.getChunkStorage()) {
              List<CompoundTag> entities = new ArrayList<>();
@@ -56,24 +56,24 @@ index ba203e3dc9f6b0be5a92c30808daa0c284616f09..eb441905b43c0f2f7edc104a34f78a18
  
              SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
              for (int i = 0; i < sections.length; i++) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 114da62698c2897b16042327a4171f785bc58cec..770679851baba2ddb9f8f427f4cd80ea8b32122b 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -2,8 +2,8 @@ package com.infernalsuite.aswm.level;
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a86444f8f22d 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+@@ -2,8 +2,8 @@ package com.infernalsuite.asp.level;
  
  import com.flowpowered.nbt.CompoundTag;
  import com.flowpowered.nbt.Tag;
--import com.infernalsuite.aswm.ChunkPos;
- import com.infernalsuite.aswm.Converter;
-+import com.infernalsuite.aswm.Util;
- import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
- import com.infernalsuite.aswm.api.loaders.SlimeLoader;
- import com.infernalsuite.aswm.pdc.FlowPersistentDataContainer;
-@@ -15,6 +15,8 @@ import com.infernalsuite.aswm.api.world.SlimeChunk;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
- import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
- import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+-import com.infernalsuite.asp.ChunkPos;
+ import com.infernalsuite.asp.Converter;
++import com.infernalsuite.asp.Util;
+ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.asp.api.loaders.SlimeLoader;
+ import com.infernalsuite.asp.pdc.FlowPersistentDataContainer;
+@@ -15,6 +15,8 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
+ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
+ import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  import net.minecraft.world.level.block.Block;

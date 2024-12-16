@@ -1,8 +1,15 @@
 plugins {
+    id("asp.base-conventions")
+    id("asp.publishing-conventions")
 }
 
 dependencies {
     compileOnly(project(":api"))
-    compileOnly(project(":slimeworldmanager-api"))
-    implementation("com.github.luben:zstd-jni:1.5.2-2")
+    compileOnly(project(":aspaper-api"))
+    implementation(libs.zstd)
+}
+
+publishConfiguration {
+    name = "Advanced Slime Paper Core"
+    description = "Core logic for Advanced Slime Paper"
 }

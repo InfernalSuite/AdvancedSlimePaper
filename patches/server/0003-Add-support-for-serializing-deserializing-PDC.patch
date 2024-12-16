@@ -4,10 +4,10 @@ Date: Sat, 21 Oct 2023 18:11:15 +0200
 Subject: [PATCH] Add support for serializing/deserializing PDC
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 20f16757ba8b8da525ff17d51d4f7eb660c4d22b..97a3c0401d1bcf34d8022da5163b8169a66fd5b3 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index d1ab18a2a2793807118ae1fc23d21248aa7e09a3..0c1e599aa7d148c40ece1957c89991e1d761162a 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -11,6 +11,7 @@ import com.mojang.serialization.Lifecycle;
  import net.kyori.adventure.util.Services;
  import net.minecraft.SharedConstants;
@@ -28,18 +28,18 @@ index 20f16757ba8b8da525ff17d51d4f7eb660c4d22b..97a3c0401d1bcf34d8022da5163b8169
          return level;
      }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index fd4cfb9cceb4f23265cb3cce7f1f251051bfba92..03f0a5c88a6b2d28a5a69649fc1295b51aaf879f 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -2,6 +2,7 @@ package com.infernalsuite.aswm.level;
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index ba337466525971885247c269c23aac7df96d2782..5d325e85a4634c21ab0bec12b493ea9b857d8ff3 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+@@ -2,6 +2,7 @@ package com.infernalsuite.asp.level;
  
  import com.flowpowered.nbt.CompoundTag;
- import com.infernalsuite.aswm.ChunkPos;
-+import com.infernalsuite.aswm.Converter;
- import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
- import com.infernalsuite.aswm.api.loaders.SlimeLoader;
- import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.asp.ChunkPos;
++import com.infernalsuite.asp.Converter;
+ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.asp.api.loaders.SlimeLoader;
+ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 @@ -235,6 +236,17 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              cloned.put(entry.getKey(), clonedChunk);
          }

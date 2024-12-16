@@ -4,12 +4,12 @@ Date: Sat, 6 Jan 2024 22:23:55 +0100
 Subject: [PATCH] Add migration from SRF 1-8
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-index ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6..ba203e3dc9f6b0be5a92c30808daa0c284616f09 100644
---- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
+index 36d13632916b8e93d5f28c29ea80ef4ac87e6c89..b2a0913290694d27151779aac5fb6be57f01da8b 100644
+--- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 @@ -1,5 +1,6 @@
- package com.infernalsuite.aswm;
+ package com.infernalsuite.asp;
  
 +import ca.spottedleaf.dataconverter.converters.DataConverter;
  import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
@@ -22,7 +22,7 @@ index ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6..ba203e3dc9f6b0be5a92c30808daa0c2
 +        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
 +        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
 +
-         Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
+         Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
          for (SlimeChunk chunk : data.getChunkStorage()) {
              List<CompoundTag> entities = new ArrayList<>();
              List<CompoundTag> blockEntities = new ArrayList<>();
@@ -63,22 +63,22 @@ index ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6..ba203e3dc9f6b0be5a92c30808daa0c2
              ));
  
          }
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 21c3ea3596a1f954618348afae2b2f7f058393d1..18f0f7933c42a7609a3d7bd775b24c372baae175 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index 4c503e5a31ba38c5a52e9b6738a6ade4fab94b49..bfcd4fc5e0ce187c79491fc720bb4bebde51f8e1 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -1,5 +1,8 @@
- package com.infernalsuite.aswm;
+ package com.infernalsuite.asp;
  
 +import ca.spottedleaf.dataconverter.converters.DataConverter;
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 +import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
  import com.flowpowered.nbt.CompoundMap;
- import com.infernalsuite.aswm.api.SlimeNMSBridge;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
-@@ -9,7 +12,6 @@ import com.infernalsuite.aswm.level.SlimeBootstrap;
- import com.infernalsuite.aswm.level.SlimeInMemoryWorld;
- import com.infernalsuite.aswm.level.SlimeLevelInstance;
+ import com.infernalsuite.asp.api.SlimeNMSBridge;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
+@@ -9,7 +12,6 @@ import com.infernalsuite.asp.level.SlimeBootstrap;
+ import com.infernalsuite.asp.level.SlimeInMemoryWorld;
+ import com.infernalsuite.asp.level.SlimeLevelInstance;
  import com.mojang.serialization.Lifecycle;
 -import net.kyori.adventure.util.Services;
  import net.minecraft.SharedConstants;
@@ -113,10 +113,10 @@ index 21c3ea3596a1f954618348afae2b2f7f058393d1..18f0f7933c42a7609a3d7bd775b24c37
      @Override
      public int getCurrentVersion() {
          return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index ad30e83670ca88f09fa7625fc52c224247410623..e183ca25bf67a0519de7a91615fbcfc6ff45a56e 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index dc34469712bdd84d4b17dfd5e9657c3a12420241..419c3c12177bc7b85c6643fb114b4d0ad8f80c46 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -26,10 +26,7 @@ import net.minecraft.world.level.block.Block;
  import net.minecraft.world.level.block.Blocks;
  import net.minecraft.world.level.block.entity.BlockEntity;
@@ -156,10 +156,10 @@ index ad30e83670ca88f09fa7625fc52c224247410623..e183ca25bf67a0519de7a91615fbcfc6
      public LevelChunk getChunk() {
          return chunk;
      }
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
-index e449b3eebe0d245a2107a6d0018930d32dfc4976..f5da649f4914319229fdba014e1042abca62f835 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
+index 7dd1c52f718866f8918c30de9cc71d151eddc958..4df75c87f235ca5c55982c0b836f433eec9c9e9f 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
++++ b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 @@ -71,6 +71,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
          return this.wrapper.getExtraData();
      }
@@ -176,10 +176,10 @@ index e449b3eebe0d245a2107a6d0018930d32dfc4976..f5da649f4914319229fdba014e1042ab
      /*
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index a03c59d2800885e90467812f0088787a85d8cd88..75bb1e9355141215c4850f1b57db9434d8212637 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index d3289cb71f9ff71d5122ed43e9a0ab40f93c774a..ace4d6272560783fd7903495b5a3c84550b1b4d8 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -118,7 +118,14 @@ public class SlimeChunkConverter {
  
          LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
@@ -196,10 +196,10 @@ index a03c59d2800885e90467812f0088787a85d8cd88..75bb1e9355141215c4850f1b57db9434
  
          List<CompoundTag> tileEntities = chunk.getTileEntities();
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 72a74f0c2cf21c32fa4ffd600cf95eaee003aec6..95133e0ff8a8bdfc84c1dd7ff6b2c7ed7ae9a2f9 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index 15340aecc97a30767340f7837a21decc74afbe9c..619075ededa0443cf8f888f04d863bf7b936a4b0 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -115,7 +115,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
          this.chunkStorage.put(new ChunkPos(x, z),

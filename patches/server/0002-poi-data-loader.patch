@@ -17,10 +17,10 @@ index bbf9d6c1c9525d97160806819a57be03eca290f1..38ca7bd039bc1b60a63ff68c53e3ec31
  
      private static final Logger LOGGER = LoggerFactory.getLogger(PoiChunk.class);
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4aded1c4574 100644
---- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
+index bb954b74739e22525f9a45648d3ecf54f5a9e61c..7e7c560b89c45e8ff003813f3c7a141c2b0b7a1d 100644
+--- a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -14,6 +14,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
  import net.minecraft.world.level.chunk.ImposterProtoChunk;
  import net.minecraft.world.level.chunk.LevelChunk;
@@ -44,7 +44,7 @@ index 41e652b568598926e838e81fdc338e51f8e97ef8..c32d52c68188dc1eb7feeac364cdc4ad
          try {
              //                if (data.tasks != null) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-index 018b24d7611c3fd11536441431abf8f125850129..faf7f4f3bd1fbc91a40e5549a7a5520ea3eaec37 100644
+index 018b24d7611c3fd11536441431abf8f125850129..6f482bf045cf7a14dceb5673d9d19ee87b7c03a8 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 @@ -369,6 +369,10 @@ public record SerializableChunkData(Registry<Biome> biomeRegistry, ChunkPos chun
@@ -52,7 +52,7 @@ index 018b24d7611c3fd11536441431abf8f125850129..faf7f4f3bd1fbc91a40e5549a7a5520e
                      levellightengine.queueSectionData(LightLayer.SKY, sectionposition, serializablechunkdata_b.skyLight);
                  }
 +
-+                if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) {
++                if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
 +                    poiStorage.checkConsistencyWithBlocks(SectionPos.of(chunkPos.getWorldPosition()), achunksection[j]);
 +                }
              }

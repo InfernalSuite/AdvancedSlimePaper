@@ -4,10 +4,10 @@ Date: Mon, 26 Aug 2024 21:27:08 +0100
 Subject: [PATCH] Fix chunk saving when unloading
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index 187336ecaa4262e3f081a88702031b17c6037091..6a5a8fbd8ee013828685495267283d9518d32d20 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index 33af1d7e671c5aeb06482038e205efc831641ec0..dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -25,6 +25,7 @@ import net.minecraft.world.Difficulty;
  import net.minecraft.world.level.biome.Biome;
  import net.minecraft.world.level.chunk.ChunkAccess;

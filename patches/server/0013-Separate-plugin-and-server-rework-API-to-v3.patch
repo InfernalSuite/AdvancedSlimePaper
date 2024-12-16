@@ -5,42 +5,42 @@ Subject: [PATCH] Separate plugin and server, rework API (to v3)
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 22931927ac8c1fcdc45d44f8d4a898a44831039c..e10d95ce805d03fa43f526dc0a1a1123a67b4f0c 100644
+index 838639a8bbeb59700037c3e101714f68f8b79671..26be7ff48f2eb50a140e71372cfef54d4ff570f1 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -29,6 +29,7 @@ dependencies {
      // ASWM start
-     implementation(project(":slimeworldmanager-api"))
+     implementation(project(":aspaper-api"))
      implementation(project(":core"))
 +    implementation("commons-io:commons-io:2.11.0")
      // ASWM end
      // Paper start
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
-diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
+diff --git a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf45f1eb52
+index 0000000000000000000000000000000000000000..704cf0fa3d3c6114923d5b9b9594a4ba9d7ab0a6
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
++++ b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
 @@ -0,0 +1,243 @@
-+package com.infernalsuite.aswm;
++package com.infernalsuite.asp;
 +
 +import com.flowpowered.nbt.CompoundMap;
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.api.SlimeNMSBridge;
-+import com.infernalsuite.aswm.api.AdvancedSlimePaperAPI;
-+import com.infernalsuite.aswm.api.events.LoadSlimeWorldEvent;
-+import com.infernalsuite.aswm.api.exceptions.*;
-+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
-+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
-+import com.infernalsuite.aswm.level.SlimeLevelInstance;
-+import com.infernalsuite.aswm.serialization.anvil.AnvilImportData;
-+import com.infernalsuite.aswm.serialization.anvil.AnvilWorldReader;
-+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
-+import com.infernalsuite.aswm.serialization.slime.reader.SlimeWorldReaderRegistry;
-+import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
-+import com.infernalsuite.aswm.util.NmsUtil;
++import com.infernalsuite.asp.api.SlimeNMSBridge;
++import com.infernalsuite.asp.api.AdvancedSlimePaperAPI;
++import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
++import com.infernalsuite.asp.api.exceptions.*;
++import com.infernalsuite.asp.api.loaders.SlimeLoader;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.SlimeWorldInstance;
++import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.asp.level.SlimeLevelInstance;
++import com.infernalsuite.asp.serialization.anvil.AnvilImportData;
++import com.infernalsuite.asp.serialization.anvil.AnvilWorldReader;
++import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
++import com.infernalsuite.asp.serialization.slime.reader.SlimeWorldReaderRegistry;
++import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
++import com.infernalsuite.asp.util.NmsUtil;
 +import net.minecraft.server.level.ServerLevel;
 +import org.bukkit.Bukkit;
 +import org.bukkit.World;
@@ -265,12 +265,12 @@ index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf
 +        this.loadedWorlds.remove(name);
 +    }
 +}
-diff --git a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
-index 61518ab2b68e7a41500f3c8c8a5ec1230597f0e5..875960d0c9fdcbcb3250abc05cfbde48eec0f15a 100644
---- a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
-+++ b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
+diff --git a/src/main/java/com/infernalsuite/asp/InternalPlugin.java b/src/main/java/com/infernalsuite/asp/InternalPlugin.java
+index 4c7938c07e06810f475eac0bb4400c11154b56ba..cb8720e3961b897ae87a59c2c91d1502be3e62cf 100644
+--- a/src/main/java/com/infernalsuite/asp/InternalPlugin.java
++++ b/src/main/java/com/infernalsuite/asp/InternalPlugin.java
 @@ -1,14 +1,36 @@
- package com.infernalsuite.aswm;
+ package com.infernalsuite.asp;
  
 +import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
  import net.minecraft.server.MinecraftServer;
@@ -423,10 +423,10 @@ index 61518ab2b68e7a41500f3c8c8a5ec1230597f0e5..875960d0c9fdcbcb3250abc05cfbde48
 +    }
  }
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 18f0f7933c42a7609a3d7bd775b24c372baae175..962c5ebf73261d0ba19b781d9269ef7ffee8b97d 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index bfcd4fc5e0ce187c79491fc720bb4bebde51f8e1..5d7afcb8e90bde6fd5aa3c1a10917f4fdb78ee3a 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -48,8 +48,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
      private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
      private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
@@ -450,10 +450,10 @@ index 18f0f7933c42a7609a3d7bd775b24c372baae175..962c5ebf73261d0ba19b781d9269ef7f
      @Override
      public void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld) {
          if (normalWorld != null) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index b295d159200e3bf0e48f851ac206b2e09b756bb2..6ef45be4a76c00be5fbfcdb543882fcf41ea6271 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index b6c0ba9325b06e1d76609aa4de564af11f231a74..7b31aba65e30fdef7a3eeb96cd899e6be6839aa9 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -31,13 +31,14 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
  import net.minecraft.world.level.levelgen.Heightmap;
  import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -470,10 +470,10 @@ index b295d159200e3bf0e48f851ac206b2e09b756bb2..6ef45be4a76c00be5fbfcdb543882fcf
  
      private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
      private static final CompoundTag EMPTY_BIOME_PALETTE;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-index 004d7bcc5b35c76855787dcf32fe460e73cab38f..56c5db9a22af8ddd1d459bcf1f5b3fc7ca809b72 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
+index bd2f8da46d4a04f2777086a416015563f3b06cdf..8c63ddf62415d0c88080fbe9a2ff9df4ffdd7a36 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 @@ -35,7 +35,7 @@ public class NMSSlimeWorld implements SlimeWorld {
  
      @Override
@@ -492,10 +492,10 @@ index 004d7bcc5b35c76855787dcf32fe460e73cab38f..56c5db9a22af8ddd1d459bcf1f5b3fc7
          return chunks.stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull)
                  .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
                  .collect(Collectors.toList());
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..114da62698c2897b16042327a4171f785bc58cec 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index 70eb8b95740b46579ad3520ca1d3395a920a8a6a..e9b6114e1a799217b44001d66592bbae52b03e13 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -145,7 +145,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
      @Override
@@ -517,10 +517,10 @@ index b54b231e22967eb0b34e6ba9b7ec9cdf64bad87e..114da62698c2897b16042327a4171f78
      @Override
      public CompoundTag getExtraData() {
          return this.extra;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index b28c2b917accc0249e5df19a65db8820336b7279..2265f83768c4dc29f67d29730c4be45a194727da 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index a8c103d435ac9473b1c5dd404e5c69ebf4353490..d6e5eac7732f32cabd6ed5ac6b10af20074a39b8 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -24,7 +24,6 @@ import net.minecraft.util.ProgressListener;
  import net.minecraft.util.Unit;
  import net.minecraft.util.datafix.DataFixers;
@@ -613,14 +613,14 @@ index b28c2b917accc0249e5df19a65db8820336b7279..2265f83768c4dc29f67d29730c4be45a
                      Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
                  } catch (IOException | IllegalStateException ex) {
                      ex.printStackTrace();
-diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
-index 3500005bb09dc484bc333f1e0799613d097a37d3..4a5a6f208ad91fd861bd6f2b2c008ef14a547d6e 100644
---- a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
-+++ b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+diff --git a/src/main/java/com/infernalsuite/asp/util/NmsUtil.java b/src/main/java/com/infernalsuite/asp/util/NmsUtil.java
+index 04e43a22c1932dce66abb54337cdce802110a7af..c8e8d61b9b9f5f0ce639aae95ddacb16442ba73f 100644
+--- a/src/main/java/com/infernalsuite/asp/util/NmsUtil.java
++++ b/src/main/java/com/infernalsuite/asp/util/NmsUtil.java
 @@ -1,9 +1,46 @@
- package com.infernalsuite.aswm.util;
+ package com.infernalsuite.asp.util;
  
-+import com.infernalsuite.aswm.InternalPlugin;
++import com.infernalsuite.asp.InternalPlugin;
 +import org.bukkit.Bukkit;
 +import org.bukkit.craftbukkit.scheduler.CraftScheduler;
 +import org.bukkit.plugin.Plugin;
@@ -706,14 +706,14 @@ index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index ac8af406180bc680d46e8edc3da0fc2e5211345a..4936c074ad73d92f3b5ed6463126abb5017e221c 100644
+index ac8af406180bc680d46e8edc3da0fc2e5211345a..2bd2aa53b656012f49f3c4692a092b9f9d4a4d9a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
  import com.google.common.collect.Iterators;
  import com.google.common.collect.Lists;
  import com.google.common.collect.MapMaker;
-+import com.infernalsuite.aswm.AdvancedSlimePaper;
++import com.infernalsuite.asp.AdvancedSlimePaper;
  import com.mojang.authlib.GameProfile;
  import com.mojang.brigadier.StringReader;
  import com.mojang.brigadier.exceptions.CommandSyntaxException;

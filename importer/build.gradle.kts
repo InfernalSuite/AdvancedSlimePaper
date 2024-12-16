@@ -1,17 +1,18 @@
 plugins {
-    id("com.gradleup.shadow") version "8.3.5"
+    id("asp.base-conventions")
+    id("com.gradleup.shadow")
 }
 
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
-    implementation(project(":slimeworldmanager-api"))
+    implementation(project(":aspaper-api"))
 }
 
 tasks {
     jar {
         manifest {
-            attributes["Main-Class"] = "com.infernalsuite.aswm.importer.SWMImporter"
+            attributes["Main-Class"] = "com.infernalsuite.asp.importer.ASPImporter"
         }
     }
     shadowJar {
@@ -19,4 +20,4 @@ tasks {
     }
 }
 
-description = "slimeworldmanager-importer"
+description = "asp-importer"

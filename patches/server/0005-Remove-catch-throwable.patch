@@ -4,10 +4,10 @@ Date: Thu, 2 Nov 2023 23:01:26 +0000
 Subject: [PATCH] Remove catch throwable
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index 8485296594c01edcaef271fc37bf2c70932f4986..f9ac1efca06d8debbb7894160c3e67fd23440ebb 100644
---- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
+index e2c67548ff6341c1c981af83f6df7711c78330a9..bf44132f7614832119f798a2418e2014ec378cf9 100644
+--- a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -48,7 +48,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
              try {
                  SlimeChunk chunk = ((SlimeLevelInstance) this.world).slimeInstance.getChunk(this.chunkX, this.chunkZ);

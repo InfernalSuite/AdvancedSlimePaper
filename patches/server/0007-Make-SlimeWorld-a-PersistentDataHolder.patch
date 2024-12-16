@@ -4,17 +4,17 @@ Date: Thu, 26 Oct 2023 14:55:39 +0200
 Subject: [PATCH] Make SlimeWorld a PersistentDataHolder
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-index 97a3c0401d1bcf34d8022da5163b8169a66fd5b3..21c3ea3596a1f954618348afae2b2f7f058393d1 100644
---- a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
+index 0c1e599aa7d148c40ece1957c89991e1d761162a..4c503e5a31ba38c5a52e9b6738a6ade4fab94b49 100644
+--- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -1,5 +1,6 @@
- package com.infernalsuite.aswm;
+ package com.infernalsuite.asp;
  
 +import com.flowpowered.nbt.CompoundMap;
- import com.infernalsuite.aswm.api.SlimeNMSBridge;
- import com.infernalsuite.aswm.api.world.SlimeWorld;
- import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
+ import com.infernalsuite.asp.api.SlimeNMSBridge;
+ import com.infernalsuite.asp.api.world.SlimeWorld;
+ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 @@ -12,6 +13,7 @@ import net.kyori.adventure.util.Services;
  import net.minecraft.SharedConstants;
  import net.minecraft.core.registries.Registries;
@@ -69,11 +69,11 @@ index 97a3c0401d1bcf34d8022da5163b8169a66fd5b3..21c3ea3596a1f954618348afae2b2f7f
      @Override
      public boolean loadOverworldOverride() {
          if (defaultWorld == null) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-index 9a27369c00345bbb94aa19f77687269dc94c0b0a..07e542e3f75bf272f53345dc040d90358e7d7b2d 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-@@ -9,6 +9,8 @@ import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
+index 3dc776b5387b4e2f1b669f754b5b064fc0142006..76ee216925d9ced3c9bf1e7e8e1d8b80ca9f8e50 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
+@@ -9,6 +9,8 @@ import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
  import net.minecraft.SharedConstants;
  import net.minecraft.server.level.ChunkHolder;
  import net.minecraft.world.level.chunk.LevelChunk;
@@ -93,18 +93,18 @@ index 9a27369c00345bbb94aa19f77687269dc94c0b0a..07e542e3f75bf272f53345dc040d9035
 +    }
  }
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 03f0a5c88a6b2d28a5a69649fc1295b51aaf879f..092dae1f9e68f1c395cd0f8151cd696c0bcdceb0 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-@@ -5,6 +5,7 @@ import com.infernalsuite.aswm.ChunkPos;
- import com.infernalsuite.aswm.Converter;
- import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
- import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-+import com.infernalsuite.aswm.pdc.FlowPersistentDataContainer;
- import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
- import com.infernalsuite.aswm.skeleton.SkeletonCloning;
- import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index 5d325e85a4634c21ab0bec12b493ea9b857d8ff3..35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+@@ -5,6 +5,7 @@ import com.infernalsuite.asp.ChunkPos;
+ import com.infernalsuite.asp.Converter;
+ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.asp.api.loaders.SlimeLoader;
++import com.infernalsuite.asp.pdc.FlowPersistentDataContainer;
+ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
+ import com.infernalsuite.asp.skeleton.SkeletonCloning;
+ import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 @@ -19,6 +20,8 @@ import net.minecraft.world.level.chunk.UpgradeData;
  import net.minecraft.world.level.material.Fluid;
  import net.minecraft.world.ticks.LevelChunkTicks;

@@ -1,0 +1,53 @@
+[versions]
+adventure = "4.17.0"
+annotations = "26.0.1"
+autoservice = "1.1.1"
+blossom = "2.1.0"
+bstats = "3.1.0"
+cloud-core = "2.0.0"
+cloud-minecraft = "2.0.0-beta.10"
+configurate = "4.1.2"
+gradle-git-properties = "2.4.2"
+gradle-profiles = "0.54.0"
+hikari = "6.2.1"
+kotlin = "1.9.25"
+lettuce = "6.5.1.RELEASE"
+lombok = "1.18.36"
+lombok-plugin = "8.11"
+mongo = "5.2.1"
+paperweight = "1.7.7"
+plugin-yml-paper = "0.6.0"
+shadow = "8.3.5"
+slf4j = "2.0.16"
+zstd = "1.5.6-8"
+
+[plugins]
+blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
+gitprops = { id = "com.gorylenko.gradle-git-properties", version.ref = "gradle-git-properties" }
+profiles = { id = "org.kordamp.gradle.profiles", version.ref = "gradle-profiles" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok-plugin" }
+paperweight-patcher = { id = "io.papermc.paperweight.patcher", version.ref = "paperweight" }
+plugin-yml-paper = { id = "net.minecrell.plugin-yml.paper", version.ref = "plugin-yml-paper" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+
+[libraries]
+adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" }
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+auto-service = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
+auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoservice" }
+bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+cloud-annotations = { module = "org.incendo:cloud-annotations", version.ref = "cloud-core" }
+cloud-bom = { module = "org.incendo:cloud-bom", version.ref = "cloud-core" }
+cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud-core" }
+cloud-minecraft-bom = { module = "org.incendo:cloud-minecraft-bom", version.ref = "cloud-minecraft" }
+cloud-minecraft-extras = { module = "org.incendo:cloud-minecraft-extras", version.ref = "cloud-minecraft" }
+cloud-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-minecraft" }
+configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+mongo = { module = "org.mongodb:mongodb-driver-sync", version.ref = "mongo" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+zstd = { module = "com.github.luben:zstd-jni", version.ref = "zstd" }

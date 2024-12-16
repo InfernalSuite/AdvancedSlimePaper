@@ -5,12 +5,12 @@ Subject: [PATCH] Compile fixes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 41ed3865710e9732f7662e1d3bf287ad9cf80c74..bb915dc69af63cab992a5b7f8654b5390340c89e 100644
+index b5b5c099e61f828edbcd18aba9d379a6e45fb8b4..838639a8bbeb59700037c3e101714f68f8b79671 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -29,9 +29,6 @@ dependencies {
      // ASWM start
-     implementation(project(":slimeworldmanager-api"))
+     implementation(project(":aspaper-api"))
      implementation(project(":core"))
 -    implementation("io.papermc.paper:paper-mojangapi:1.20.4-R0.1-SNAPSHOT") {
 -        exclude("io.papermc.paper", "paper-api")
@@ -18,10 +18,10 @@ index 41ed3865710e9732f7662e1d3bf287ad9cf80c74..bb915dc69af63cab992a5b7f8654b539
      // ASWM end
      // Paper start
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e09b756bb2 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af11f231a74 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -46,18 +46,14 @@ public class NMSSlimeChunk implements SlimeChunk {
      static {
          {
@@ -70,10 +70,10 @@ index e183ca25bf67a0519de7a91615fbcfc6ff45a56e..b295d159200e3bf0e48f851ac206b2e0
              tileEntities.add(entityNbt);
          }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 75bb1e9355141215c4850f1b57db9434d8212637..003778f3ba9db1f52d7746d3b4b1132e373dd365 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index ace4d6272560783fd7903495b5a3c84550b1b4d8..6807767a2067b62558f749da0c25f184082d0769 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -78,7 +78,7 @@ public class SlimeChunkConverter {
                      DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                          System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
@@ -101,12 +101,12 @@ index 75bb1e9355141215c4850f1b57db9434d8212637..003778f3ba9db1f52d7746d3b4b1132e
  
                      if (entity != null) {
                          nmsChunk.setBlockEntity(entity);
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
-index 4f48b7a1a41aabc78cc9276fbf9f372cb117003f..aa3ed7005ddfda74b2c3ca1e1dde810c62aa1ce7 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
+index b74ccd2b6b526f7b7955ce601a37185d3b6a2f59..18053d099145bd9351902ff062139c731eafc5d3 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
 @@ -1,6 +1,7 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
  import com.mojang.serialization.Codec;
 +import com.mojang.serialization.MapCodec;
@@ -122,10 +122,10 @@ index 4f48b7a1a41aabc78cc9276fbf9f372cb117003f..aa3ed7005ddfda74b2c3ca1e1dde810c
                  return null;
              }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index 1d5547a74042743e388f77f70b9ebbd37be3f1bc..b28c2b917accc0249e5df19a65db8820336b7279 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index eddae8fc510d6e263df55a725148d96f677bcb0b..a8c103d435ac9473b1c5dd404e5c69ebf4353490 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -103,8 +103,6 @@ public class SlimeLevelInstance extends ServerLevel {
          super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
  

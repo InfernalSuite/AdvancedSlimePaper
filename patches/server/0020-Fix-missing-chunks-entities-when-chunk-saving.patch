@@ -5,7 +5,7 @@ Subject: [PATCH] Fix missing chunks & entities when chunk saving
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index bc0990458df745c92e5bc0530ff35ab992365b3a..682f293396ef34fdc6a61314827dc34f504c7777 100644
+index 62b526f7e147586977615ec8cec191d0aaf0bcdc..ad7c19ceb42da90bd995421be7fb764aa7ee48e0 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 @@ -897,6 +897,13 @@ public final class NewChunkHolder {
@@ -13,7 +13,7 @@ index bc0990458df745c92e5bc0530ff35ab992365b3a..682f293396ef34fdc6a61314827dc34f
          final boolean shouldLevelChunkNotSave = PlatformHooks.get().forceNoSave(chunk);
  
 +        // ASP start - Chunk unloading
-+        if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance slime && chunk instanceof LevelChunk levelChunk) {
++        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance slime && chunk instanceof LevelChunk levelChunk) {
 +            //The custom entity slices need to be passed on for entities to be saved
 +            slime.onChunkUnloaded(levelChunk, entityChunk);
 +        }
@@ -22,10 +22,10 @@ index bc0990458df745c92e5bc0530ff35ab992365b3a..682f293396ef34fdc6a61314827dc34f
          // unload chunk data
          if (chunk != null) {
              if (chunk instanceof LevelChunk levelChunk) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index cbcbbc8410b24daf685d74791ad80989d4830d7b..cdc4fd3a8767a3cb168ceb3088f4ae237fd9a11e 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index 43790021bdc50a37d4bda7a89586eb56eb032791..4f99fbafda6cd4500005a793bba73eee5a2061b9 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -66,12 +66,19 @@ public class NMSSlimeChunk implements SlimeChunk {
      private final CompoundTag extra;
      private final CompoundTag upgradeData;
@@ -78,10 +78,10 @@ index cbcbbc8410b24daf685d74791ad80989d4830d7b..cdc4fd3a8767a3cb168ceb3088f4ae23
      @Override
      public CompoundTag getExtraData() {
          return extra;
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
-index 2ebabf20c37d2b5c479de5bb241aa334f92a1104..866246838b6d6f23eacb1d9bad1c31cb2c1e76b0 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
+index a92d17b5c6a7c8427ecbdf56a9c2a0c1b66978e4..6313b235eb8ccbd63b57159964ba33d36db51933 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
 @@ -19,12 +19,6 @@ public class SlimeChunkLevel extends LevelChunk {
          this.inMemoryWorld = world.slimeInstance;
      }
@@ -95,10 +95,10 @@ index 2ebabf20c37d2b5c479de5bb241aa334f92a1104..866246838b6d6f23eacb1d9bad1c31cb
      @Override
      public void loadCallback() {
          super.loadCallback();
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 770679851baba2ddb9f8f427f4cd80ea8b32122b..619ccbab1a5582af1d1ad69fb0c54e52ca84847d 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index a150c5ebb1fa48542550d905a675a86444f8f22d..5daabf7d2c31972082fc618142643592535fb13f 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -104,11 +104,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
      // Authored by: Kenox <muranelp@gmail.com>
@@ -113,10 +113,10 @@ index 770679851baba2ddb9f8f427f4cd80ea8b32122b..619ccbab1a5582af1d1ad69fb0c54e52
  
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
              this.chunkStorage.remove(Util.chunkPosition(x, z));
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index acb6ea84fbc40a6907edb237b834feeb66075af8..2821d953e8b01cadf171508ac0b8e1eda6201970 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index d672504eee439d96a9054b3308ba3a5d18cca867..1b0d36854c190efefc7421f445a70b92f82a4fe5 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -202,9 +202,7 @@ public class SlimeLevelInstance extends ServerLevel {
          propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
      }

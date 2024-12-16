@@ -6,7 +6,7 @@ Subject: [PATCH] Build Changes
 Update shadow plugin
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..e90c79790c40afb67364fed615be2384c30d73d0 100644
+index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..b5b5c099e61f828edbcd18aba9d379a6e45fb8b4 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -4,6 +4,7 @@ import java.time.Instant
@@ -23,7 +23,7 @@ index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..e90c79790c40afb67364fed615be2384
  dependencies {
 -    implementation(project(":paper-api"))
 +    // ASWM start
-+    implementation(project(":slimeworldmanager-api"))
++    implementation(project(":aspaper-api"))
 +    implementation(project(":core"))
 +    implementation("io.papermc.paper:paper-mojangapi:1.20.4-R0.1-SNAPSHOT") {
 +        exclude("io.papermc.paper", "paper-api")
@@ -75,7 +75,7 @@ index b3c993a790fc3fab6a408c731deb297f74c959ce..0bbd557602932b67212b8951ef769bbc
      public FullChunkStatus status;
      public final ChunkData chunkData;
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
-index 91a6f57f35fc1553159cca138a0619e703b2b014..07fee642805ac3ec6fce489a0b9050ddf941d932 100644
+index 91a6f57f35fc1553159cca138a0619e703b2b014..0474325958293ea36bae0e44849e95a2fde819b8 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 @@ -185,7 +185,8 @@ public final class ChunkHolderManager {
@@ -84,19 +84,19 @@ index 91a6f57f35fc1553159cca138a0619e703b2b014..07fee642805ac3ec6fce489a0b9050dd
  
 -    public void close(final boolean save, final boolean halt) {
 +    public void close(boolean save, final boolean halt) { // ASWM
-+        if (this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) save = false; // ASWM
++        if (this.world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) save = false; // ASWM
          TickThread.ensureTickThread("Closing world off-main");
          if (halt) {
              LOGGER.info("Waiting 60s for chunk system to halt for world '" + WorldUtil.getWorldName(this.world) + "'");
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java
-index 1440c9e2b106616884edcb20201113320817ed9f..158dee86d783c4a0a0479b07c4159184479b2a65 100644
+index 1440c9e2b106616884edcb20201113320817ed9f..ae8b6fd79dd556499acb96114dfd38c85eca67f6 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java
 @@ -6,6 +6,7 @@ import ca.spottedleaf.concurrentutil.lock.ReentrantAreaLock;
  import ca.spottedleaf.concurrentutil.util.ConcurrentUtil;
  import ca.spottedleaf.concurrentutil.util.Priority;
  import ca.spottedleaf.moonrise.common.PlatformHooks;
-+import com.infernalsuite.aswm.level.CommonLoadTask;
++import com.infernalsuite.asp.level.CommonLoadTask;
  import ca.spottedleaf.moonrise.patches.chunk_system.ChunkSystemConverters;
  import ca.spottedleaf.moonrise.patches.chunk_system.io.MoonriseRegionFileIO;
  import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
@@ -121,7 +121,7 @@ index 1440c9e2b106616884edcb20201113320817ed9f..158dee86d783c4a0a0479b07c4159184
 -            ChunkLoadTask.this.tryCompleteLoad();
 -        });
 +        // ASWM start
-+        if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance levelInstance) {
++        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance levelInstance) {
 +
 +            this.loadTask = levelInstance.getLoadTask(this, scheduler, world, chunkX, chunkZ, priority, result -> {
 +                ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
@@ -198,17 +198,17 @@ index 532306cacd52579cdf37e4aca25887b1ed3ba6a1..55864e5f9ba2ccca0160760e90d8f778
                      .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
                          .hoverEvent(text("Click to open", NamedTextColor.WHITE))
                          .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
-diff --git a/src/main/java/com/infernalsuite/aswm/Converter.java b/src/main/java/com/infernalsuite/aswm/Converter.java
+diff --git a/src/main/java/com/infernalsuite/asp/Converter.java b/src/main/java/com/infernalsuite/asp/Converter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..7d1753c0b7e89bbf0c245a0231b62773eca2779e
+index 0000000000000000000000000000000000000000..4ce96aae099f7ac941e7e7665693b5ba04802a8c
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/Converter.java
++++ b/src/main/java/com/infernalsuite/asp/Converter.java
 @@ -0,0 +1,118 @@
-+package com.infernalsuite.aswm;
++package com.infernalsuite.asp;
 +        
 +import com.flowpowered.nbt.CompoundMap;
 +import com.flowpowered.nbt.TagType;
-+import com.infernalsuite.aswm.api.utils.NibbleArray;
++import com.infernalsuite.asp.api.utils.NibbleArray;
 +import net.minecraft.nbt.*;
 +import net.minecraft.world.level.chunk.DataLayer;
 +import org.apache.logging.log4j.LogManager;
@@ -323,13 +323,13 @@ index 0000000000000000000000000000000000000000..7d1753c0b7e89bbf0c245a0231b62773
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/InternalPlugin.java b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
+diff --git a/src/main/java/com/infernalsuite/asp/InternalPlugin.java b/src/main/java/com/infernalsuite/asp/InternalPlugin.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..61518ab2b68e7a41500f3c8c8a5ec1230597f0e5
+index 0000000000000000000000000000000000000000..4c7938c07e06810f475eac0bb4400c11154b56ba
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/InternalPlugin.java
++++ b/src/main/java/com/infernalsuite/asp/InternalPlugin.java
 @@ -0,0 +1,28 @@
-+package com.infernalsuite.aswm;
++package com.infernalsuite.asp;
 +
 +import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Server;
@@ -358,25 +358,25 @@ index 0000000000000000000000000000000000000000..61518ab2b68e7a41500f3c8c8a5ec123
 +
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1affe4c94b490a05184deccc9eb80530f67fd5ea
+index 0000000000000000000000000000000000000000..2f5b79632226f5d0112a4c0ddfc903d6b2b93549
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 @@ -0,0 +1,101 @@
-+package com.infernalsuite.aswm;
++package com.infernalsuite.asp;
 +
 +import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 +import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 +import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.serialization.SlimeWorldReader;
-+import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
-+import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
-+import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
++import com.infernalsuite.asp.serialization.SlimeWorldReader;
++import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
++import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
++import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeChunkSection;
++import com.infernalsuite.asp.api.world.SlimeWorld;
 +import net.minecraft.SharedConstants;
 +
 +import java.util.ArrayList;
@@ -396,7 +396,7 @@ index 0000000000000000000000000000000000000000..1affe4c94b490a05184deccc9eb80530
 +            return data;
 +        }
 +
-+        Map<com.infernalsuite.aswm.ChunkPos, SlimeChunk> chunks = new HashMap<>();
++        Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
 +        for (SlimeChunk chunk : data.getChunkStorage()) {
 +            List<CompoundTag> entities = new ArrayList<>();
 +            List<CompoundTag> blockEntities = new ArrayList<>();
@@ -466,21 +466,21 @@ index 0000000000000000000000000000000000000000..1affe4c94b490a05184deccc9eb80530
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
+diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..20f16757ba8b8da525ff17d51d4f7eb660c4d22b
+index 0000000000000000000000000000000000000000..d1ab18a2a2793807118ae1fc23d21248aa7e09a3
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/SlimeNMSBridgeImpl.java
++++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -0,0 +1,206 @@
-+package com.infernalsuite.aswm;
++package com.infernalsuite.asp;
 +
-+import com.infernalsuite.aswm.api.SlimeNMSBridge;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
-+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
-+import com.infernalsuite.aswm.level.SlimeBootstrap;
-+import com.infernalsuite.aswm.level.SlimeInMemoryWorld;
-+import com.infernalsuite.aswm.level.SlimeLevelInstance;
++import com.infernalsuite.asp.api.SlimeNMSBridge;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.SlimeWorldInstance;
++import com.infernalsuite.asp.api.world.properties.SlimeProperties;
++import com.infernalsuite.asp.level.SlimeBootstrap;
++import com.infernalsuite.asp.level.SlimeInMemoryWorld;
++import com.infernalsuite.asp.level.SlimeLevelInstance;
 +import com.mojang.serialization.Lifecycle;
 +import net.kyori.adventure.util.Services;
 +import net.minecraft.SharedConstants;
@@ -679,16 +679,16 @@ index 0000000000000000000000000000000000000000..20f16757ba8b8da525ff17d51d4f7eb6
 +
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..41e652b568598926e838e81fdc338e51f8e97ef8
+index 0000000000000000000000000000000000000000..bb954b74739e22525f9a45648d3ecf54f5a9e61c
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -0,0 +1,121 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeChunk;
 +import com.mojang.logging.LogUtils;
 +import io.papermc.paper.chunk.system.poi.PoiChunk;
 +import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
@@ -807,13 +807,13 @@ index 0000000000000000000000000000000000000000..41e652b568598926e838e81fdc338e51
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..fc6e46972bcc77134ed718c8c157ec3893d4bcdf
+index 0000000000000000000000000000000000000000..9954db3eabd60ac0600af1efc6f8a1650ef4d85b
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/CommonLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
 @@ -0,0 +1,18 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +
@@ -832,17 +832,17 @@ index 0000000000000000000000000000000000000000..fc6e46972bcc77134ed718c8c157ec38
 +    void setPriority(PrioritisedExecutor.Priority priority);
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java b/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c0e47f25e9be33da374dc737c96d8d3c2bb1cd0f
+index 0000000000000000000000000000000000000000..10bfcb7250c01c8361375c4d9b34d2b0ae17257d
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/FastChunkPruner.java
++++ b/src/main/java/com/infernalsuite/asp/level/FastChunkPruner.java
 @@ -0,0 +1,59 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
-+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.properties.SlimeProperties;
++import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 +import io.papermc.paper.world.ChunkEntitySlices;
 +import net.minecraft.world.level.chunk.LevelChunk;
 +import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -898,23 +898,23 @@ index 0000000000000000000000000000000000000000..c0e47f25e9be33da374dc737c96d8d3c
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f1db2fe121bb3aabfad727a8133b645524b8f19a
+index 0000000000000000000000000000000000000000..9a6e901b394d1e7740e616a33e6c251ae1d7e0e0
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -0,0 +1,203 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import com.flowpowered.nbt.CompoundMap;
 +import com.flowpowered.nbt.CompoundTag;
 +import com.flowpowered.nbt.LongArrayTag;
 +import com.google.common.collect.Lists;
-+import com.infernalsuite.aswm.Converter;
-+import com.infernalsuite.aswm.skeleton.SlimeChunkSectionSkeleton;
-+import com.infernalsuite.aswm.api.utils.NibbleArray;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
++import com.infernalsuite.asp.Converter;
++import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
++import com.infernalsuite.asp.api.utils.NibbleArray;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeChunkSection;
 +import com.mojang.logging.LogUtils;
 +import com.mojang.serialization.Codec;
 +import io.papermc.paper.world.ChunkEntitySlices;
@@ -1108,20 +1108,20 @@ index 0000000000000000000000000000000000000000..f1db2fe121bb3aabfad727a8133b6455
 +
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9a27369c00345bbb94aa19f77687269dc94c0b0a
+index 0000000000000000000000000000000000000000..3dc776b5387b4e2f1b669f754b5b064fc0142006
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 @@ -0,0 +1,91 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
-+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
++import com.infernalsuite.asp.api.loaders.SlimeLoader;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 +import net.minecraft.SharedConstants;
 +import net.minecraft.server.level.ChunkHolder;
 +import net.minecraft.world.level.chunk.LevelChunk;
@@ -1206,17 +1206,17 @@ index 0000000000000000000000000000000000000000..9a27369c00345bbb94aa19f77687269d
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b20a037679182e3c4a8bf31f084078f6d7e4ff46
+index 0000000000000000000000000000000000000000..025da4dd831f9b8b35000be7de493d44caa41003
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
++++ b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 @@ -0,0 +1,83 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeChunkSection;
 +
 +import java.util.List;
 +
@@ -1296,37 +1296,37 @@ index 0000000000000000000000000000000000000000..b20a037679182e3c4a8bf31f084078f6
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeBootstrap.java b/src/main/java/com/infernalsuite/asp/level/SlimeBootstrap.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8853088c5c6306511716bbffac9bf73c633b61bb
+index 0000000000000000000000000000000000000000..b1dde643ae719fa539c6986e86e12aecdd86957f
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeBootstrap.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeBootstrap.java
 @@ -0,0 +1,8 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.SlimeWorld;
 +
 +public record SlimeBootstrap(
 +        SlimeWorld initial
 +) {
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..91a7f41db47c7df3ecc301e0827a1d07305f604e
+index 0000000000000000000000000000000000000000..ba0b401e0b39605303e90720f7c8dc48fcb0bc29
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -0,0 +1,164 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
 +import com.flowpowered.nbt.CompoundMap;
 +import com.flowpowered.nbt.CompoundTag;
 +import com.flowpowered.nbt.LongArrayTag;
-+import com.infernalsuite.aswm.Converter;
-+import com.infernalsuite.aswm.api.utils.NibbleArray;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeChunkSection;
++import com.infernalsuite.asp.Converter;
++import com.infernalsuite.asp.api.utils.NibbleArray;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeChunkSection;
 +import com.mojang.serialization.Codec;
 +import com.mojang.serialization.DataResult;
 +import net.minecraft.core.BlockPos;
@@ -1482,13 +1482,13 @@ index 0000000000000000000000000000000000000000..91a7f41db47c7df3ecc301e0827a1d07
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b159fc8751e9840b311cc1eda01e496e2dbc5f2e
+index 0000000000000000000000000000000000000000..0d218911fb8be1bc5272b6e291ec60404306c831
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
 @@ -0,0 +1,27 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import net.minecraft.world.level.ChunkPos;
 +import net.minecraft.world.level.block.Block;
@@ -1516,26 +1516,26 @@ index 0000000000000000000000000000000000000000..b159fc8751e9840b311cc1eda01e496e
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..fd4cfb9cceb4f23265cb3cce7f1f251051bfba92
+index 0000000000000000000000000000000000000000..ba337466525971885247c269c23aac7df96d2782
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -0,0 +1,251 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import com.flowpowered.nbt.CompoundTag;
-+import com.infernalsuite.aswm.ChunkPos;
-+import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
-+import com.infernalsuite.aswm.api.loaders.SlimeLoader;
-+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
-+import com.infernalsuite.aswm.skeleton.SkeletonCloning;
-+import com.infernalsuite.aswm.skeleton.SkeletonSlimeWorld;
-+import com.infernalsuite.aswm.skeleton.SlimeChunkSkeleton;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
-+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.asp.ChunkPos;
++import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
++import com.infernalsuite.asp.api.loaders.SlimeLoader;
++import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
++import com.infernalsuite.asp.skeleton.SkeletonCloning;
++import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
++import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.SlimeWorldInstance;
++import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 +import net.minecraft.world.level.block.Block;
 +import net.minecraft.world.level.chunk.LevelChunk;
 +import net.minecraft.world.level.chunk.UpgradeData;
@@ -1773,13 +1773,13 @@ index 0000000000000000000000000000000000000000..fd4cfb9cceb4f23265cb3cce7f1f2510
 +        return instance;
 +    }
 +}
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372cb117003f
+index 0000000000000000000000000000000000000000..b74ccd2b6b526f7b7955ce601a37185d3b6a2f59
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelGenerator.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
 @@ -0,0 +1,39 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import com.mojang.serialization.Codec;
 +import net.minecraft.core.Holder;
@@ -1819,23 +1819,23 @@ index 0000000000000000000000000000000000000000..4f48b7a1a41aabc78cc9276fbf9f372c
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa78688e97
+index 0000000000000000000000000000000000000000..b8d789c93f7fef253d6ab0c35dcee37460f275eb
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -0,0 +1,197 @@
-+package com.infernalsuite.aswm.level;
++package com.infernalsuite.asp.level;
 +
 +import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
-+import com.infernalsuite.aswm.Converter;
-+import com.infernalsuite.aswm.serialization.slime.SlimeSerializer;
-+import com.infernalsuite.aswm.api.world.SlimeChunk;
-+import com.infernalsuite.aswm.api.world.SlimeWorld;
-+import com.infernalsuite.aswm.api.world.SlimeWorldInstance;
-+import com.infernalsuite.aswm.api.world.properties.SlimeProperties;
-+import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
++import com.infernalsuite.asp.Converter;
++import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
++import com.infernalsuite.asp.api.world.SlimeChunk;
++import com.infernalsuite.asp.api.world.SlimeWorld;
++import com.infernalsuite.asp.api.world.SlimeWorldInstance;
++import com.infernalsuite.asp.api.world.properties.SlimeProperties;
++import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 +import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
 +import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
 +import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
@@ -2023,13 +2023,13 @@ index 0000000000000000000000000000000000000000..65b475b1292e01c918c1f8144599b5fa
 +    //    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
+diff --git a/src/main/java/com/infernalsuite/asp/util/NmsUtil.java b/src/main/java/com/infernalsuite/asp/util/NmsUtil.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3500005bb09dc484bc333f1e0799613d097a37d3
+index 0000000000000000000000000000000000000000..04e43a22c1932dce66abb54337cdce802110a7af
 --- /dev/null
-+++ b/src/main/java/com/infernalsuite/aswm/util/NmsUtil.java
++++ b/src/main/java/com/infernalsuite/asp/util/NmsUtil.java
 @@ -0,0 +1,9 @@
-+package com.infernalsuite.aswm.util;
++package com.infernalsuite.asp.util;
 +
 +public class NmsUtil {
 +
@@ -2073,7 +2073,7 @@ index 790bad0494454ca12ee152e3de6da3da634d9b20..2d6b062c4a3cf682d8e4cdbb7b7c84a7
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 663b4ecd520e82aa108d44f2d5c2a20cfc7bc01f..4d9b240534372103268a53712a13027ddd434071 100644
+index 4158473fd553a16fec23bcbcf9a278d413120600..e49e329b4713fefb153b64aee35f5e2c9eaa51a4 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -288,7 +288,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2091,7 +2091,7 @@ index 663b4ecd520e82aa108d44f2d5c2a20cfc7bc01f..4d9b240534372103268a53712a13027d
                      dimension = -1;
 -                } else {
 +                    // ASWM START
-+                    if(com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
++                    if(com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
 +                        continue;
 +                    }
 +                    // ASWM END
@@ -2105,7 +2105,7 @@ index 663b4ecd520e82aa108d44f2d5c2a20cfc7bc01f..4d9b240534372103268a53712a13027d
                      dimension = 1;
 -                } else {
 +                    // ASWM START
-+                    if(com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
++                    if(com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
 +                        continue;
 +                    }
 +                    // ASWM END
@@ -2117,7 +2117,7 @@ index 663b4ecd520e82aa108d44f2d5c2a20cfc7bc01f..4d9b240534372103268a53712a13027d
                  dimension = -999;
              }
 +            // ASWM START
-+            else if(dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.aswm.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
++            else if(dimensionKey == LevelStem.OVERWORLD && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
 +                continue;
 +            }
 +            // ASWM END
@@ -2175,7 +2175,7 @@ index 663b4ecd520e82aa108d44f2d5c2a20cfc7bc01f..4d9b240534372103268a53712a13027d
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-index 61a73a234d9bdd22958ae261b7d0359179f7a57b..b7ecd3556f71f25b88bea6aa488e2993c2ca0fcf 100644
+index d021cd5b6136f0125076513977f430c6d4dd4f9f..19e9f7888c37590eaffe2af7df4695da42007759 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 +++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 @@ -176,7 +176,11 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
@@ -2184,18 +2184,26 @@ index 61a73a234d9bdd22958ae261b7d0359179f7a57b..b7ecd3556f71f25b88bea6aa488e2993
  
 -    public ServerChunkCache(ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) {
 +    // ASWM START
-+    public final com.infernalsuite.aswm.level.SlimeBootstrap bootstrap;
-+    public ServerChunkCache(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) { // ASWM
++    public final com.infernalsuite.asp.level.SlimeBootstrap bootstrap;
++    public ServerChunkCache(com.infernalsuite.asp.level.SlimeBootstrap bootstrap, ServerLevel world, LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor workerExecutor, ChunkGenerator chunkGenerator, int viewDistance, int simulationDistance, boolean dsync, ChunkProgressListener worldGenerationProgressListener, ChunkStatusUpdateListener chunkStatusChangeListener, Supplier<DimensionDataStorage> persistentStateManagerFactory) { // ASWM
 +        this.bootstrap = bootstrap;
 +        // ASWM end
          this.level = world;
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 957cae6ddeba9efe3b55588567ae51e8b86b6a42..d414a0056ab27558440086ab373867bd7e28cdd2 100644
+index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10e7ee9dc4 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -595,8 +595,14 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -144,7 +144,6 @@ import net.minecraft.world.level.entity.EntityTickList;
+ import net.minecraft.world.level.entity.EntityTypeTest;
+ import net.minecraft.world.level.entity.LevelCallback;
+ import net.minecraft.world.level.entity.LevelEntityGetter;
+-import net.minecraft.world.level.entity.PersistentEntitySectionManager;
+ import net.minecraft.world.level.gameevent.DynamicGameEventListener;
+ import net.minecraft.world.level.gameevent.GameEvent;
+ import net.minecraft.world.level.gameevent.GameEventDispatcher;
+@@ -595,8 +594,14 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      }
      // Paper end - lag compensation
  
@@ -2204,14 +2212,14 @@ index 957cae6ddeba9efe3b55588567ae51e8b86b6a42..d414a0056ab27558440086ab373867bd
 +        this(null, minecraftserver, executor, convertable_conversionsession, iworlddataserver, resourcekey, worlddimension, worldloadlistener, flag, i, list, flag1, randomsequences, env, gen, biomeProvider);
 +    }
 +
-+    public com.infernalsuite.aswm.level.SlimeInMemoryWorld slimeInstance; // ASWM
++    public com.infernalsuite.asp.level.SlimeInMemoryWorld slimeInstance; // ASWM
 +
 +    // Add env and gen to constructor, IWorldDataServer -> WorldDataServer
-+    public ServerLevel(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
++    public ServerLevel(com.infernalsuite.asp.level.SlimeBootstrap bootstrap, MinecraftServer minecraftserver, Executor executor, LevelStorageSource.LevelStorageAccess convertable_conversionsession, PrimaryLevelData iworlddataserver, ResourceKey<Level> resourcekey, LevelStem worlddimension, ChunkProgressListener worldloadlistener, boolean flag, long i, List<CustomSpawner> list, boolean flag1, @Nullable RandomSequences randomsequences, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider biomeProvider) {
          super(iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules())), executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
          this.pvpMode = minecraftserver.isPvpAllowed();
          this.convertable = convertable_conversionsession;
-@@ -623,6 +629,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -623,6 +628,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              chunkgenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkgenerator, gen);
          }
          // CraftBukkit end
@@ -2224,7 +2232,7 @@ index 957cae6ddeba9efe3b55588567ae51e8b86b6a42..d414a0056ab27558440086ab373867bd
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(new SimpleRegionStorage(new RegionStorageInfo(convertable_conversionsession.getLevelId(), resourcekey, "entities"), convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, DataFixTypes.ENTITY_CHUNK), this, minecraftserver);
-@@ -633,7 +645,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -633,7 +644,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          int k = this.spigotConfig.simulationDistance; // Spigot
          // Paper - rewrite chunk system
  
@@ -2233,12 +2241,12 @@ index 957cae6ddeba9efe3b55588567ae51e8b86b6a42..d414a0056ab27558440086ab373867bd
              return minecraftserver.overworld().getDataStorage();
          });
          this.chunkSource.getGeneratorState().ensureStructuresGenerated();
-@@ -692,6 +704,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -692,6 +703,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          this.dragonFight = enderDragonFight;
      }
  
 +    // ASWM START
-+    public ChunkGenerator getGenerator(com.infernalsuite.aswm.level.SlimeBootstrap bootstrap) {
++    public ChunkGenerator getGenerator(com.infernalsuite.asp.level.SlimeBootstrap bootstrap) {
 +        return null;
 +    }
 +    // ASWM END
@@ -2259,7 +2267,7 @@ index 8b84bf2272556ac3321cbf16361d7f48a1cc6873..c8f018ec8c142f0e05fcf346f4b1a31c
              for (int i = 0; i < storage.getSize(); i++) {
                  T object = palette.valueFor(storage.get(i));
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 774556a62eb240da42e84db4502e2ed43495be17..29e29fb2228f08dff3edd8bf651220b83b16ed7b 100644
+index 774556a62eb240da42e84db4502e2ed43495be17..f3ff4b5f15959a3fc52c000f7636bc3f23dd7598 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 @@ -11,7 +11,7 @@ public final class Versioning {
@@ -2267,15 +2275,15 @@ index 774556a62eb240da42e84db4502e2ed43495be17..29e29fb2228f08dff3edd8bf651220b8
          String result = "Unknown-Version";
  
 -        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/io.papermc.paper/paper-api/pom.properties");
-+        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.aswm/slimeworldmanager-api/pom.properties"); // ASWM
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.asp/slimeworldmanager-api/pom.properties"); // ASWM
          Properties properties = new Properties();
  
          if (stream != null) {
-diff --git a/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
+diff --git a/src/main/resources/META-INF/services/com.infernalsuite.asp.api.SlimeNMSBridge b/src/main/resources/META-INF/services/com.infernalsuite.asp.api.SlimeNMSBridge
 new file mode 100644
-index 0000000000000000000000000000000000000000..d07947f0b42fe491617151e2aa7b0f02ff3ce610
+index 0000000000000000000000000000000000000000..973f2f48d75f1912c12bb89a106379557747296d
 --- /dev/null
-+++ b/src/main/resources/META-INF/services/com.infernalsuite.aswm.api.SlimeNMSBridge
++++ b/src/main/resources/META-INF/services/com.infernalsuite.asp.api.SlimeNMSBridge
 @@ -0,0 +1 @@
-+com.infernalsuite.aswm.SlimeNMSBridgeImpl
++com.infernalsuite.asp.SlimeNMSBridgeImpl
 \ No newline at end of file

@@ -5,10 +5,10 @@ Subject: [PATCH] Add v12, chunk pdc and extra nbt. Fix double compression on
  tile entities and entities. Fix horrible bug which made chunks go poof.
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-index 1a4be97069f01a82deadd26a94e86dbebe0e47a0..ca4a80e7b5c73f9669a717adc46b2e9b8c1f48b6 100644
---- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
+index eb426271140d9e36b09ef96e4c59c21d265a5edc..36d13632916b8e93d5f28c29ea80ef4ac87e6c89 100644
+--- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 @@ -70,11 +70,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
  
              chunks.put(chunkPos, new SlimeChunkSkeleton(
@@ -24,10 +24,10 @@ index 1a4be97069f01a82deadd26a94e86dbebe0e47a0..ca4a80e7b5c73f9669a717adc46b2e9b
              ));
  
          }
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-index f1db2fe121bb3aabfad727a8133b645524b8f19a..ad30e83670ca88f09fa7625fc52c224247410623 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
+index 9a6e901b394d1e7740e616a33e6c251ae1d7e0e0..dc34469712bdd84d4b17dfd5e9657c3a12420241 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -67,9 +67,11 @@ public class NMSSlimeChunk implements SlimeChunk {
      }
  
@@ -53,10 +53,10 @@ index f1db2fe121bb3aabfad727a8133b645524b8f19a..ad30e83670ca88f09fa7625fc52c2242
      public LevelChunk getChunk() {
          return chunk;
      }
-diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-index 07e542e3f75bf272f53345dc040d90358e7d7b2d..004d7bcc5b35c76855787dcf32fe460e73cab38f 100644
---- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
+index 76ee216925d9ced3c9bf1e7e8e1d8b80ca9f8e50..bd2f8da46d4a04f2777086a416015563f3b06cdf 100644
+--- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 @@ -45,14 +45,14 @@ public class NMSSlimeWorld implements SlimeWorld {
              return null;
          }
@@ -74,10 +74,10 @@ index 07e542e3f75bf272f53345dc040d90358e7d7b2d..004d7bcc5b35c76855787dcf32fe460e
                  .collect(Collectors.toList());
      }
  
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
-index b20a037679182e3c4a8bf31f084078f6d7e4ff46..e449b3eebe0d245a2107a6d0018930d32dfc4976 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SafeNmsChunkWrapper.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
+index 025da4dd831f9b8b35000be7de493d44caa41003..7dd1c52f718866f8918c30de9cc71d151eddc958 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
++++ b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 @@ -62,6 +62,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
          return this.wrapper.getEntities();
      }
@@ -94,10 +94,10 @@ index b20a037679182e3c4a8bf31f084078f6d7e4ff46..e449b3eebe0d245a2107a6d0018930d3
      /*
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..a03c59d2800885e90467812f0088787a85d8cd88 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index 6b38f707b43e1e584c79a6c8d9ec1232ed2901b9..d3289cb71f9ff71d5122ed43e9a0ab40f93c774a 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -165,6 +165,13 @@ public class SlimeChunkConverter {
              Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
          }
@@ -113,18 +113,18 @@ index 27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a..a03c59d2800885e90467812f0088787a
      }
  }
 \ No newline at end of file
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..72a74f0c2cf21c32fa4ffd600cf95eaee003aec6 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index 35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1..15340aecc97a30767340f7837a21decc74afbe9c 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -1,6 +1,7 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
  import com.flowpowered.nbt.CompoundTag;
 +import com.flowpowered.nbt.Tag;
- import com.infernalsuite.aswm.ChunkPos;
- import com.infernalsuite.aswm.Converter;
- import com.infernalsuite.aswm.api.exceptions.WorldAlreadyExistsException;
+ import com.infernalsuite.asp.ChunkPos;
+ import com.infernalsuite.asp.Converter;
+ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 @@ -88,11 +89,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                      0L, null, null, null);
@@ -179,10 +179,10 @@ index 092dae1f9e68f1c395cd0f8151cd696c0bcdceb0..72a74f0c2cf21c32fa4ffd600cf95eae
                      );
                  }
              }
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-index 65b475b1292e01c918c1f8144599b5fa78688e97..a525fa1781535d458c5ecb67e261520692c858ac 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
+index b8d789c93f7fef253d6ab0c35dcee37460f275eb..5e3426a632d471aff38de29645fdee291c4931ae 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 @@ -151,9 +151,7 @@ public class SlimeLevelInstance extends ServerLevel {
              Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
              long start = System.currentTimeMillis();

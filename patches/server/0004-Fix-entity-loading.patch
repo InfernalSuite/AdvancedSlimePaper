@@ -5,7 +5,7 @@ Subject: [PATCH] Fix entity loading
 
 
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index eafa4e6d55cd0f9314ac0f2b96a7f48fbb5e1a4c..bc0990458df745c92e5bc0530ff35ab992365b3a 100644
+index eafa4e6d55cd0f9314ac0f2b96a7f48fbb5e1a4c..62b526f7e147586977615ec8cec191d0aaf0bcdc 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 @@ -117,7 +117,7 @@ public final class NewChunkHolder {
@@ -13,20 +13,20 @@ index eafa4e6d55cd0f9314ac0f2b96a7f48fbb5e1a4c..bc0990458df745c92e5bc0530ff35ab9
  
          if (!transientChunk) {
 -            if (entityChunk != null) {
-+            if (!(this.world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance) && entityChunk != null) {
++            if (!(this.world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) && entityChunk != null) {
                  final List<Entity> entities = ChunkEntitySlices.readEntities(this.world, entityChunk);
  
                  ((ChunkSystemServerLevel)this.world).moonrise$getEntityLookup().addEntityChunkEntities(entities, new ChunkPos(this.chunkX, this.chunkZ));
-diff --git a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-index c32d52c68188dc1eb7feeac364cdc4aded1c4574..8485296594c01edcaef271fc37bf2c70932f4986 100644
---- a/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/ChunkDataLoadTask.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
+index 7e7c560b89c45e8ff003813f3c7a141c2b0b7a1d..e2c67548ff6341c1c981af83f6df7711c78330a9 100644
+--- a/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
++++ b/src/main/java/com/infernalsuite/asp/level/ChunkDataLoadTask.java
 @@ -1,12 +1,13 @@
- package com.infernalsuite.aswm.level;
+ package com.infernalsuite.asp.level;
  
  import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
-+import com.infernalsuite.aswm.Converter;
- import com.infernalsuite.aswm.api.world.SlimeChunk;
++import com.infernalsuite.asp.Converter;
+ import com.infernalsuite.asp.api.world.SlimeChunk;
  import com.mojang.logging.LogUtils;
 -import io.papermc.paper.chunk.system.poi.PoiChunk;
  import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
@@ -67,10 +67,10 @@ index c32d52c68188dc1eb7feeac364cdc4aded1c4574..8485296594c01edcaef271fc37bf2c70
          } catch (final ThreadDeath death) {
              throw death;
          } catch (final Throwable thr2) {
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-index 91a7f41db47c7df3ecc301e0827a1d07305f604e..27af3aa6ba8ffb100a6b1b50ba584e65c4aee86a 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
+index ba0b401e0b39605303e90720f7c8dc48fcb0bc29..6b38f707b43e1e584c79a6c8d9ec1232ed2901b9 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 @@ -15,6 +15,8 @@ import net.minecraft.core.Holder;
  import net.minecraft.core.Registry;
  import net.minecraft.core.registries.Registries;

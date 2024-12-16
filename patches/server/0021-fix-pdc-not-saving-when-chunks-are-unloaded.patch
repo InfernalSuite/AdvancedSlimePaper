@@ -4,10 +4,10 @@ Date: Thu, 5 Dec 2024 01:46:03 +0100
 Subject: [PATCH] fix pdc not saving when chunks are unloaded
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-index 619ccbab1a5582af1d1ad69fb0c54e52ca84847d..8c71a932d49d55d861910712d3f482d39b62ad65 100644
---- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
-+++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
+index 5daabf7d2c31972082fc618142643592535fb13f..cdf0534ff6516eb631a200a5159461b99236c808 100644
+--- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 @@ -114,6 +114,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              this.chunkStorage.remove(Util.chunkPosition(x, z));
              return;

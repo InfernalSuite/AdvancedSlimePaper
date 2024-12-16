@@ -4,10 +4,10 @@ Date: Sat, 4 Nov 2023 20:36:26 +0000
 Subject: [PATCH] Handle null data properly
 
 
-diff --git a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-index 1affe4c94b490a05184deccc9eb80530f67fd5ea..1a4be97069f01a82deadd26a94e86dbebe0e47a0 100644
---- a/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
-+++ b/src/main/java/com/infernalsuite/aswm/SimpleDataFixerConverter.java
+diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
+index 2f5b79632226f5d0112a4c0ddfc903d6b2b93549..eb426271140d9e36b09ef96e4c59c21d265a5edc 100644
+--- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
++++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 @@ -45,9 +45,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                  );
              }
