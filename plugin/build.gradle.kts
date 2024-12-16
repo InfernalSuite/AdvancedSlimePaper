@@ -19,6 +19,10 @@ dependencies {
 }
 
 tasks {
+    withType<Jar> {
+        archiveBaseName.set("asp-plugin")
+    }
+
     shadowJar {
         relocate("org.bstats", "com.infernalsuite.asp.libs.bstats")
         relocate("org.spongepowered.configurate", "com.infernalsuite.asp.libs.configurate")
