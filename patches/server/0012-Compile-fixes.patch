@@ -19,7 +19,7 @@ index b5b5c099e61f828edbcd18aba9d379a6e45fb8b4..838639a8bbeb59700037c3e101714f68
      // Paper start
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af11f231a74 100644
+index 4c627f8af92f29d9ba50745812acc83726a85683..6972d6399628eda41756a98fb54fbe93eb827716 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -46,18 +46,14 @@ public class NMSSlimeChunk implements SlimeChunk {
@@ -31,7 +31,7 @@ index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af1
 -            });
 +            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
  
-             EMPTY_BLOCK_STATE_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
          }
          {
              Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
@@ -41,7 +41,7 @@ index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af1
 -            });
 +            Tag tag = ChunkSerializer.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
  
-             EMPTY_BIOME_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
          }
 @@ -110,7 +106,7 @@ public class NMSSlimeChunk implements SlimeChunk {
              if (section.hasOnlyAir()) {
@@ -49,7 +49,7 @@ index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af1
              } else {
 -                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(false, System.err::println); // todo error handling
 +                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
-                 blockStateTag = (CompoundTag) Converter.convertTag("", data);
+                 blockStateTag = Converter.convertTag(data);
              }
  
 @@ -120,7 +116,7 @@ public class NMSSlimeChunk implements SlimeChunk {
@@ -58,23 +58,23 @@ index 419c3c12177bc7b85c6643fb114b4d0ad8f80c46..b6c0ba9325b06e1d76609aa4de564af1
              } else {
 -                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(false, System.err::println); // todo error handling
 +                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
-                 biomeTag = (CompoundTag) Converter.convertTag("", biomeData);
+                 biomeTag = Converter.convertTag(biomeData);
              }
  
-@@ -154,7 +150,7 @@ public class NMSSlimeChunk implements SlimeChunk {
-         List<net.minecraft.nbt.CompoundTag> tileEntities = new ArrayList<>();
+@@ -148,7 +144,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+         List<CompoundTag> tileEntities = new ArrayList<>();
  
-         for (BlockEntity entity : chunk.blockEntities.values()) {
--            net.minecraft.nbt.CompoundTag entityNbt = entity.saveWithFullMetadata();
-+            net.minecraft.nbt.CompoundTag entityNbt = entity.saveWithFullMetadata(net.minecraft.server.MinecraftServer.getServer().registryAccess());
+         for (BlockEntity entity : this.chunk.blockEntities.values()) {
+-            CompoundTag entityNbt = entity.saveWithFullMetadata();
++            CompoundTag entityNbt = entity.saveWithFullMetadata(net.minecraft.server.MinecraftServer.getServer().registryAccess());
              tileEntities.add(entityNbt);
          }
  
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-index ace4d6272560783fd7903495b5a3c84550b1b4d8..6807767a2067b62558f749da0c25f184082d0769 100644
+index 39e020135d996a4abb40dc6564d6c985e7bfbeda..9bfb64e022db3bd9ed4d818d69df1f9a955cfa5d 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-@@ -78,7 +78,7 @@ public class SlimeChunkConverter {
+@@ -76,7 +76,7 @@ public class SlimeChunkConverter {
                      DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                          System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                      });
@@ -83,7 +83,7 @@ index ace4d6272560783fd7903495b5a3c84550b1b4d8..6807767a2067b62558f749da0c25f184
                  } else {
                      blockPalette = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
                  }
-@@ -89,7 +89,7 @@ public class SlimeChunkConverter {
+@@ -87,7 +87,7 @@ public class SlimeChunkConverter {
                      DataResult<PalettedContainer<Holder<Biome>>> dataresult = codec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBiomeTag())).promotePartial((s) -> {
                          System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                      });
@@ -92,9 +92,9 @@ index ace4d6272560783fd7903495b5a3c84550b1b4d8..6807767a2067b62558f749da0c25f184
                  } else {
                      biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
                  }
-@@ -137,7 +137,7 @@ public class SlimeChunkConverter {
-                 if (type.isPresent()) {
-                     BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
+@@ -134,7 +134,7 @@ public class SlimeChunkConverter {
+                 if (!type.isEmpty()) {
+                     BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
                      BlockState blockData = nmsChunk.getBlockState(blockPosition);
 -                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
 +                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag), net.minecraft.server.MinecraftServer.getServer().registryAccess());
@@ -102,18 +102,18 @@ index ace4d6272560783fd7903495b5a3c84550b1b4d8..6807767a2067b62558f749da0c25f184
                      if (entity != null) {
                          nmsChunk.setBlockEntity(entity);
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
-index b74ccd2b6b526f7b7955ce601a37185d3b6a2f59..18053d099145bd9351902ff062139c731eafc5d3 100644
+index b74ccd2b6b526f7b7955ce601a37185d3b6a2f59..5e72a283c9110a2a65939fda97c4e6f89a1b3755 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelGenerator.java
-@@ -1,6 +1,7 @@
+@@ -1,6 +1,6 @@
  package com.infernalsuite.asp.level;
  
- import com.mojang.serialization.Codec;
+-import com.mojang.serialization.Codec;
 +import com.mojang.serialization.MapCodec;
  import net.minecraft.core.Holder;
  import net.minecraft.world.level.biome.Biome;
  import net.minecraft.world.level.biome.BiomeSource;
-@@ -21,7 +22,7 @@ public class SlimeLevelGenerator extends FlatLevelSource {
+@@ -21,7 +21,7 @@ public class SlimeLevelGenerator extends FlatLevelSource {
      private static BiomeSource getSource(Holder<Biome> biome) {
          return new BiomeSource() {
              @Override

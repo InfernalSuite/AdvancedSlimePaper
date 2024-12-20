@@ -5,10 +5,10 @@ Subject: [PATCH] Handle null data properly
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-index 2f5b79632226f5d0112a4c0ddfc903d6b2b93549..eb426271140d9e36b09ef96e4c59c21d265a5edc 100644
+index 694bd135fd4398ecf02940e638fae1047e217a29..6856a7254685b2d005bcb2a91841f53d8743e38d 100644
 --- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-@@ -45,9 +45,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+@@ -44,9 +44,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                  );
              }
  
@@ -19,9 +19,9 @@ index 2f5b79632226f5d0112a4c0ddfc903d6b2b93549..eb426271140d9e36b09ef96e4c59c21d
                  SlimeChunkSection dataSection = chunk.getSections()[i];
 +                if (dataSection == null) continue;
  
-                 com.flowpowered.nbt.CompoundTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+                 CompoundBinaryTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
                      WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", currentVersion, newVersion);
-@@ -63,17 +66,17 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+@@ -62,17 +65,17 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                          dataSection.getBlockLight(),
                          dataSection.getSkyLight()
                  );

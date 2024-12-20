@@ -68,10 +68,10 @@ index 7e7c560b89c45e8ff003813f3c7a141c2b0b7a1d..e2c67548ff6341c1c981af83f6df7711
              throw death;
          } catch (final Throwable thr2) {
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-index ba0b401e0b39605303e90720f7c8dc48fcb0bc29..6b38f707b43e1e584c79a6c8d9ec1232ed2901b9 100644
+index b0d45837e918ef720b49a3f4968d7781ecf6436d..b705b3133634c3696dee766cbfc95380293ccda3 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-@@ -15,6 +15,8 @@ import net.minecraft.core.Holder;
+@@ -13,6 +13,8 @@ import net.minecraft.core.Holder;
  import net.minecraft.core.Registry;
  import net.minecraft.core.registries.Registries;
  import net.minecraft.nbt.NbtOps;
@@ -80,23 +80,22 @@ index ba0b401e0b39605303e90720f7c8dc48fcb0bc29..6b38f707b43e1e584c79a6c8d9ec1232
  import net.minecraft.world.level.ChunkPos;
  import net.minecraft.world.level.biome.Biome;
  import net.minecraft.world.level.biome.Biomes;
-@@ -106,26 +108,11 @@ public class SlimeChunkConverter {
+@@ -104,25 +106,11 @@ public class SlimeChunkConverter {
  
  
          LevelChunk.PostLoadProcessor loadEntities = (nmsChunk) -> {
-+            List<CompoundTag> entities = chunk.getEntities();
++            List<CompoundBinaryTag> entities = chunk.getEntities();
  
 -            // TODO
 -            // Load tile entities
--            List<CompoundTag> tileEntities = chunk.getTileEntities();
+-            List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
 -
 -            if (tileEntities != null) {
--                for (CompoundTag tag : tileEntities) {
--                    Optional<String> type = tag.getStringValue("id");
+-                for (CompoundBinaryTag tag : tileEntities) {
+-                    String type = tag.getString("id");
 -
--                    // Sometimes null tile entities are saved
--                    if (type.isPresent()) {
--                        BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
+-                    if (!type.isEmpty()) {
+-                        BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
 -                        BlockState blockData = nmsChunk.getBlockState(blockPosition);
 -                        BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
 -
@@ -107,23 +106,22 @@ index ba0b401e0b39605303e90720f7c8dc48fcb0bc29..6b38f707b43e1e584c79a6c8d9ec1232
 -                }
 +            if (entities != null) {
 +                net.minecraft.server.level.ChunkMap.postLoadProtoChunk(instance, entities.stream()
-+                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), nmsChunk.getPos());
++                        .map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList(), nmsChunk.getPos());
              }
          };
  
-@@ -133,6 +120,25 @@ public class SlimeChunkConverter {
+@@ -130,6 +118,24 @@ public class SlimeChunkConverter {
          LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
          SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
  
-+        List<CompoundTag> tileEntities = chunk.getTileEntities();
++        List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
 +
 +        if (tileEntities != null) {
-+            for (CompoundTag tag : tileEntities) {
-+                Optional<String> type = tag.getStringValue("id");
++            for (CompoundBinaryTag tag : tileEntities) {
++                String type = tag.getString("id");
 +
-+                // Sometimes null tile entities are saved
-+                if (type.isPresent()) {
-+                    BlockPos blockPosition = new BlockPos(tag.getIntValue("x").get(), tag.getIntValue("y").get(), tag.getIntValue("z").get());
++                if (!type.isEmpty()) {
++                    BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
 +                    BlockState blockData = nmsChunk.getBlockState(blockPosition);
 +                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
 +
@@ -136,4 +134,4 @@ index ba0b401e0b39605303e90720f7c8dc48fcb0bc29..6b38f707b43e1e584c79a6c8d9ec1232
 +
          // Height Maps
          EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
-         CompoundMap heightMaps = chunk.getHeightMaps().getValue();
+         CompoundBinaryTag heightMaps = chunk.getHeightMaps();

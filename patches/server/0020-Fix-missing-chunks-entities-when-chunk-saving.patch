@@ -23,12 +23,12 @@ index 62b526f7e147586977615ec8cec191d0aaf0bcdc..ad7c19ceb42da90bd995421be7fb764a
          if (chunk != null) {
              if (chunk instanceof LevelChunk levelChunk) {
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index 43790021bdc50a37d4bda7a89586eb56eb032791..4f99fbafda6cd4500005a793bba73eee5a2061b9 100644
+index fcdc22a4c107d2a9f4756a473e2b570a4d29b495..17f99470787fa3d6709c892911d33a0a8ea1aadd 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-@@ -66,12 +66,19 @@ public class NMSSlimeChunk implements SlimeChunk {
-     private final CompoundTag extra;
-     private final CompoundTag upgradeData;
+@@ -64,11 +64,18 @@ public class NMSSlimeChunk implements SlimeChunk {
+     private final CompoundBinaryTag extra;
+     private final CompoundBinaryTag upgradeData;
  
 +    private final ChunkEntitySlices entitySlices;
 +
@@ -38,35 +38,30 @@ index 43790021bdc50a37d4bda7a89586eb56eb032791..4f99fbafda6cd4500005a793bba73eee
 +
 +    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference, ChunkEntitySlices slices) {
          this.chunk = chunk;
-         this.extra = new CompoundTag("", new CompoundMap());
-         extra.getValue().put(Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound()));
- 
+         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
+         this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
          this.upgradeData = reference == null ? null : reference.getUpgradeData();
 +        this.entitySlices = slices;
      }
  
      @Override
-@@ -168,11 +175,7 @@ public class NMSSlimeChunk implements SlimeChunk {
-     public List<CompoundTag> getEntities() {
-         List<net.minecraft.nbt.CompoundTag> entities = new ArrayList<>();
+@@ -157,9 +164,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+     public List<CompoundBinaryTag> getEntities() {
+         List<CompoundTag> entities = new ArrayList<>();
  
--        if(this.chunk == null || this.chunk.getChunkHolder() == null) {
--            return new ArrayList<>();
--        }
+-        if (this.chunk == null || this.chunk.getChunkHolder() == null) return new ArrayList<>();
 -
 -        ChunkEntitySlices slices = this.chunk.getChunkHolder().getEntityChunk();
 +        ChunkEntitySlices slices = getEntitySlices();
-         if (slices == null) {
-             return new ArrayList<>();
-         }
-@@ -194,6 +197,18 @@ public class NMSSlimeChunk implements SlimeChunk {
-         });
+         if (slices == null) return new ArrayList<>();
+ 
+         // Work by <gunther@gameslabs.net>
+@@ -175,6 +180,16 @@ public class NMSSlimeChunk implements SlimeChunk {
+         return Lists.transform(entities, Converter::convertTag);
      }
  
 +    private ChunkEntitySlices getEntitySlices() {
-+        if (this.entitySlices != null) {
-+            return entitySlices;
-+        }
++        if (this.entitySlices != null) return this.entitySlices;
 +
 +        if (this.chunk == null || this.chunk.getChunkHolder() == null) {
 +            return null;
@@ -76,7 +71,7 @@ index 43790021bdc50a37d4bda7a89586eb56eb032791..4f99fbafda6cd4500005a793bba73eee
 +    }
 +
      @Override
-     public CompoundTag getExtraData() {
+     public CompoundBinaryTag getExtraData() {
          return extra;
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkLevel.java
 index a92d17b5c6a7c8427ecbdf56a9c2a0c1b66978e4..6313b235eb8ccbd63b57159964ba33d36db51933 100644
@@ -96,10 +91,10 @@ index a92d17b5c6a7c8427ecbdf56a9c2a0c1b66978e4..6313b235eb8ccbd63b57159964ba33d3
      public void loadCallback() {
          super.loadCallback();
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index a150c5ebb1fa48542550d905a675a86444f8f22d..5daabf7d2c31972082fc618142643592535fb13f 100644
+index e6da199bf2179d8820c6e38725cea5f867031f15..77526b601745287cc309f4cda0a8093d871e888e 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -104,11 +104,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -103,11 +103,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
      // Authored by: Kenox <muranelp@gmail.com>
      // Don't use the NMS live chunk in the chunk map
@@ -114,10 +109,10 @@ index a150c5ebb1fa48542550d905a675a86444f8f22d..5daabf7d2c31972082fc618142643592
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
              this.chunkStorage.remove(Util.chunkPosition(x, z));
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
-index d672504eee439d96a9054b3308ba3a5d18cca867..1b0d36854c190efefc7421f445a70b92f82a4fe5 100644
+index 9d15ab96bc72e5efffe443088ef482d4ec0e9457..1c5798fd15a61b6721df97214494788e9873c68c 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
-@@ -202,9 +202,7 @@ public class SlimeLevelInstance extends ServerLevel {
+@@ -201,9 +201,7 @@ public class SlimeLevelInstance extends ServerLevel {
          propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
      }
  

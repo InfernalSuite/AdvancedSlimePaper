@@ -5,10 +5,10 @@ Subject: [PATCH] replace ChunkPos with long
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
-index 704cf0fa3d3c6114923d5b9b9594a4ba9d7ab0a6..efa3639457e89870fc0a7dac8aa632579d74800f 100644
+index 06e91530198d9075434045893f95f7a6ae5bfbb3..7741a210ad71a66846cdae636917e1a89ac35c8d 100644
 --- a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
 +++ b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
-@@ -17,6 +17,7 @@ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
+@@ -15,6 +15,7 @@ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
  import com.infernalsuite.asp.serialization.slime.reader.SlimeWorldReaderRegistry;
  import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
  import com.infernalsuite.asp.util.NmsUtil;
@@ -16,38 +16,42 @@ index 704cf0fa3d3c6114923d5b9b9594a4ba9d7ab0a6..efa3639457e89870fc0a7dac8aa63257
  import net.minecraft.server.level.ServerLevel;
  import org.bukkit.Bukkit;
  import org.bukkit.World;
-@@ -168,7 +169,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
+@@ -166,7 +167,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
          Objects.requireNonNull(worldName, "World name cannot be null");
          Objects.requireNonNull(propertyMap, "Properties cannot be null");
  
--        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
-+        return new SkeletonSlimeWorld(worldName, loader, readOnly, new Long2ObjectOpenHashMap<>(0), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+-        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new ConcurrentHashMap<>(), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
++        return new SkeletonSlimeWorld(worldName, loader, readOnly, new Long2ObjectOpenHashMap<>(0), new ConcurrentHashMap<>(), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
      }
  
      @Override
 diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-index b2a0913290694d27151779aac5fb6be57f01da8b..f72953db6c79b62929244c56f1e76ce4ad72c0ee 100644
+index ec45c627df14a87087e39556cb90eb2d5b52a981..4fe388f4e7edc7a9207147f6cb610d0cc53d9e1e 100644
 --- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-@@ -12,6 +12,8 @@ import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
- import com.infernalsuite.asp.api.world.SlimeChunk;
+@@ -12,10 +12,11 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
  import com.infernalsuite.asp.api.world.SlimeChunkSection;
  import com.infernalsuite.asp.api.world.SlimeWorld;
+ import net.kyori.adventure.nbt.CompoundBinaryTag;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  import net.minecraft.SharedConstants;
  
  import java.util.ArrayList;
-@@ -34,7 +36,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+-import java.util.HashMap;
+ import java.util.List;
+ import java.util.function.Consumer;
+ 
+@@ -33,7 +34,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
          long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
          long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
  
 -        Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
 +        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
          for (SlimeChunk chunk : data.getChunkStorage()) {
-             List<CompoundTag> entities = new ArrayList<>();
-             List<CompoundTag> blockEntities = new ArrayList<>();
-@@ -49,7 +51,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+             List<CompoundBinaryTag> entities = new ArrayList<>();
+             List<CompoundBinaryTag> blockEntities = new ArrayList<>();
+@@ -48,7 +49,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                  );
              }
  
@@ -57,29 +61,38 @@ index b2a0913290694d27151779aac5fb6be57f01da8b..f72953db6c79b62929244c56f1e76ce4
              SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
              for (int i = 0; i < sections.length; i++) {
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a86444f8f22d 100644
+index 9655bd071f435d8b33a78350abb804cafc77306f..e6da199bf2179d8820c6e38725cea5f867031f15 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -2,8 +2,8 @@ package com.infernalsuite.asp.level;
+@@ -1,7 +1,7 @@
+ package com.infernalsuite.asp.level;
  
- import com.flowpowered.nbt.CompoundTag;
- import com.flowpowered.nbt.Tag;
 -import com.infernalsuite.asp.ChunkPos;
  import com.infernalsuite.asp.Converter;
 +import com.infernalsuite.asp.Util;
  import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
  import com.infernalsuite.asp.api.loaders.SlimeLoader;
- import com.infernalsuite.asp.pdc.FlowPersistentDataContainer;
-@@ -15,6 +15,8 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
- import com.infernalsuite.asp.api.world.SlimeWorld;
- import com.infernalsuite.asp.api.world.SlimeWorldInstance;
+ import com.infernalsuite.asp.pdc.AdventurePersistentDataContainer;
+@@ -15,6 +15,8 @@ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
  import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+ import net.kyori.adventure.nbt.BinaryTag;
+ import net.kyori.adventure.nbt.CompoundBinaryTag;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 +import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  import net.minecraft.world.level.block.Block;
  import net.minecraft.world.level.chunk.LevelChunk;
  import net.minecraft.world.level.chunk.UpgradeData;
-@@ -46,7 +48,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -27,9 +29,7 @@ import org.jetbrains.annotations.NotNull;
+ import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.Collection;
+-import java.util.HashMap;
+ import java.util.List;
+-import java.util.Map;
+ import java.util.concurrent.ConcurrentMap;
+ 
+ /*
+@@ -47,7 +47,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      private final SlimePropertyMap propertyMap;
      private final SlimeLoader loader;
  
@@ -88,16 +101,16 @@ index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a864
      private boolean readOnly;
      // private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
  
-@@ -58,7 +60,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -59,7 +59,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          this.readOnly = bootstrap.initial().isReadOnly();
  
          for (SlimeChunk initial : bootstrap.initial().getChunkStorage()) {
 -            ChunkPos pos = new ChunkPos(initial.getX(), initial.getZ());
 +            long pos = Util.chunkPosition(initial.getX(), initial.getZ());
-             List<CompoundTag> tags = new ArrayList<>(initial.getEntities());
+             List<CompoundBinaryTag> tags = new ArrayList<>(initial.getEntities());
  
              //  this.entityStorage.put(pos, tags);
-@@ -95,7 +97,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -96,7 +96,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
              chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk, chunk), chunk);
          }
@@ -106,7 +119,7 @@ index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a864
  
          return levelChunk;
      }
-@@ -109,18 +111,18 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -110,18 +110,18 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
  
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
@@ -128,7 +141,7 @@ index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a864
      }
  
      @Override
-@@ -202,8 +204,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -203,8 +203,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      public SlimeWorld getForSerialization() {
          SlimeWorld world = SkeletonCloning.weakCopy(this);
  
@@ -139,7 +152,7 @@ index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a864
              SlimeChunk clonedChunk = entry.getValue();
              // NMS "live" chunks need to be converted
              {
-@@ -242,7 +244,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -242,7 +242,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                  }
              }
  
@@ -148,7 +161,7 @@ index e9b6114e1a799217b44001d66592bbae52b03e13..a150c5ebb1fa48542550d905a675a864
          }
  
          // Serialize Bukkit Values (PDC)
-@@ -276,8 +278,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -275,8 +275,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      }
  
      public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {

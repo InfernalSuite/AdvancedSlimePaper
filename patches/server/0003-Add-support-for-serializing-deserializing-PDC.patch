@@ -5,7 +5,7 @@ Subject: [PATCH] Add support for serializing/deserializing PDC
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
-index d1ab18a2a2793807118ae1fc23d21248aa7e09a3..0c1e599aa7d148c40ece1957c89991e1d761162a 100644
+index 98043b30614cc0ace252919367662a5e535fa1e1..68240b46ce911674ed288fe559737572fa44de6a 100644
 --- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 +++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 @@ -11,6 +11,7 @@ import com.mojang.serialization.Lifecycle;
@@ -29,18 +29,18 @@ index d1ab18a2a2793807118ae1fc23d21248aa7e09a3..0c1e599aa7d148c40ece1957c89991e1
      }
  
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index ba337466525971885247c269c23aac7df96d2782..5d325e85a4634c21ab0bec12b493ea9b857d8ff3 100644
+index 636c553f4407f19b3435d487250b041532b8f229..387954aae7ef1a39025a474ab1fe81b7216d8d6c 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -2,6 +2,7 @@ package com.infernalsuite.asp.level;
+@@ -1,6 +1,7 @@
+ package com.infernalsuite.asp.level;
  
- import com.flowpowered.nbt.CompoundTag;
  import com.infernalsuite.asp.ChunkPos;
 +import com.infernalsuite.asp.Converter;
  import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
  import com.infernalsuite.asp.api.loaders.SlimeLoader;
  import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
-@@ -235,6 +236,17 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -237,6 +238,17 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              cloned.put(entry.getKey(), clonedChunk);
          }
  

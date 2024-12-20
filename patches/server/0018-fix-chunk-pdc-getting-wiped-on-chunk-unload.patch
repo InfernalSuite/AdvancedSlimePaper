@@ -5,17 +5,14 @@ Subject: [PATCH] fix chunk pdc getting wiped on chunk unload
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index 844d23310b2b38cc9f6e2ae1636ba8a485c07999..c2dd10e46bd4c73b0db641b0a057e6e599033521 100644
+index 97e96f51a6369a328a46086ebb250c9c163e10cf..8053d224ca673c3abe60151b3b322e3e4c9c3fcf 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-@@ -68,7 +68,9 @@ public class NMSSlimeChunk implements SlimeChunk {
- 
+@@ -68,6 +68,7 @@ public class NMSSlimeChunk implements SlimeChunk {
      public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
          this.chunk = chunk;
--        this.extra = reference == null ? new CompoundTag("", new CompoundMap()) : reference.getExtraData();
-+        this.extra = new CompoundTag("", new CompoundMap());
-+        extra.getValue().put(Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound()));
-+
+         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
++        this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
          this.upgradeData = reference == null ? null : reference.getUpgradeData();
      }
  

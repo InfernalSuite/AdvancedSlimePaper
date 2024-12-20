@@ -6,10 +6,10 @@ Subject: [PATCH] Add v12, chunk pdc and extra nbt. Fix double compression on
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-index eb426271140d9e36b09ef96e4c59c21d265a5edc..36d13632916b8e93d5f28c29ea80ef4ac87e6c89 100644
+index 6856a7254685b2d005bcb2a91841f53d8743e38d..de83872d147e790cb0fb98f1a407a22927faed28 100644
 --- a/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/SimpleDataFixerConverter.java
-@@ -70,11 +70,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+@@ -69,11 +69,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
  
              chunks.put(chunkPos, new SlimeChunkSkeleton(
                      chunk.getX(),
@@ -25,39 +25,46 @@ index eb426271140d9e36b09ef96e4c59c21d265a5edc..36d13632916b8e93d5f28c29ea80ef4a
  
          }
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index 9a6e901b394d1e7740e616a33e6c251ae1d7e0e0..dc34469712bdd84d4b17dfd5e9657c3a12420241 100644
+index beb56b2495a52e1fac815de664677d73ce2bbcc3..33c0379c6ac41938296643a294ea362a96e3a5ea 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 @@ -67,9 +67,11 @@ public class NMSSlimeChunk implements SlimeChunk {
      }
  
      private LevelChunk chunk;
-+    private CompoundTag extra;
++    private CompoundBinaryTag extra;
  
 -    public NMSSlimeChunk(LevelChunk chunk) {
 +    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
          this.chunk = chunk;
-+        this.extra = reference == null ? new CompoundTag("", new CompoundMap()) : reference.getExtraData();
++        this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
      }
  
      @Override
-@@ -192,6 +194,11 @@ public class NMSSlimeChunk implements SlimeChunk {
-         });
+@@ -176,6 +178,11 @@ public class NMSSlimeChunk implements SlimeChunk {
+         return Lists.transform(entities, Converter::convertTag);
      }
  
 +    @Override
-+    public CompoundTag getExtraData() {
++    public CompoundBinaryTag getExtraData() {
 +        return extra;
 +    }
 +
      public LevelChunk getChunk() {
          return chunk;
      }
+@@ -184,4 +191,4 @@ public class NMSSlimeChunk implements SlimeChunk {
+         this.chunk = chunk;
+     }
+ 
+-}
+\ No newline at end of file
++}
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
-index 76ee216925d9ced3c9bf1e7e8e1d8b80ca9f8e50..bd2f8da46d4a04f2777086a416015563f3b06cdf 100644
+index 25249743caca6f354005d7f9e4498fdf413df629..8cd79bf34a9074d06d342f956165891613ae6cf0 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
-@@ -45,14 +45,14 @@ public class NMSSlimeWorld implements SlimeWorld {
+@@ -47,14 +47,14 @@ public class NMSSlimeWorld implements SlimeWorld {
              return null;
          }
  
@@ -75,7 +82,7 @@ index 76ee216925d9ced3c9bf1e7e8e1d8b80ca9f8e50..bd2f8da46d4a04f2777086a416015563
      }
  
 diff --git a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
-index 025da4dd831f9b8b35000be7de493d44caa41003..7dd1c52f718866f8918c30de9cc71d151eddc958 100644
+index fa8254ca4b2eafa4e5669c3e0467ed1f7d4dc159..4ca8d6f40b1e5e7e0f106a6880eaf8afc1128213 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SafeNmsChunkWrapper.java
 @@ -62,6 +62,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
@@ -83,7 +90,7 @@ index 025da4dd831f9b8b35000be7de493d44caa41003..7dd1c52f718866f8918c30de9cc71d15
      }
  
 +    @Override
-+    public CompoundTag getExtraData() {
++    public CompoundBinaryTag getExtraData() {
 +        if (shouldDefaultBackToSlimeChunk()) {
 +            return this.safety.getExtraData();
 +        }
@@ -95,10 +102,10 @@ index 025da4dd831f9b8b35000be7de493d44caa41003..7dd1c52f718866f8918c30de9cc71d15
  Slime chunks can still be requested but not actually loaded, this caused
  some things to not properly save because they are not "loaded" into the chunk.
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-index 6b38f707b43e1e584c79a6c8d9ec1232ed2901b9..d3289cb71f9ff71d5122ed43e9a0ab40f93c774a 100644
+index b705b3133634c3696dee766cbfc95380293ccda3..05e520256b3d047a85b98552883044ca6b658b3d 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-@@ -165,6 +165,13 @@ public class SlimeChunkConverter {
+@@ -162,6 +162,13 @@ public class SlimeChunkConverter {
              Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
          }
  
@@ -112,20 +119,11 @@ index 6b38f707b43e1e584c79a6c8d9ec1232ed2901b9..d3289cb71f9ff71d5122ed43e9a0ab40
          return nmsChunk;
      }
  }
-\ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index 35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1..15340aecc97a30767340f7837a21decc74afbe9c 100644
+index 70787a7b87a0ebb4d47de7d110fadc8952708c58..58b54839576b92e87f6941ab2457c0c0c5469df8 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -1,6 +1,7 @@
- package com.infernalsuite.asp.level;
- 
- import com.flowpowered.nbt.CompoundTag;
-+import com.flowpowered.nbt.Tag;
- import com.infernalsuite.asp.ChunkPos;
- import com.infernalsuite.asp.Converter;
- import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
-@@ -88,11 +89,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -90,11 +90,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
              levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                      0L, null, null, null);
  
@@ -139,7 +137,7 @@ index 35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1..15340aecc97a30767340f7837a21decc
          }
          this.chunkStorage.put(new ChunkPos(x, z), chunk);
  
-@@ -105,7 +106,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -107,7 +107,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          final int x = providedChunk.locX;
          final int z = providedChunk.locZ;
  
@@ -148,7 +146,7 @@ index 35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1..15340aecc97a30767340f7837a21decc
  
          if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
              this.chunkStorage.remove(new ChunkPos(x, z));
-@@ -114,7 +115,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -116,7 +116,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
          this.chunkStorage.put(new ChunkPos(x, z),
                  new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
@@ -157,15 +155,14 @@ index 35d0dd30b3c91b423c03a8f1682a422bf5eb8bc1..15340aecc97a30767340f7837a21decc
      }
  
      @Override
-@@ -227,13 +228,20 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -229,13 +229,19 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                          continue;
                      }
  
 +                    // Serialize Bukkit Values (PDC)
 +
-+                    Tag<?> flowTag = Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound());
-+
-+                    clonedChunk.getExtraData().getValue().put(flowTag);
++                    CompoundBinaryTag adventureTag = Converter.convertTag(chunk.persistentDataContainer.toTagCompound());
++                    clonedChunk.getExtraData().put("ChunkBukkitValues", adventureTag);
 +
                      clonedChunk = new SlimeChunkSkeleton(
                              clonedChunk.getX(),

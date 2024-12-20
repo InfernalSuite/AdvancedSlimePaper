@@ -18,14 +18,12 @@ index 838639a8bbeb59700037c3e101714f68f8b79671..26be7ff48f2eb50a140e71372cfef54d
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..704cf0fa3d3c6114923d5b9b9594a4ba9d7ab0a6
+index 0000000000000000000000000000000000000000..06e91530198d9075434045893f95f7a6ae5bfbb3
 --- /dev/null
 +++ b/src/main/java/com/infernalsuite/asp/AdvancedSlimePaper.java
-@@ -0,0 +1,243 @@
+@@ -0,0 +1,241 @@
 +package com.infernalsuite.asp;
 +
-+import com.flowpowered.nbt.CompoundMap;
-+import com.flowpowered.nbt.CompoundTag;
 +import com.infernalsuite.asp.api.SlimeNMSBridge;
 +import com.infernalsuite.asp.api.AdvancedSlimePaperAPI;
 +import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
@@ -192,7 +190,7 @@ index 0000000000000000000000000000000000000000..704cf0fa3d3c6114923d5b9b9594a4ba
 +        Objects.requireNonNull(worldName, "World name cannot be null");
 +        Objects.requireNonNull(propertyMap, "Properties cannot be null");
 +
-+        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new CompoundTag("", new CompoundMap()), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
++        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new ConcurrentHashMap<>(), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
 +    }
 +
 +    @Override
@@ -228,7 +226,7 @@ index 0000000000000000000000000000000000000000..704cf0fa3d3c6114923d5b9b9594a4ba
 +        SlimeWorld world;
 +
 +        try {
-+            world = AnvilWorldReader.INSTANCE.readFromData(new AnvilImportData(worldDir, worldName, loader));
++            world = AnvilWorldReader.INSTANCE.readFromData(AnvilImportData.legacy(worldDir, worldName, loader));
 +        } catch (RuntimeException e) {
 +            if (e.getCause() == null) {
 +                throw e;
@@ -424,19 +422,19 @@ index 4c7938c07e06810f475eac0bb4400c11154b56ba..cb8720e3961b897ae87a59c2c91d1502
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
-index bfcd4fc5e0ce187c79491fc720bb4bebde51f8e1..5d7afcb8e90bde6fd5aa3c1a10917f4fdb78ee3a 100644
+index 95b4d139125f18414638c2b17266c6400a62bcf5..328e70af280ccb32f4830e464f34499b8be0d72b 100644
 --- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 +++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
-@@ -48,8 +48,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -46,8 +46,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
      private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
      private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
  
--    private static final Logger LOGGER = LogManager.getLogger("SWM");
+-    private static final Logger LOGGER = LogManager.getLogger("ASP");
 -
      private SlimeWorld defaultWorld;
      private SlimeWorld defaultNetherWorld;
      private SlimeWorld defaultEndWorld;
-@@ -130,6 +128,13 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -124,6 +122,13 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
          return true;
      }
  
@@ -451,10 +449,18 @@ index bfcd4fc5e0ce187c79491fc720bb4bebde51f8e1..5d7afcb8e90bde6fd5aa3c1a10917f4f
      public void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld) {
          if (normalWorld != null) {
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index b6c0ba9325b06e1d76609aa4de564af11f231a74..7b31aba65e30fdef7a3eeb96cd899e6be6839aa9 100644
+index 6972d6399628eda41756a98fb54fbe93eb827716..7326a5af48338d58ac657a5ab62e9fbeb96e4346 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-@@ -31,13 +31,14 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+@@ -6,7 +6,6 @@ import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
+ import com.infernalsuite.asp.api.utils.NibbleArray;
+ import com.infernalsuite.asp.api.world.SlimeChunk;
+ import com.infernalsuite.asp.api.world.SlimeChunkSection;
+-import com.mojang.logging.LogUtils;
+ import com.mojang.serialization.Codec;
+ import io.papermc.paper.world.ChunkEntitySlices;
+ import net.kyori.adventure.nbt.CompoundBinaryTag;
+@@ -31,13 +30,13 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
  import net.minecraft.world.level.levelgen.Heightmap;
  import net.minecraft.world.level.lighting.LevelLightEngine;
  import org.slf4j.Logger;
@@ -462,19 +468,19 @@ index b6c0ba9325b06e1d76609aa4de564af11f231a74..7b31aba65e30fdef7a3eeb96cd899e6b
  
  import java.util.ArrayList;
  import java.util.List;
- import java.util.Map;
+-import java.util.Map;
  
  public class NMSSlimeChunk implements SlimeChunk {
 -    private static final Logger LOGGER = LogUtils.getClassLogger();
 +    private static final Logger LOGGER = LoggerFactory.getLogger(NMSSlimeChunk.class);
  
-     private static final CompoundTag EMPTY_BLOCK_STATE_PALETTE;
-     private static final CompoundTag EMPTY_BIOME_PALETTE;
+     private static final CompoundBinaryTag EMPTY_BLOCK_STATE_PALETTE;
+     private static final CompoundBinaryTag EMPTY_BIOME_PALETTE;
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
-index bd2f8da46d4a04f2777086a416015563f3b06cdf..8c63ddf62415d0c88080fbe9a2ff9df4ffdd7a36 100644
+index 8cd79bf34a9074d06d342f956165891613ae6cf0..5e43f6094fdd0f7e0ab6f5c5379fc86e075d6173 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeWorld.java
-@@ -35,7 +35,7 @@ public class NMSSlimeWorld implements SlimeWorld {
+@@ -37,7 +37,7 @@ public class NMSSlimeWorld implements SlimeWorld {
  
      @Override
      public SlimeLoader getLoader() {
@@ -483,7 +489,7 @@ index bd2f8da46d4a04f2777086a416015563f3b06cdf..8c63ddf62415d0c88080fbe9a2ff9df4
      }
  
      @Override
-@@ -50,7 +50,7 @@ public class NMSSlimeWorld implements SlimeWorld {
+@@ -52,7 +52,7 @@ public class NMSSlimeWorld implements SlimeWorld {
  
      @Override
      public Collection<SlimeChunk> getChunkStorage() {
@@ -493,10 +499,10 @@ index bd2f8da46d4a04f2777086a416015563f3b06cdf..8c63ddf62415d0c88080fbe9a2ff9df4
                  .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
                  .collect(Collectors.toList());
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index 70eb8b95740b46579ad3520ca1d3395a920a8a6a..e9b6114e1a799217b44001d66592bbae52b03e13 100644
+index 8fcb0ab62ce098a07cc5a0d3b481a45e9f75e161..9655bd071f435d8b33a78350abb804cafc77306f 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -145,7 +145,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -146,7 +146,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
  
      @Override
      public boolean isReadOnly() {
@@ -505,7 +511,7 @@ index 70eb8b95740b46579ad3520ca1d3395a920a8a6a..e9b6114e1a799217b44001d66592bbae
      }
  
      @Override
-@@ -185,11 +185,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -186,11 +186,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
          return this.liveWorld.getDataVersion();
      }
  
@@ -515,7 +521,7 @@ index 70eb8b95740b46579ad3520ca1d3395a920a8a6a..e9b6114e1a799217b44001d66592bbae
 -    }
 -
      @Override
-     public CompoundTag getExtraData() {
+     public ConcurrentMap<String, BinaryTag> getExtraData() {
          return this.extra;
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 index a8c103d435ac9473b1c5dd404e5c69ebf4353490..d6e5eac7732f32cabd6ed5ac6b10af20074a39b8 100644

@@ -5,10 +5,10 @@ Subject: [PATCH] 1.21.3 fixes
 
 
 diff --git a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
-index 8c80b611c00ac09d9d45db5a712435c6534f937a..28d49e4e23b300b3b53de9cc4c276d5c40f43a0c 100644
+index c0f990e34544811e23497e286842e403b32f947e..8956b3c4456fdda86c5ce7f3bbf732f476f54f39 100644
 --- a/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
 +++ b/src/main/java/com/infernalsuite/asp/SlimeNMSBridgeImpl.java
-@@ -213,7 +213,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -207,7 +207,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
          };
  
          ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
@@ -17,16 +17,16 @@ index 8c80b611c00ac09d9d45db5a712435c6534f937a..28d49e4e23b300b3b53de9cc4c276d5c
  
          SlimeLevelInstance level;
  
-@@ -224,7 +224,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -218,7 +218,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
          }
  
          // level.setReady(true);
 -        level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS), world.getPropertyMap().getValue(SlimeProperties.ALLOW_ANIMALS));
 +        level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS));
  
-         var nmsExtraData = (CompoundTag) Converter.convertTag(world.getExtraData());
+         CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
  
-@@ -244,7 +244,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
+@@ -238,7 +238,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
          String worldName = world.getName();
  
          LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gamemode, false, serverProps.difficulty,
@@ -85,14 +85,13 @@ index 2f0e34e105a27b12eb28dfc2b3c3b6590d76cbb2..2b700ec76e0eca7441676d48cf842cb9
      }
  
 diff --git a/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
-index 9954db3eabd60ac0600af1efc6f8a1650ef4d85b..b8d82510cf66700abf0c1820c561b5cc78c7d318 100644
+index 9954db3eabd60ac0600af1efc6f8a1650ef4d85b..09e8a5fc5a56aefdee281b730c471e5f0907be66 100644
 --- a/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
 +++ b/src/main/java/com/infernalsuite/asp/level/CommonLoadTask.java
-@@ -1,18 +1,19 @@
+@@ -1,18 +1,18 @@
  package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
-+import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
 +import ca.spottedleaf.concurrentutil.util.Priority;
  
  public interface CommonLoadTask {
@@ -115,26 +114,27 @@ index 9954db3eabd60ac0600af1efc6f8a1650ef4d85b..b8d82510cf66700abf0c1820c561b5cc
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-index c2dd10e46bd4c73b0db641b0a057e6e599033521..43790021bdc50a37d4bda7a89586eb56eb032791 100644
+index 8053d224ca673c3abe60151b3b322e3e4c9c3fcf..fcdc22a4c107d2a9f4756a473e2b570a4d29b495 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 +++ b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
-@@ -29,7 +29,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
+@@ -29,8 +29,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
  import net.minecraft.world.level.chunk.LevelChunkSection;
  import net.minecraft.world.level.chunk.PalettedContainer;
  import net.minecraft.world.level.chunk.PalettedContainerRO;
 -import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+-import net.minecraft.world.level.levelgen.Heightmap;
 +import net.minecraft.world.level.chunk.storage.SerializableChunkData;
- import net.minecraft.world.level.levelgen.Heightmap;
  import net.minecraft.world.level.lighting.LevelLightEngine;
  import org.slf4j.Logger;
-@@ -49,14 +49,14 @@ public class NMSSlimeChunk implements SlimeChunk {
+ import org.slf4j.LoggerFactory;
+@@ -48,14 +47,14 @@ public class NMSSlimeChunk implements SlimeChunk {
      static {
          {
              PalettedContainer<BlockState> empty = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
 -            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 +            Tag tag = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
  
-             EMPTY_BLOCK_STATE_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
          }
          {
 -            Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
@@ -144,9 +144,9 @@ index c2dd10e46bd4c73b0db641b0a057e6e599033521..43790021bdc50a37d4bda7a89586eb56
 +            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.asHolderIdMap(), biomes.get(Biomes.PLAINS).orElseThrow(), PalettedContainer.Strategy.SECTION_BIOMES, null);
 +            Tag tag = SerializableChunkData.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
  
-             EMPTY_BIOME_PALETTE = (CompoundTag) Converter.convertTag("", tag);
+             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
          }
-@@ -89,10 +89,10 @@ public class NMSSlimeChunk implements SlimeChunk {
+@@ -87,10 +86,10 @@ public class NMSSlimeChunk implements SlimeChunk {
          SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getSectionsCount()];
          LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
  
@@ -159,20 +159,20 @@ index c2dd10e46bd4c73b0db641b0a057e6e599033521..43790021bdc50a37d4bda7a89586eb56
  
          for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
              LevelChunkSection section = chunk.getSections()[sectionId];
-@@ -111,7 +111,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+@@ -109,7 +108,7 @@ public class NMSSlimeChunk implements SlimeChunk {
              if (section.hasOnlyAir()) {
                  blockStateTag = EMPTY_BLOCK_STATE_PALETTE;
              } else {
 -                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
 +                Tag data = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
-                 blockStateTag = (CompoundTag) Converter.convertTag("", data);
+                 blockStateTag = Converter.convertTag(data);
              }
  
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc09e03eaa 100644
+index 73f9473b52df2ae9cea5f6361d2f8d00136c84da..baaf410852e8aac91c60fcb58acc63e01cc7e7d0 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeChunkConverter.java
-@@ -28,7 +28,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
+@@ -26,14 +26,13 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
  import net.minecraft.world.level.chunk.PalettedContainer;
  import net.minecraft.world.level.chunk.UpgradeData;
  import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
@@ -181,7 +181,14 @@ index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc
  import net.minecraft.world.level.levelgen.Heightmap;
  import net.minecraft.world.level.material.Fluid;
  import net.minecraft.world.ticks.LevelChunkTicks;
-@@ -54,10 +54,10 @@ public class SlimeChunkConverter {
+ 
+ import java.util.EnumSet;
+ import java.util.List;
+-import java.util.Optional;
+ 
+ public class SlimeChunkConverter {
+ 
+@@ -52,10 +51,10 @@ public class SlimeChunkConverter {
              instance.getLightEngine().retainData(pos, true);
          });
  
@@ -194,7 +201,7 @@ index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc
  
          for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
              SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
-@@ -75,7 +75,7 @@ public class SlimeChunkConverter {
+@@ -73,7 +72,7 @@ public class SlimeChunkConverter {
  
                  PalettedContainer<BlockState> blockPalette;
                  if (slimeSection.getBlockStatesTag() != null) {
@@ -203,7 +210,7 @@ index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc
                          System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                      });
                      blockPalette = dataresult.getOrThrow(); // todo proper logging
-@@ -91,7 +91,7 @@ public class SlimeChunkConverter {
+@@ -89,7 +88,7 @@ public class SlimeChunkConverter {
                      });
                      biomePalette = dataresult.getOrThrow(); // todo proper logging
                  } else {
@@ -213,19 +220,18 @@ index d04ad95b65f764560aa1ca8c7137f951ed474003..30d16c759e269ce0bffa5d5a4f7d90bc
  
                  if (sectionId < sections.length) {
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
-index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..d672504eee439d96a9054b3308ba3a5d18cca867 100644
+index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..9d15ab96bc72e5efffe443088ef482d4ec0e9457 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeLevelInstance.java
-@@ -1,6 +1,7 @@
+@@ -1,6 +1,6 @@
  package com.infernalsuite.asp.level;
  
 -import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
-+import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
 +import ca.spottedleaf.concurrentutil.util.Priority;
  import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
  import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
  import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
-@@ -80,8 +81,8 @@ public class SlimeLevelInstance extends ServerLevel {
+@@ -80,8 +80,8 @@ public class SlimeLevelInstance extends ServerLevel {
          super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
                  CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
                  primaryLevelData, worldKey, worldDimension,
@@ -236,7 +242,7 @@ index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..d672504eee439d96a9054b3308ba3a5d
          this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
  
  
-@@ -93,7 +94,7 @@ public class SlimeLevelInstance extends ServerLevel {
+@@ -93,7 +93,7 @@ public class SlimeLevelInstance extends ServerLevel {
                  propertyMap.getValue(SlimeProperties.SPAWN_Y),
                  propertyMap.getValue(SlimeProperties.SPAWN_Z)),
                  propertyMap.getValue(SlimeProperties.SPAWN_YAW));
@@ -245,7 +251,7 @@ index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..d672504eee439d96a9054b3308ba3a5d
  
          this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
      }
-@@ -102,7 +103,7 @@ public class SlimeLevelInstance extends ServerLevel {
+@@ -102,7 +102,7 @@ public class SlimeLevelInstance extends ServerLevel {
      public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
          String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
          ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
@@ -254,7 +260,7 @@ index dbc4620fea0b1b5aa130aaaa2af06fcaad93ed29..d672504eee439d96a9054b3308ba3a5d
          return new SlimeLevelGenerator(defaultBiome);
      }
  
-@@ -172,7 +173,7 @@ public class SlimeLevelInstance extends ServerLevel {
+@@ -172,7 +172,7 @@ public class SlimeLevelInstance extends ServerLevel {
          return this.slimeInstance;
      }
  

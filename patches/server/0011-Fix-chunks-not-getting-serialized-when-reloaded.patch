@@ -21,10 +21,10 @@ index 0d218911fb8be1bc5272b6e291ec60404306c831..a92d17b5c6a7c8427ecbdf56a9c2a0c1
  }
 \ No newline at end of file
 diff --git a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-index 619075ededa0443cf8f888f04d863bf7b936a4b0..70eb8b95740b46579ad3520ca1d3395a920a8a6a 100644
+index 03d9c9448d7c010f5daf69cabce6bf861ea203aa..8fcb0ab62ce098a07cc5a0d3b481a45e9f75e161 100644
 --- a/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
 +++ b/src/main/java/com/infernalsuite/asp/level/SlimeInMemoryWorld.java
-@@ -219,7 +219,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -220,7 +220,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                      } else {
                          chunk = safeNmsChunkWrapper.getWrapper().getChunk();
                      }
@@ -33,7 +33,7 @@ index 619075ededa0443cf8f888f04d863bf7b936a4b0..70eb8b95740b46579ad3520ca1d3395a
                      chunk = nmsSlimeChunk.getChunk();
                  }
  
-@@ -279,4 +279,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+@@ -278,4 +278,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
      public @NotNull PersistentDataContainer getPersistentDataContainer() {
          return this.extraPDC;
      }
