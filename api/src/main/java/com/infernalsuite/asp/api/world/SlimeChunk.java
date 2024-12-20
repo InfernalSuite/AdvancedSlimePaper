@@ -32,9 +32,7 @@ public interface SlimeChunk {
     SlimeChunkSection[] getSections();
 
     /**
-     * Returns the height maps of the chunk. If it's a pre 1.13 world,
-     * a {@link com.flowpowered.nbt.IntArrayTag} containing the height
-     * map will be stored inside here by the name of 'heightMap'.
+     * Returns the height maps of the chunk.
      *
      * @return A {@link CompoundBinaryTag} containing all the height maps of the chunk.
      */
