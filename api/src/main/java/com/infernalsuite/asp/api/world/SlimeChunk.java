@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.api.world;
 
-import com.flowpowered.nbt.CompoundTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -36,42 +36,42 @@ public interface SlimeChunk {
      * a {@link com.flowpowered.nbt.IntArrayTag} containing the height
      * map will be stored inside here by the name of 'heightMap'.
      *
-     * @return A {@link CompoundTag} containing all the height maps of the chunk.
+     * @return A {@link CompoundBinaryTag} containing all the height maps of the chunk.
      */
-    CompoundTag getHeightMaps();
+    CompoundBinaryTag getHeightMaps();
 
     /**
      * Returns all the tile entities of the chunk.
      *
-     * @return A {@link CompoundTag} containing all the tile entities of the chunk.
+     * @return A {@link CompoundBinaryTag} containing all the tile entities of the chunk.
      */
-    List<CompoundTag> getTileEntities();
+    List<CompoundBinaryTag> getTileEntities();
 
     /**
      * Returns all the entities of the chunk.
      *
-     * @return A {@link CompoundTag} containing all the entities
+     * @return A {@link CompoundBinaryTag} containing all the entities
      */
-    List<CompoundTag> getEntities();
+    List<CompoundBinaryTag> getEntities();
 
     /**
      * Returns the extra data of the chunk.
-     * Inside this {@link CompoundTag}
+     * Inside this {@link CompoundBinaryTag}
      * can be stored any information to then be retrieved later, as it's
      * saved alongside the chunk data.
      * <br>
      * <b>Beware, a compound tag under the key "ChunkBukkitValues" will be stored here.
      * It is used for storing chunk-based Bukkit PDC. Do not overwrite it.</b>
      *
-     * @return A {@link CompoundTag} containing the extra data of the chunk,
+     * @return A {@link CompoundBinaryTag} containing the extra data of the chunk,
      */
-    CompoundTag getExtraData();
+    CompoundBinaryTag getExtraData();
 
     /**
      * Upgrade data used to fix the chunks.
      * Not intended to be serialized.
-     * @return A {@link CompoundTag} containing the upgrade data of the chunk,
+     * @return A {@link CompoundBinaryTag} containing the upgrade data of the chunk,
      */
     @Nullable
-    CompoundTag getUpgradeData();
+    CompoundBinaryTag getUpgradeData();
 }

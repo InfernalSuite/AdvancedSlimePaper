@@ -1,16 +1,19 @@
 package com.infernalsuite.asp.skeleton;
 
-import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.util.*;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SkeletonCloning {
 
@@ -19,7 +22,7 @@ public class SkeletonCloning {
                 loader == null ? world.getLoader() : loader,
                 loader == null || world.isReadOnly(),
                 cloneChunkStorage(world.getChunkStorage()),
-                world.getExtraData().clone(),
+                new ConcurrentHashMap<>(world.getExtraData()),
                 world.getPropertyMap().clone(),
                 world.getDataVersion());
     }
@@ -36,7 +39,7 @@ public class SkeletonCloning {
                 world.getLoader(),
                 world.isReadOnly(),
                 cloned,
-                world.getExtraData().clone(),
+                new ConcurrentHashMap<>(world.getExtraData()),
                 world.getPropertyMap().clone(),
                 world.getDataVersion());
     }
@@ -56,8 +59,8 @@ public class SkeletonCloning {
                 NibbleArray skyLight = original.getSkyLight();
 
                 copied[i] = new SlimeChunkSectionSkeleton(
-                        original.getBlockStatesTag() == null ? null : original.getBlockStatesTag().clone(),
-                        original.getBiomeTag() == null ? null : original.getBiomeTag().clone(),
+                        original.getBlockStatesTag() == null ? null : CompoundBinaryTag.builder().put(original.getBlockStatesTag()).build(),
+                        original.getBiomeTag() == null ? null : CompoundBinaryTag.builder().put(original.getBiomeTag()).build(),
                         blockLight == null ? null : blockLight.clone(),
                         skyLight == null ? null : skyLight.clone()
                 );
@@ -68,10 +71,10 @@ public class SkeletonCloning {
                             chunk.getX(),
                             chunk.getZ(),
                             copied,
-                            chunk.getHeightMaps().clone(),
+                            CompoundBinaryTag.builder().put(chunk.getHeightMaps()).build(),
                             deepClone(chunk.getTileEntities()),
                             deepClone(chunk.getEntities()),
-                            chunk.getExtraData().clone(),
+                            CompoundBinaryTag.builder().put(chunk.getExtraData()).build(),
                             null
                     ));
         }
@@ -79,10 +82,10 @@ public class SkeletonCloning {
         return cloned;
     }
 
-    private static List<CompoundTag> deepClone(List<CompoundTag> tags) {
-        List<CompoundTag> cloned = new ArrayList<>(tags.size());
-        for (CompoundTag tag : tags) {
-            cloned.add(tag.clone());
+    private static List<CompoundBinaryTag> deepClone(List<CompoundBinaryTag> tags) {
+        List<CompoundBinaryTag> cloned = new ArrayList<>(tags.size());
+        for (CompoundBinaryTag tag : tags) {
+            cloned.add(CompoundBinaryTag.builder().put(tag).build());
         }
 
         return cloned;

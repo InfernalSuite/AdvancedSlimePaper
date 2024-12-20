@@ -6,7 +6,6 @@ plugins {
 dependencies {
     api(libs.annotations)
     api(libs.adventure.nbt)
-    api("com.flowpowered:flow-nbt:2.0.2")
 
     compileOnly(paperApi())
 }

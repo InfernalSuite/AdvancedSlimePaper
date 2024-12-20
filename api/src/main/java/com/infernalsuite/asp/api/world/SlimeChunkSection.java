@@ -1,7 +1,7 @@
 package com.infernalsuite.asp.api.world;
 
 import com.infernalsuite.asp.api.utils.NibbleArray;
-import com.flowpowered.nbt.CompoundTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -9,9 +9,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface SlimeChunkSection {
 
-    CompoundTag getBlockStatesTag();
+    CompoundBinaryTag getBlockStatesTag();
 
-    CompoundTag getBiomeTag();
+    CompoundBinaryTag getBiomeTag();
 
     /**
      * Returns the block light data.

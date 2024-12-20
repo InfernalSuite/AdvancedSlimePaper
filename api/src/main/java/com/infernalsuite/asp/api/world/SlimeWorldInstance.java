@@ -1,7 +1,7 @@
 package com.infernalsuite.asp.api.world;
 
-import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.bukkit.World;
 
 public interface SlimeWorldInstance {
@@ -18,6 +18,6 @@ public interface SlimeWorldInstance {
 
     SlimeLoader getLoader();
 
-    CompoundTag getExtraData();
+    CompoundBinaryTag getExtraData();
 
 }

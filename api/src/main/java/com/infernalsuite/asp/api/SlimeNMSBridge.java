@@ -1,9 +1,8 @@
 package com.infernalsuite.asp.api;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.util.Services;
 import org.bukkit.World;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -36,15 +35,15 @@ public interface SlimeNMSBridge {
         return Holder.INSTANCE;
     }
 
-    void extractCraftPDC(PersistentDataContainer source, CompoundMap target);
+    void extractCraftPDC(PersistentDataContainer source, CompoundBinaryTag.Builder builder);
 
-    PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundMap source);
+    PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundBinaryTag source);
 
     @ApiStatus.Internal
     class Holder {
         private static final SlimeNMSBridge INSTANCE = Services.service(SlimeNMSBridge.class).orElseThrow();
     }
 
-    CompoundTag convertChunkTo1_13(CompoundTag tag);
+    CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag);
 
 }

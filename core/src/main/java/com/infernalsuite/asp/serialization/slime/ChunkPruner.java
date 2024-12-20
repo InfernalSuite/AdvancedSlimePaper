@@ -1,12 +1,13 @@
 package com.infernalsuite.asp.serialization.slime;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.ListTag;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import net.kyori.adventure.nbt.BinaryTagTypes;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 
 import java.util.List;
 
@@ -50,22 +51,20 @@ public class ChunkPruner {
     private static boolean areSectionsEmpty(SlimeChunkSection[] sections) {
         for (SlimeChunkSection chunkSection : sections) {
             try {
-                List<CompoundTag> palettes = chunkSection.getBlockStatesTag().getAsListTag("palette")
-                        .get().getAsCompoundTagList()
-                        .get().getValue();
-
-                if (palettes.size() > 1) return false; // If there is more than one palette, the section is not empty
-                if (!palettes.get(0).getStringValue("Name").get().equals("minecraft:air")) {
-                    return false;
+                ListBinaryTag paletteTag = chunkSection.getBlockStatesTag().getList("palette");
+                if (paletteTag.elementType() != BinaryTagTypes.COMPOUND) {
+                    continue; // If the element type isn't a compound tag, consider the section empty
                 }
-            } catch (Exception e) {
+                List<CompoundBinaryTag> palette = paletteTag.stream().map(tag -> (CompoundBinaryTag) tag).toList();
+                if (palette.size() > 1) return false; // If there is more than one palette, the section is not empty
+                if (palette.getFirst().getString("Name").equals("minecraft:air")) return false; // If the only palette entry is not air, the section is not empty
+            } catch (final Exception e) {
                 return false;
             }
-
             // The section is empty, continue to the next one
         }
-
         // All sections are empty, we can omit this chunk
         return true;
     }
+
 }

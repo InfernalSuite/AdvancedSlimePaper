@@ -1,11 +1,5 @@
 package com.infernalsuite.asp.serialization.anvil;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.TagType;
-import com.flowpowered.nbt.stream.NBTInputStream;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.InvalidWorldException;
 import com.infernalsuite.asp.api.utils.NibbleArray;
@@ -14,89 +8,101 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-
+import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
+import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.BinaryTagIO;
+import net.kyori.adventure.nbt.BinaryTagTypes;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.IntBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
 public class AnvilWorldReader implements com.infernalsuite.asp.serialization.SlimeWorldReader<AnvilImportData> {
 
-    public static final int V1_16 = 2566;
-    public static final int V1_16_5 = 2586;
-    public static final int V1_17_1 = 2730;
-    public static final int V1_19_2 = 3120;
-
-    private static final Pattern MAP_FILE_PATTERN = Pattern.compile("^(?:map_([0-9]*).dat)$");
     private static final int SECTOR_SIZE = 4096;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnvilWorldReader.class);
 
     public static final AnvilWorldReader INSTANCE = new AnvilWorldReader();
 
     @Override
     public SlimeWorld readFromData(AnvilImportData importData) {
-        File worldDir = importData.worldDir();
-        try {
-            File levelFile = new File(worldDir, "level.dat");
+        Path worldDir = importData.worldDir();
 
-            if (!levelFile.exists() || !levelFile.isFile()) {
+        try {
+            Path levelFile = worldDir.resolve("level.dat");
+            if (!Files.exists(levelFile) || !Files.isRegularFile(levelFile)) {
                 throw new RuntimeException(new InvalidWorldException(worldDir));
             }
 
             LevelData data = readLevelData(levelFile);
 
-            // World version
             int worldVersion = data.version;
 
             SlimePropertyMap propertyMap = new SlimePropertyMap();
 
-            File environmentDir = new File(worldDir, "DIM-1");
+            // TODO - Really? There has to be a better way...
+            Path environmentDir = worldDir.resolve("DIM-1");
             propertyMap.setValue(SlimeProperties.ENVIRONMENT, "nether");
-            if (!environmentDir.isDirectory()) {
-                environmentDir = new File(worldDir, "DIM1");
+            if (!Files.isDirectory(environmentDir)) {
+                environmentDir = worldDir.resolve("DIM1");
                 propertyMap.setValue(SlimeProperties.ENVIRONMENT, "the_end");
-                if (!environmentDir.isDirectory()) {
+                if (!Files.isDirectory(environmentDir)) {
                     environmentDir = worldDir;
                     propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
                 }
             }
 
             // Chunks
-            File regionDir = new File(environmentDir, "region");
+            Path regionDir = environmentDir.resolve("region");
 
-            if (!regionDir.exists() || !regionDir.isDirectory()) {
+            if (!Files.exists(regionDir) || !Files.isDirectory(regionDir)) {
                 throw new InvalidWorldException(environmentDir);
             }
 
             Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
 
-            for (File file : Objects.requireNonNull(regionDir.listFiles((dir, name) -> name.endsWith(".mca")))) {
-                System.out.println("Loading region file: " + file.getName() + "...");
-                if (file.exists()) {
-                    chunks.putAll(
-                            loadChunks(file, worldVersion).stream().collect(Collectors.toMap((chunk) -> Util.chunkPosition(chunk.getX(), chunk.getZ()), (chunk) -> chunk))
-                    );
+            try (var stream = Files.newDirectoryStream(regionDir, path -> path.toString().endsWith(".mca"))) {
+                for (final Path path : stream) {
+                    LOGGER.info("Loading region file {}...", path.getFileName());
+                    chunks.putAll(loadChunks(path, worldVersion).stream()
+                            .collect(Collectors.toMap(chunk -> Util.chunkPosition(chunk.getX(), chunk.getZ()), Function.identity())));
                 }
             }
 
             // Entity serialization
-            {
-                File entityRegion = new File(environmentDir, "entities");
-                if (entityRegion.exists()) {
-                    for (File file : entityRegion.listFiles((dir, name) -> name.endsWith(".mca"))) {
-                        if (file != null && file.exists()) {
-                            loadEntities(file, worldVersion, chunks);
-                        }
-                    }
+            Path entityDir = environmentDir.resolve("entities");
+            if (Files.exists(entityDir)) {
+                if (!Files.isDirectory(entityDir)) throw new InvalidWorldException(environmentDir, "'entities' is not a directory!");
+            }
+
+            try (var stream = Files.newDirectoryStream(entityDir, path -> path.toString().endsWith(".mca"))) {
+                for (final Path path : stream) {
+                    LOGGER.info("Loading entity region file {}...", path.getFileName());
+                    loadEntities(path, worldVersion, chunks);
                 }
             }
 
@@ -118,62 +124,52 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 //            }
 //        }
 
-            // Extra Data
-            CompoundMap extraData = new CompoundMap();
-
             propertyMap.setValue(SlimeProperties.SPAWN_X, data.x);
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new CompoundTag("", extraData), propertyMap, worldVersion);
+            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);
         }
     }
 
-    private static CompoundTag loadMap(File mapFile) throws IOException {
+    private static CompoundBinaryTag loadMap(File mapFile) throws IOException {
         String fileName = mapFile.getName();
         int mapId = Integer.parseInt(fileName.substring(4, fileName.length() - 4));
-        CompoundTag tag;
-
-        try (NBTInputStream nbtStream = new NBTInputStream(new FileInputStream(mapFile),
-                NBTInputStream.GZIP_COMPRESSION, ByteOrder.BIG_ENDIAN)) {
-            tag = nbtStream.readTag().getAsCompoundTag().get().getAsCompoundTag("data").get();
-        }
-
-        tag.getValue().put("id", new IntTag("id", mapId));
-
+        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(new BufferedInputStream(new FileInputStream(mapFile))).getCompound("data");
+        tag.put("id", IntBinaryTag.intBinaryTag(mapId));
         return tag;
     }
 
-    private static LevelData readLevelData(File file) throws IOException, InvalidWorldException {
-        Optional<CompoundTag> tag;
-
-        try (NBTInputStream nbtStream = new NBTInputStream(new FileInputStream(file))) {
-            tag = nbtStream.readTag().getAsCompoundTag();
-        }
-
-        if (tag.isPresent()) {
-            Optional<CompoundTag> dataTag = tag.get().getAsCompoundTag("Data");
-
-            if (dataTag.isPresent()) {
-                // Data version
-                int dataVersion = dataTag.get().getIntValue("DataVersion").orElse(-1);
-
-                int spawnX = dataTag.get().getIntValue("SpawnX").orElse(0);
-                int spawnY = dataTag.get().getIntValue("SpawnY").orElse(255);
-                int spawnZ = dataTag.get().getIntValue("SpawnZ").orElse(0);
-
-                return new LevelData(dataVersion, spawnX, spawnY, spawnZ);
-            }
-        }
-
-        throw new InvalidWorldException(file.getParentFile());
+    private static CompoundBinaryTag loadMap(Path mapFile) throws IOException {
+        String fileName = mapFile.getFileName().toString();
+        int mapId = Integer.parseInt(fileName.substring(4, fileName.length() - 4));
+        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(mapFile).getCompound("data");
+        tag.put("id", IntBinaryTag.intBinaryTag(mapId));
+        return tag;
     }
 
-    private static void loadEntities(File file, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
-        byte[] regionByteArray = Files.readAllBytes(file.toPath());
+    private static LevelData readLevelData(Path file) throws IOException, InvalidWorldException {
+        CompoundBinaryTag tag;
+
+        tag = BinaryTagIO.unlimitedReader().read(file);
+
+        CompoundBinaryTag dataTag = tag.getCompound("Data");
+        if (dataTag.size() != 0) {
+            int dataVersion = dataTag.getInt("DataVersion", -1);
+            int spawnX = dataTag.getInt("SpawnX", 0);
+            int spawnY = dataTag.getInt("SpawnY", 255);
+            int spawnZ = dataTag.getInt("SpawnZ", 0);
+            return new LevelData(dataVersion, spawnX, spawnY, spawnZ);
+        }
+
+        throw new InvalidWorldException(file.getParent());
+    }
+
+    private static void loadEntities(Path path, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
+        byte[] regionByteArray = Files.readAllBytes(path);
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
         List<ChunkEntry> chunks = new ArrayList<>(1024);
@@ -198,12 +194,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
                 DataInputStream chunkStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset() + 5, chunkSize));
                 InputStream decompressorStream = compressionScheme == 1 ? new GZIPInputStream(chunkStream) : new InflaterInputStream(chunkStream);
-                NBTInputStream nbtStream = new NBTInputStream(decompressorStream, NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
-                CompoundTag globalCompound = (CompoundTag) nbtStream.readTag();
-                CompoundMap globalMap = globalCompound.getValue();
+                CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(decompressorStream);
 
-
-                readEntityChunk(new CompoundTag("entityChunk", globalMap), version, chunkMap);
+                readEntityChunk(tag, version, chunkMap);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -211,8 +204,8 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     }
 
-    private static List<SlimeChunk> loadChunks(File file, int worldVersion) throws IOException {
-        byte[] regionByteArray = Files.readAllBytes(file.toPath());
+    private static List<SlimeChunk> loadChunks(Path path, int worldVersion) throws IOException {
+        byte[] regionByteArray = Files.readAllBytes(path);
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
         List<ChunkEntry> chunks = new ArrayList<>(1024);
@@ -238,16 +231,8 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
                 DataInputStream chunkStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset() + 5, chunkSize));
                 InputStream decompressorStream = compressionScheme == 1 ? new GZIPInputStream(chunkStream) : new InflaterInputStream(chunkStream);
-                NBTInputStream nbtStream = new NBTInputStream(decompressorStream, NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
-                CompoundTag globalCompound = (CompoundTag) nbtStream.readTag();
-                CompoundMap globalMap = globalCompound.getValue();
-
-                CompoundTag levelDataTag = new CompoundTag("Level", globalMap);
-                if (globalMap.containsKey("Level")) {
-                    levelDataTag = (CompoundTag) globalMap.get("Level");
-                }
-
-                return readChunk(levelDataTag, worldVersion);
+                CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(decompressorStream);
+                return readChunk(tag, worldVersion);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -255,174 +240,94 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    private static void readEntityChunk(CompoundTag compound, int worldVersion, Long2ObjectMap<SlimeChunk> slimeChunkMap) {
-        int[] position = compound.getAsIntArrayTag("Position").orElseThrow().getValue();
+    private static void readEntityChunk(CompoundBinaryTag compound, int worldVersion, Long2ObjectMap<SlimeChunk> slimeChunkMap) {
+        int[] position = compound.getIntArray("Position");
+        if (position.length == 0) throw new IllegalStateException("Entity chunk is missing position data");
         int chunkX = position[0];
         int chunkZ = position[1];
 
-        int dataVersion = compound.getAsIntTag("DataVersion").map(IntTag::getValue).orElse(-1);
+        int dataVersion = compound.getInt("DataVersion", -1);
         if (dataVersion != worldVersion) {
-            System.err.println("Cannot load entity chunk at " + chunkX + "," + chunkZ + ": data version " + dataVersion + " does not match world version " + worldVersion);
+            LOGGER.error("Cannot load entity chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
             return;
         }
 
         SlimeChunk chunk = slimeChunkMap.get(Util.chunkPosition(chunkX, chunkZ));
         if (chunk == null) {
-            System.out.println("Lost entity chunk data at: " + chunkX + " " + chunkZ);
+            LOGGER.warn("Lost entity chunk data at: {},{}", chunkX, chunkZ);
         } else {
-            chunk.getEntities().addAll((List<CompoundTag>) compound.getAsListTag("Entities").get().getValue());
+            compound.getList("Entities", BinaryTagTypes.COMPOUND).forEach(entityTag -> chunk.getEntities().add((CompoundBinaryTag) entityTag));
         }
     }
 
-    private static SlimeChunk readChunk(CompoundTag compound, int worldVersion) {
-        int chunkX = compound.getAsIntTag("xPos").get().getValue();
-        int chunkZ = compound.getAsIntTag("zPos").get().getValue();
+    private static SlimeChunk readChunk(CompoundBinaryTag compound, int worldVersion) {
+        int chunkX = compound.getInt("xPos");
+        int chunkZ = compound.getInt("zPos");
 
-        if (worldVersion >= V1_19_2) { // 1.18 chunks should have a DataVersion tag, we can check if the chunk has been converted to match the world
-            int dataVersion = compound.getAsIntTag("DataVersion").map(IntTag::getValue).orElse(-1);
-            if (dataVersion != worldVersion) {
-                System.err.println("Cannot load chunk at " + chunkX + "," + chunkZ + ": data version " + dataVersion + " does not match world version " + worldVersion);
+        int dataVersion = compound.getInt("DataVersion", -1);
+        if (dataVersion != worldVersion) {
+            LOGGER.error("Cannot load chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
+            return null;
+        }
+
+        String status = compound.getString("Status", "");
+        if (!status.isEmpty()) {
+            // TODO - Check if this is correct, looks like the status string format may have changed...
+            if (!status.equals("postprocessed") && !status.startsWith("full") && !status.startsWith("minecraft:full")) {
+                // It's a protochunk
                 return null;
             }
         }
 
-        Optional<String> status = compound.getStringValue("Status");
+        CompoundBinaryTag heightMaps = compound.getCompound("Heightmaps");
 
-        if (status.isPresent() && !status.get().equals("postprocessed") && !status.get().startsWith("full") && !status.get().startsWith("minecraft:full")) {
-            // It's a protochunk
-            return null;
-        }
+        List<CompoundBinaryTag> tileEntities = compound.getList("block_entities", BinaryTagTypes.COMPOUND).stream().map(t -> (CompoundBinaryTag) t).toList();
+        List<CompoundBinaryTag> entities = compound.getList("entities", BinaryTagTypes.COMPOUND).stream().map(t -> (CompoundBinaryTag) t).toList();
+        ListBinaryTag sectionsTag = compound.getList("sections", BinaryTagTypes.COMPOUND);
 
-//        int[] biomes;
-//        Tag biomesTag = compound.getValue().get("Biomes");
-//
-//        if (biomesTag instanceof IntArrayTag) {
-//            biomes = ((IntArrayTag) biomesTag).getValue();
-//        } else if (biomesTag instanceof ByteArrayTag) {
-//            byte[] byteBiomes = ((ByteArrayTag) biomesTag).getValue();
-//            biomes = toIntArray(byteBiomes);
-//        } else {
-//            biomes = null;
-//        }
-
-        Optional<CompoundTag> optionalHeightMaps = compound.getAsCompoundTag("Heightmaps");
-        CompoundTag heightMapsCompound = optionalHeightMaps.orElse(new CompoundTag("", new CompoundMap()));
-
-        List<CompoundTag> tileEntities;
-        List<CompoundTag> entities;
-        ListTag<CompoundTag> sectionsTag;
-
-        int minSectionY = 0;
-        int maxSectionY = 16;
-
-        if (worldVersion < V1_19_2) {
-            tileEntities = ((ListTag<CompoundTag>) compound.getAsListTag("TileEntities")
-                    .orElse(new ListTag<>("TileEntities", TagType.TAG_COMPOUND, new ArrayList<>()))).getValue();
-            entities = ((ListTag<CompoundTag>) compound.getAsListTag("Entities")
-                    .orElse(new ListTag<>("Entities", TagType.TAG_COMPOUND, new ArrayList<>()))).getValue();
-            sectionsTag = (ListTag<CompoundTag>) compound.getAsListTag("Sections").get();
-        } else {
-            tileEntities = ((ListTag<CompoundTag>) compound.getAsListTag("block_entities")
-                    .orElse(new ListTag<>("block_entities", TagType.TAG_COMPOUND, new ArrayList<>()))).getValue();
-            entities = ((ListTag<CompoundTag>) compound.getAsListTag("entities")
-                    .orElse(new ListTag<>("entities", TagType.TAG_COMPOUND, new ArrayList<>()))).getValue();
-            sectionsTag = (ListTag<CompoundTag>) compound.getAsListTag("sections").get();
-
-            Class<?> type = compound.getValue().get("yPos").getValue().getClass();
-
-            if (type == Byte.class) {
-                minSectionY = compound.getByteValue("yPos").orElseThrow();
-            } else {
-                minSectionY = compound.getIntValue("yPos").orElseThrow();
-            }
-
-            maxSectionY = sectionsTag.getValue().stream().map(c -> c.getByteValue("Y").orElseThrow()).max(Byte::compareTo).orElse((byte) 0) + 1; // Add 1 to the section, as we serialize it with the 1 added.
-        }
+        int minSectionY = compound.getInt("yPos");
+        // TODO - look into this +1 below
+        int maxSectionY = sectionsTag.stream().map(tag -> ((CompoundBinaryTag) tag).getByte("Y")).max(Byte::compareTo).orElse((byte) 0) + 1; // Add 1 to the section, as we serialize it with the 1 added.
 
         SlimeChunkSection[] sectionArray = new SlimeChunkSection[maxSectionY - minSectionY];
 
-        for (CompoundTag sectionTag : sectionsTag.getValue()) {
-            int index = sectionTag.getByteValue("Y").get();
+        for (final BinaryTag rawRag : sectionsTag) {
+            final CompoundBinaryTag sectionTag = (CompoundBinaryTag) rawRag;
+            int index = sectionTag.getByte("Y");
 
-            if (worldVersion < V1_17_1 && index < 0) {
-                // For some reason MC 1.14 worlds contain an empty section with Y = -1, however 1.17+ worlds can use these sections
-                continue;
-            }
+            CompoundBinaryTag blockStatesTag = sectionTag.getCompound("block_states");
+            CompoundBinaryTag biomesTag = sectionTag.getCompound("biomes");
 
-            ListTag<CompoundTag> paletteTag = null;
-            long[] blockStatesArray = null;
+            // TODO - actually, the section is empty if the block_states palette only contains air so uh... yeah xD fix this :P
+            // NB - maybe consider an import flag to respect the original biome even if its an empty section, or just strip and replace with the world default
+            if (blockStatesTag.size() == 0 && biomesTag.size() == 0) continue; // Empty section
 
-            CompoundTag blockStatesTag = null;
-            CompoundTag biomeTag = null;
-            if (worldVersion < V1_19_2) {
-                paletteTag = (ListTag<CompoundTag>) sectionTag.getAsListTag("Palette").orElse(null);
-                blockStatesArray = sectionTag.getLongArrayValue("BlockStates").orElse(null);
+            NibbleArray blockLightArray = applyByteArrayOrNull(sectionTag, "BlockLight", NibbleArray::new);
+            NibbleArray skyLightArray = applyByteArrayOrNull(sectionTag, "SkyLight", NibbleArray::new);
 
-                if (paletteTag == null || blockStatesArray == null || isEmpty(blockStatesArray)) { // Skip it
-                    continue;
-                }
-            } else {
-                if (!sectionTag.getAsCompoundTag("block_states").isPresent() && !sectionTag.getAsCompoundTag("biomes").isPresent()) {
-                    continue; // empty section
-                }
-                blockStatesTag = sectionTag.getAsCompoundTag("block_states").orElseThrow();
-                biomeTag = sectionTag.getAsCompoundTag("biomes").orElseThrow();
-            }
-
-            NibbleArray blockLightArray = sectionTag.getValue().containsKey("BlockLight") ? new NibbleArray(sectionTag.getByteArrayValue("BlockLight").get()) : null;
-            NibbleArray skyLightArray = sectionTag.getValue().containsKey("SkyLight") ? new NibbleArray(sectionTag.getByteArrayValue("SkyLight").get()) : null;
-
-            // There is no need to do any custom processing here.
-            sectionArray[index - minSectionY] = new com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton(/*paletteTag, blockStatesArray,*/ blockStatesTag, biomeTag, blockLightArray, skyLightArray);
+            sectionArray[index - minSectionY] = new SlimeChunkSectionSkeleton(blockStatesTag, biomesTag, blockLightArray, skyLightArray);
         }
 
-        CompoundTag extraTag = new CompoundTag("", new CompoundMap());
-        compound.getAsCompoundTag("ChunkBukkitValues").ifPresent(chunkBukkitValues -> extraTag.getValue().put(chunkBukkitValues));
+        CompoundBinaryTag.Builder extraTagBuilder = CompoundBinaryTag.builder();
+        CompoundBinaryTag chunkBukkitValues = compound.getCompound("ChunkBukkitValues");
+        if (chunkBukkitValues.size() > 0) extraTagBuilder.put("ChunkBukkitValues", chunkBukkitValues);
+        CompoundBinaryTag extraTag = extraTagBuilder.build();
 
-        for (SlimeChunkSection section : sectionArray) {
-            if (section != null) { // Chunk isn't empty
-                return new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMapsCompound, tileEntities, entities, extraTag, null);
-            }
-        }
-
-        // Chunk is empty
-        return null;
+        // Find first non-null chunk section. If all sections are null, chunk is empty so return null
+        return Arrays.stream(sectionArray)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null))
+                .orElse(null);
     }
 
-    private static int[] toIntArray(byte[] buf) {
-        ByteBuffer buffer = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN);
-        int[] ret = new int[buf.length / 4];
-
-        buffer.asIntBuffer().get(ret);
-
-        return ret;
+    private static <T> T applyByteArrayOrNull(final CompoundBinaryTag tag, final String key, final Function<byte[], T> transform) {
+        byte[] res = tag.getByteArray(key);
+        return res.length == 0 ? null : transform.apply(res);
     }
 
-    private static boolean isEmpty(byte[] array) {
-        for (byte b : array) {
-            if (b != 0) {
-                return false;
-            }
-        }
+    private record ChunkEntry(int offset, int paddedSize) {}
 
-        return true;
-    }
+    private record LevelData(int version, int x, int y, int z) {}
 
-    private static boolean isEmpty(long[] array) {
-        for (long b : array) {
-            if (b != 0L) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    private record ChunkEntry(int offset, int paddedSize) {
-
-    }
-
-    private record LevelData(int version, int x, int y, int z) {
-    }
 }

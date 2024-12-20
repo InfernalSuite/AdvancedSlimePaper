@@ -1,18 +1,18 @@
 package com.infernalsuite.asp.skeleton;
 
-import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.Nullable;
 
-public record SlimeChunkSectionSkeleton(CompoundTag blockStates, CompoundTag biome, NibbleArray block, NibbleArray light) implements SlimeChunkSection {
+public record SlimeChunkSectionSkeleton(CompoundBinaryTag blockStates, CompoundBinaryTag biome, NibbleArray block, NibbleArray light) implements SlimeChunkSection {
     @Override
-    public CompoundTag getBlockStatesTag() {
+    public CompoundBinaryTag getBlockStatesTag() {
         return this.blockStates;
     }
 
     @Override
-    public CompoundTag getBiomeTag() {
+    public CompoundBinaryTag getBiomeTag() {
         return this.biome;
     }
 

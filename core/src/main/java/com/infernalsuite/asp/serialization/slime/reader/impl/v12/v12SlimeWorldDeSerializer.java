@@ -1,9 +1,5 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v12;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.CorruptedWorldException;
@@ -17,14 +13,19 @@ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.BinaryTagIO;
+import net.kyori.adventure.nbt.BinaryTagTypes;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.ByteOrder;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serialization.slime.reader.VersionedByteSlimeWorldReader<com.infernalsuite.asp.api.world.SlimeWorld> {
 
@@ -38,19 +39,19 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         Long2ObjectMap<SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
 
         byte[] extraTagBytes = readCompressed(dataStream);
-        CompoundTag extraTag = readCompound(extraTagBytes);
+        CompoundBinaryTag extraTag = readCompound(extraTagBytes);
+
+        ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
+        if (extraTag != null) extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
         SlimePropertyMap worldPropertyMap = propertyMap;
-        Optional<CompoundMap> propertiesMap = extraTag
-                .getAsCompoundTag("properties")
-                .map(CompoundTag::getValue);
-
-        if (propertiesMap.isPresent()) {
-            worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
+        if (extraData.containsKey("properties")) {
+            CompoundBinaryTag serializedSlimeProperties = (CompoundBinaryTag) extraData.get("properties");
+            worldPropertyMap = SlimePropertyMap.fromCompound(serializedSlimeProperties);
             worldPropertyMap.merge(propertyMap);
         }
 
-        return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraTag, worldPropertyMap, worldVersion);
+        return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraData, worldPropertyMap, worldVersion);
     }
 
     private static Long2ObjectMap<SlimeChunk> readChunks(SlimePropertyMap slimePropertyMap, byte[] chunkBytes) throws IOException {
@@ -93,12 +94,12 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
                 // Block Data
                 byte[] blockStateData = new byte[chunkData.readInt()];
                 chunkData.read(blockStateData);
-                CompoundTag blockStateTag = readCompound(blockStateData);
+                CompoundBinaryTag blockStateTag = readCompound(blockStateData);
 
                 // Biome Data
                 byte[] biomeData = new byte[chunkData.readInt()];
                 chunkData.read(biomeData);
-                CompoundTag biomeTag = readCompound(biomeData);
+                CompoundBinaryTag biomeTag = readCompound(biomeData);
 
                 chunkSections[sectionId] = new com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton(blockStateTag, biomeTag, blockLightArray, skyLightArray);
             }
@@ -106,36 +107,43 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             // HeightMaps
             byte[] heightMapData = new byte[chunkData.readInt()];
             chunkData.read(heightMapData);
-            CompoundTag heightMaps = readCompound(heightMapData);
+            CompoundBinaryTag heightMaps = readCompound(heightMapData);
 
             // Tile Entities
 
-            byte[] tileEntities = read(chunkData);
-
-            CompoundTag tileEntitiesCompound = readCompound(tileEntities);
-            @SuppressWarnings("unchecked")
-            List<CompoundTag> serializedTileEntities = ((ListTag<CompoundTag>) tileEntitiesCompound.getValue().get("tileEntities")).getValue();
+            byte[] tileEntitiesRaw = read(chunkData);
+            List<CompoundBinaryTag> tileEntities;
+            CompoundBinaryTag tileEntitiesCompound = readCompound(tileEntitiesRaw);
+            if (tileEntitiesCompound == null) {
+                tileEntities = Collections.emptyList();
+            } else {
+                tileEntities = tileEntitiesCompound.getList("tileEntities", BinaryTagTypes.COMPOUND).stream()
+                        .map(tag -> (CompoundBinaryTag) tag)
+                        .toList();
+            }
 
             // Entities
 
-            byte[] entities = read(chunkData);
-
-            CompoundTag entitiesCompound = readCompound(entities);
-            @SuppressWarnings("unchecked")
-            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
-
+            byte[] entitiesRaw = read(chunkData);
+            List<CompoundBinaryTag> entities;
+            CompoundBinaryTag entitiesCompound = readCompound(entitiesRaw);
+            if (entitiesCompound == null) {
+                entities = Collections.emptyList();
+            } else {
+                entities = entitiesCompound.getList("entities", BinaryTagTypes.COMPOUND).stream()
+                        .map(tag -> (CompoundBinaryTag) tag)
+                        .toList();
+            }
 
             // Extra Tag
             byte[] rawExtra = read(chunkData);
-            CompoundTag extra = readCompound(rawExtra);
+            CompoundBinaryTag extra = readCompound(rawExtra);
             // If the extra tag is empty, the serializer will save it as null.
             // So if we deserialize a null extra tag, we will assume it was empty.
-            if (extra == null) {
-                extra = new CompoundTag("", new CompoundMap());
-            }
+            if (extra == null) extra = CompoundBinaryTag.empty();
 
             chunkMap.put(Util.chunkPosition(x, z),
-                    new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSections, heightMaps, serializedTileEntities, serializedEntities, extra, null));
+                    new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extra, null));
         }
         return chunkMap;
     }
@@ -157,12 +165,9 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         return data;
     }
 
-    private static CompoundTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) {
-            return null;
-        }
+    private static CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
+        if (tagBytes.length == 0) return null;
 
-        NBTInputStream nbtStream = new NBTInputStream(new ByteArrayInputStream(tagBytes), NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
-        return (CompoundTag) nbtStream.readTag();
+        return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
     }
 }

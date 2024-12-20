@@ -1,13 +1,16 @@
 package com.infernalsuite.asp.api.world;
 
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-import com.flowpowered.nbt.CompoundTag;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.bukkit.persistence.PersistentDataHolder;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * In-memory representation of a SRF world.
@@ -42,21 +45,25 @@ public interface SlimeWorld extends PersistentDataHolder {
      Collection<SlimeChunk> getChunkStorage();
 
     /**
-     * Returns the extra data of the world. Inside this {@link CompoundTag}
-     * can be stored any information to then be retrieved later, as it's
-     * saved alongside the world data.
+     * Extra data to be stored alongside the world.
      *
-     * @return A {@link CompoundTag} containing the extra data of the world.
+     * <p>Any information can be stored inside this map, it will be serialized into a {@link CompoundBinaryTag}
+     * and stored alongside the world data so it can then be retrieved later.</p>
+     *
+     * @apiNote There is a maximum limit of 512 nested tags
+     * @implSpec The returned map must be an implementation of {@link ConcurrentMap} to avoid CMEs, etc.
+     *
+     * @return A Map containing the extra data of the world.
      */
-    CompoundTag getExtraData();
+    ConcurrentMap<String, BinaryTag> getExtraData();
 
     /**
      * Returns a {@link Collection} with every world map, serialized
-     * in a {@link CompoundTag} object.
+     * in a {@link CompoundBinaryTag} object.
      *
      * @return A {@link Collection} containing every world map.
      */
-    Collection<CompoundTag> getWorldMaps();
+    Collection<CompoundBinaryTag> getWorldMaps();
 
     /**
      * Returns the property map.

@@ -1,21 +1,24 @@
 package com.infernalsuite.asp.api.world.properties;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A Property Map object.
  */
 public class SlimePropertyMap {
 
-    private final CompoundMap properties;
-
-    public SlimePropertyMap(CompoundMap compoundMap) {
-        this.properties = compoundMap;
-    }
+    private final Map<String, BinaryTag> properties;
 
     public SlimePropertyMap() {
-        this(new CompoundMap());
+        this(new HashMap<>());
+    }
+
+    public SlimePropertyMap(final Map<String, BinaryTag> properties) {
+        this.properties = properties;
     }
 
     /**
@@ -24,9 +27,9 @@ public class SlimePropertyMap {
      * @param property The slime property
      * @return The current value
      */
-    public <T> T getValue(SlimeProperty<T> property) {
-        if (properties.containsKey(property.getNbtName())) {
-            return property.readValue(properties.get(property.getNbtName()));
+    public <T, Z extends BinaryTag> T getValue(final SlimeProperty<T, Z> property) {
+        if (this.properties.containsKey(property.getKey())) {
+            return property.readValue(property.cast(this.properties.get(property.getKey())));
         } else {
             return property.getDefaultValue();
         }
@@ -37,7 +40,7 @@ public class SlimePropertyMap {
      *
      * @return The properties
      */
-    public CompoundMap getProperties() {
+    public Map<String, BinaryTag> getProperties() {
         return this.properties;
     }
 
@@ -48,44 +51,45 @@ public class SlimePropertyMap {
      * @param value    The new value
      * @throws IllegalArgumentException if the value fails validation.
      */
-    public <T> void setValue(SlimeProperty<T> property, T value) {
-        if (property.getValidator() != null && !property.getValidator().apply(value)) {
-            throw new IllegalArgumentException("'" + value + "' is not a valid property value.");
-        }
-
-        property.writeValue(properties, value);
+    public <T, Z extends BinaryTag> void setValue(final SlimeProperty<T, Z> property, final T value) {
+        if (!property.applyValidator(value)) throw new IllegalArgumentException("'%s' is not a valid property value.".formatted(value));
+        this.properties.put(property.getKey(), property.createTag(value));
     }
 
     /**
      * Copies all values from the specified {@link SlimePropertyMap}.
      * If the same property has different values on both maps, the one
-     * on the providen map will be used.
+     * on the provided map will be used.
      *
-     * @param propertyMap A {@link SlimePropertyMap}.
+     * @param other A {@link SlimePropertyMap}.
      */
-    public void merge(SlimePropertyMap propertyMap) {
-        properties.putAll(propertyMap.properties);
+    public void merge(final SlimePropertyMap other) {
+        this.properties.putAll(other.properties);
     }
 
     /**
-     * Returns a {@link CompoundTag} containing every property set in this map.
+     * Returns a {@link CompoundBinaryTag} containing every property set in this map.
      *
-     * @return A {@link CompoundTag} with all the properties stored in this map.
+     * @return A {@link CompoundBinaryTag} with all the properties stored in this map.
      */
-    public CompoundTag toCompound() {
-        return new CompoundTag("properties", properties);
+    public CompoundBinaryTag toCompound() {
+        return CompoundBinaryTag.builder().put(this.properties).build();
     }
 
-    public static SlimePropertyMap fromCompound(CompoundTag compound) {
-        return new SlimePropertyMap(compound.getValue());
+    public static SlimePropertyMap fromCompound(final CompoundBinaryTag tag) {
+        final Map<String, BinaryTag> tags = new HashMap<>(tag.size());
+        tag.forEach(entry -> tags.put(entry.getKey(), entry.getValue()));
+        return new SlimePropertyMap(tags);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public SlimePropertyMap clone() {
-        return new SlimePropertyMap(new CompoundMap(this.properties));
+        return new SlimePropertyMap(new HashMap<>(this.properties));
     }
 
     @Override
     public String toString() {
-        return "SlimePropertyMap" + properties;
+        return "SlimePropertyMap{" + properties + '}';
     }
+
 }
