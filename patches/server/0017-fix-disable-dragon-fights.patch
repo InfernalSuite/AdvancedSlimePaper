@@ -5,7 +5,7 @@ Subject: [PATCH] fix disable dragon fights
 
 
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 7eb21e0c8fc4103a4eb656bd1d81ae10e7ee9dc4..fecee66cf0ab3fe820273a6850c9d2f6c51501b6 100644
+index 18fe62b5f6f90099d321ad381a941d8e3bd1ea66..4e0550e917bc9110a87f92e75d6a2f31408386fc 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
 @@ -2,6 +2,7 @@ package net.minecraft.server.level;
@@ -16,7 +16,7 @@ index 7eb21e0c8fc4103a4eb656bd1d81ae10e7ee9dc4..fecee66cf0ab3fe820273a6850c9d2f6
  import com.mojang.datafixers.DataFixer;
  import com.mojang.datafixers.util.Pair;
  import com.mojang.logging.LogUtils;
-@@ -662,7 +663,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -663,7 +664,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), minecraftserver.getStructureManager(), this.getTypeKey(), chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), l, datafixer); // Paper - Fix missing CB diff
          this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
          if ((this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END

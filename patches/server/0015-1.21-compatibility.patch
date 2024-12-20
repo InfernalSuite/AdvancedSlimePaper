@@ -249,7 +249,7 @@ index d6e5eac7732f32cabd6ed5ac6b10af20074a39b8..33af1d7e671c5aeb06482038e205efc8
      @Override
      public void setDefaultSpawnPos(BlockPos pos, float angle) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
-index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81dc02a4761 100644
+index 97937e3bd211997f0a0a3e9e671a1c59712d0003..7154f6050b01c234e00fab22f5e5f1d6a944500a 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -1,5 +1,7 @@
@@ -260,7 +260,7 @@ index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81d
  import com.google.common.collect.ImmutableList;
  import com.google.common.collect.Maps;
  import com.google.common.collect.UnmodifiableIterator;
-@@ -23,6 +25,7 @@ import net.minecraft.core.registries.Registries;
+@@ -24,6 +26,7 @@ import net.minecraft.core.registries.Registries;
  import net.minecraft.nbt.CompoundTag;
  import net.minecraft.network.FriendlyByteBuf;
  import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
@@ -268,7 +268,7 @@ index 4640baec5bed6c2d53cc0f8ca1d273cc115abe9b..589cb65f79bb05ee8c44b526c707e81d
  import net.minecraft.server.level.FullChunkStatus;
  import net.minecraft.server.level.ServerLevel;
  import net.minecraft.util.profiling.Profiler;
-@@ -322,6 +325,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
+@@ -327,6 +330,12 @@ public class LevelChunk extends ChunkAccess implements ca.spottedleaf.moonrise.p
          }
      }
  

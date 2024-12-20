@@ -5,7 +5,7 @@ Subject: [PATCH] Compile fixes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index b5b5c099e61f828edbcd18aba9d379a6e45fb8b4..838639a8bbeb59700037c3e101714f68f8b79671 100644
+index f0bfc068301c4a908a5856b7c72e7306adeeb38d..e6414d33e65233836db36040206c32a16b4d10ca 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -29,9 +29,6 @@ dependencies {
@@ -16,8 +16,8 @@ index b5b5c099e61f828edbcd18aba9d379a6e45fb8b4..838639a8bbeb59700037c3e101714f68
 -        exclude("io.papermc.paper", "paper-api")
 -    }
      // ASWM end
+     implementation("ca.spottedleaf:concurrentutil:0.0.2") // Paper - Add ConcurrentUtil dependency
      // Paper start
-     implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java
 index 4c627f8af92f29d9ba50745812acc83726a85683..6972d6399628eda41756a98fb54fbe93eb827716 100644
 --- a/src/main/java/com/infernalsuite/asp/level/NMSSlimeChunk.java

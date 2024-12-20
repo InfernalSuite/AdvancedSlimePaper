@@ -6,7 +6,7 @@ Subject: [PATCH] Build Changes
 Update shadow plugin
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..b5b5c099e61f828edbcd18aba9d379a6e45fb8b4 100644
+index 2da91ed6363c0851e4c459188f5e8ef5475e0c97..f0bfc068301c4a908a5856b7c72e7306adeeb38d 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -4,6 +4,7 @@ import java.time.Instant
@@ -29,10 +29,10 @@ index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..b5b5c099e61f828edbcd18aba9d379a6
 +        exclude("io.papermc.paper", "paper-api")
 +    }
 +    // ASWM end
+     implementation("ca.spottedleaf:concurrentutil:0.0.2") // Paper - Add ConcurrentUtil dependency
      // Paper start
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
-     implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
-@@ -99,14 +106,14 @@ tasks.jar {
+@@ -100,14 +107,14 @@ tasks.jar {
          val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim() // Paper
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
@@ -52,17 +52,17 @@ index faf3e3fd72e8c915e7a4803dacbe1bb576c6663e..b5b5c099e61f828edbcd18aba9d379a6
              "Build-Number" to (build ?: ""),
              "Build-Time" to Instant.now().toString(),
              "Git-Branch" to gitBranch, // Paper
-@@ -172,7 +179,7 @@ fun TaskContainer.registerRunTask(
+@@ -173,7 +180,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
 -    group = "paper"
-+    group = "slimeworldmanager"
++    group = "asp"
      mainClass.set("org.bukkit.craftbukkit.Main")
      standardInput = System.`in`
      workingDir = rootProject.layout.projectDirectory
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
-index b3c993a790fc3fab6a408c731deb297f74c959ce..0bbd557602932b67212b8951ef769bbce70c5477 100644
+index d21ce54ebb5724c04eadf56a2cde701d5eeb5db2..d0a2d1d8dd41980b95303add867ca906dd089af6 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
 @@ -42,7 +42,7 @@ public final class ChunkEntitySlices {
@@ -70,12 +70,12 @@ index b3c993a790fc3fab6a408c731deb297f74c959ce..0bbd557602932b67212b8951ef769bbc
      private final Reference2ObjectOpenHashMap<Class<? extends Entity>, EntityCollectionBySection> entitiesByClass;
      private final Reference2ObjectOpenHashMap<EntityType<?>, EntityCollectionBySection> entitiesByType;
 -    private final EntityList entities = new EntityList();
-+    public final EntityList entities = new EntityList(); //ASWM
++    public final EntityList entities = new EntityList(); // ASP - private -> public
  
      public FullChunkStatus status;
      public final ChunkData chunkData;
 diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
-index 91a6f57f35fc1553159cca138a0619e703b2b014..0474325958293ea36bae0e44849e95a2fde819b8 100644
+index 3990834a41116682d6ae779a3bf24b0fd989d97d..2bc81d274769ed5bb33f94889e0cab0f37fa01a5 100644
 --- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 +++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
 @@ -185,7 +185,8 @@ public final class ChunkHolderManager {
@@ -2062,7 +2062,7 @@ index 790bad0494454ca12ee152e3de6da3da634d9b20..2d6b062c4a3cf682d8e4cdbb7b7c84a7
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 4158473fd553a16fec23bcbcf9a278d413120600..e49e329b4713fefb153b64aee35f5e2c9eaa51a4 100644
+index ae4ebf509837e8d44255781c61d02873f8b74be8..876be700dea01f8361c37cff8e17f9140ff8ba26 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -288,7 +288,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -2074,7 +2074,7 @@ index 4158473fd553a16fec23bcbcf9a278d413120600..e49e329b4713fefb153b64aee35f5e2c
      private final CustomBossEvents customBossEvents;
      private final ServerFunctionManager functionManager;
      private boolean enforceWhitelist;
-@@ -560,51 +560,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -561,51 +561,66 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (dimensionKey == LevelStem.NETHER) {
                  if (this.server.getAllowNether()) {
                      dimension = -1;
@@ -2154,7 +2154,7 @@ index 4158473fd553a16fec23bcbcf9a278d413120600..e49e329b4713fefb153b64aee35f5e2c
                          MinecraftServer.LOGGER.warn("Could not create path for " + newWorld + "!");
                          MinecraftServer.LOGGER.info("---- Migration of old " + worldType + " folder failed ----");
                      }
-@@ -612,7 +627,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -613,7 +628,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
                  try {
                      worldSession = LevelStorageSource.createDefault(this.server.getWorldContainer().toPath()).validateAndCreateAccess(name, dimensionKey);
@@ -2164,10 +2164,10 @@ index 4158473fd553a16fec23bcbcf9a278d413120600..e49e329b4713fefb153b64aee35f5e2c
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/level/ServerChunkCache.java b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-index d021cd5b6136f0125076513977f430c6d4dd4f9f..19e9f7888c37590eaffe2af7df4695da42007759 100644
+index 1c87904bb99cc40bafc9357fb2fc1703b759c3df..345347c2a58d9e04bbd989c19eb678935592eadd 100644
 --- a/src/main/java/net/minecraft/server/level/ServerChunkCache.java
 +++ b/src/main/java/net/minecraft/server/level/ServerChunkCache.java
-@@ -176,7 +176,11 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -183,7 +183,11 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
      // Paper end - chunk tick iteration optimisations
  
  
@@ -2181,10 +2181,10 @@ index d021cd5b6136f0125076513977f430c6d4dd4f9f..19e9f7888c37590eaffe2af7df4695da
          this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(world);
          this.mainThread = Thread.currentThread();
 diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
-index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10e7ee9dc4 100644
+index 1f898500d0e9b18a880645ceb0a8ff0fe75f4e48..18fe62b5f6f90099d321ad381a941d8e3bd1ea66 100644
 --- a/src/main/java/net/minecraft/server/level/ServerLevel.java
 +++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
-@@ -144,7 +144,6 @@ import net.minecraft.world.level.entity.EntityTickList;
+@@ -145,7 +145,6 @@ import net.minecraft.world.level.entity.EntityTickList;
  import net.minecraft.world.level.entity.EntityTypeTest;
  import net.minecraft.world.level.entity.LevelCallback;
  import net.minecraft.world.level.entity.LevelEntityGetter;
@@ -2192,7 +2192,7 @@ index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10
  import net.minecraft.world.level.gameevent.DynamicGameEventListener;
  import net.minecraft.world.level.gameevent.GameEvent;
  import net.minecraft.world.level.gameevent.GameEventDispatcher;
-@@ -595,8 +594,14 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -596,8 +595,14 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      }
      // Paper end - lag compensation
  
@@ -2208,7 +2208,7 @@ index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10
          super(iworlddataserver, resourcekey, minecraftserver.registryAccess(), worlddimension.type(), false, flag, i, minecraftserver.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> minecraftserver.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(convertable_conversionsession.levelDirectory.path(), iworlddataserver.getLevelName(), resourcekey.location(), spigotConfig, minecraftserver.registryAccess(), iworlddataserver.getGameRules())), executor); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
          this.pvpMode = minecraftserver.isPvpAllowed();
          this.convertable = convertable_conversionsession;
-@@ -623,6 +628,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -624,6 +629,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
              chunkgenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkgenerator, gen);
          }
          // CraftBukkit end
@@ -2221,7 +2221,7 @@ index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10
          boolean flag2 = minecraftserver.forceSynchronousWrites();
          DataFixer datafixer = minecraftserver.getFixerUpper();
          EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(new SimpleRegionStorage(new RegionStorageInfo(convertable_conversionsession.getLevelId(), resourcekey, "entities"), convertable_conversionsession.getDimensionPath(resourcekey).resolve("entities"), datafixer, flag2, DataFixTypes.ENTITY_CHUNK), this, minecraftserver);
-@@ -633,7 +644,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -634,7 +645,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          int k = this.spigotConfig.simulationDistance; // Spigot
          // Paper - rewrite chunk system
  
@@ -2230,7 +2230,7 @@ index 585e2b43a0326f0b81597fa1234d3c67c76af550..7eb21e0c8fc4103a4eb656bd1d81ae10
              return minecraftserver.overworld().getDataStorage();
          });
          this.chunkSource.getGeneratorState().ensureStructuresGenerated();
-@@ -692,6 +703,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -693,6 +704,12 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          this.dragonFight = enderDragonFight;
      }
  
