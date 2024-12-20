@@ -6,10 +6,7 @@ import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.utils.SlimeFormat;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.asp.serialization.slime.reader.impl.v11.v11WorldFormat;
 import com.infernalsuite.asp.serialization.slime.reader.impl.v12.v12WorldFormat;
-import com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9WorldFormat;
-import com.infernalsuite.asp.serialization.slime.reader.impl.v10.v10WorldFormat;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -23,9 +20,6 @@ public class SlimeWorldReaderRegistry {
     private static final Map<Byte, VersionedByteSlimeWorldReader<SlimeWorld>> FORMATS = new HashMap<>();
 
     static {
-        register(v1_9WorldFormat.FORMAT, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-        register(v10WorldFormat.FORMAT, 10);
-        register(v11WorldFormat.FORMAT, 11);
         register(v12WorldFormat.FORMAT, 12);
     }
 
