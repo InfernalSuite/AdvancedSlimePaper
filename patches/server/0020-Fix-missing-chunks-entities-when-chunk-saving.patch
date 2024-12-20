@@ -1,0 +1,132 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Thu, 5 Dec 2024 01:41:21 +0100
+Subject: [PATCH] Fix missing chunks & entities when chunk saving
+
+
+diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+index bc0990458df745c92e5bc0530ff35ab992365b3a..682f293396ef34fdc6a61314827dc34f504c7777 100644
+--- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
++++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+@@ -897,6 +897,13 @@ public final class NewChunkHolder {
+ 
+         final boolean shouldLevelChunkNotSave = PlatformHooks.get().forceNoSave(chunk);
+ 
++        // ASP start - Chunk unloading
++        if (world instanceof com.infernalsuite.aswm.level.SlimeLevelInstance slime && chunk instanceof LevelChunk levelChunk) {
++            //The custom entity slices need to be passed on for entities to be saved
++            slime.onChunkUnloaded(levelChunk, entityChunk);
++        }
++        // ASP end - Chunk unloading
++
+         // unload chunk data
+         if (chunk != null) {
+             if (chunk instanceof LevelChunk levelChunk) {
+diff --git a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+index cbcbbc8410b24daf685d74791ad80989d4830d7b..cdc4fd3a8767a3cb168ceb3088f4ae237fd9a11e 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
++++ b/src/main/java/com/infernalsuite/aswm/level/NMSSlimeChunk.java
+@@ -66,12 +66,19 @@ public class NMSSlimeChunk implements SlimeChunk {
+     private final CompoundTag extra;
+     private final CompoundTag upgradeData;
+ 
++    private final ChunkEntitySlices entitySlices;
++
+     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
++        this(chunk, reference, null);
++    }
++
++    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference, ChunkEntitySlices slices) {
+         this.chunk = chunk;
+         this.extra = new CompoundTag("", new CompoundMap());
+         extra.getValue().put(Converter.convertTag("ChunkBukkitValues", chunk.persistentDataContainer.toTagCompound()));
+ 
+         this.upgradeData = reference == null ? null : reference.getUpgradeData();
++        this.entitySlices = slices;
+     }
+ 
+     @Override
+@@ -168,11 +175,7 @@ public class NMSSlimeChunk implements SlimeChunk {
+     public List<CompoundTag> getEntities() {
+         List<net.minecraft.nbt.CompoundTag> entities = new ArrayList<>();
+ 
+-        if(this.chunk == null || this.chunk.getChunkHolder() == null) {
+-            return new ArrayList<>();
+-        }
+-
+-        ChunkEntitySlices slices = this.chunk.getChunkHolder().getEntityChunk();
++        ChunkEntitySlices slices = getEntitySlices();
+         if (slices == null) {
+             return new ArrayList<>();
+         }
+@@ -194,6 +197,18 @@ public class NMSSlimeChunk implements SlimeChunk {
+         });
+     }
+ 
++    private ChunkEntitySlices getEntitySlices() {
++        if (this.entitySlices != null) {
++            return entitySlices;
++        }
++
++        if (this.chunk == null || this.chunk.getChunkHolder() == null) {
++            return null;
++        }
++
++        return this.chunk.getChunkHolder().getEntityChunk();
++    }
++
+     @Override
+     public CompoundTag getExtraData() {
+         return extra;
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+index 2ebabf20c37d2b5c479de5bb241aa334f92a1104..866246838b6d6f23eacb1d9bad1c31cb2c1e76b0 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeChunkLevel.java
+@@ -19,12 +19,6 @@ public class SlimeChunkLevel extends LevelChunk {
+         this.inMemoryWorld = world.slimeInstance;
+     }
+ 
+-    @Override
+-    public void unloadCallback() {
+-        super.unloadCallback();
+-        this.inMemoryWorld.unload(this);
+-    }
+-
+     @Override
+     public void loadCallback() {
+         super.loadCallback();
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+index 770679851baba2ddb9f8f427f4cd80ea8b32122b..619ccbab1a5582af1d1ad69fb0c54e52ca84847d 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeInMemoryWorld.java
+@@ -104,11 +104,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
+ 
+     // Authored by: Kenox <muranelp@gmail.com>
+     // Don't use the NMS live chunk in the chunk map
+-    public void unload(LevelChunk providedChunk) {
++    public void unload(LevelChunk providedChunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entitySlices) {
+         final int x = providedChunk.locX;
+         final int z = providedChunk.locZ;
+ 
+-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
++        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z), entitySlices);
+ 
+         if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
+             this.chunkStorage.remove(Util.chunkPosition(x, z));
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index acb6ea84fbc40a6907edb237b834feeb66075af8..2821d953e8b01cadf171508ac0b8e1eda6201970 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -202,9 +202,7 @@ public class SlimeLevelInstance extends ServerLevel {
+         propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
+     }
+ 
+-    @Override
+-    public void unload(LevelChunk chunk) {
+-        this.slimeInstance.unload(chunk);
+-        super.unload(chunk);
++    public void onChunkUnloaded(LevelChunk chunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entityChunk) {
++        this.slimeInstance.unload(chunk, entityChunk);
+     }
+ }
+\ No newline at end of file

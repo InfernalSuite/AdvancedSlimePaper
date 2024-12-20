@@ -5,17 +5,17 @@ Subject: [PATCH] Separate plugin and server, rework API (to v3)
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 61cf2ec3d053f15b69dbc7865755b7a820f369c0..e361a0b6964908a21ebcd6f09a5accf91307b66a 100644
+index 22931927ac8c1fcdc45d44f8d4a898a44831039c..e10d95ce805d03fa43f526dc0a1a1123a67b4f0c 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -17,6 +17,7 @@ dependencies {
+@@ -29,6 +29,7 @@ dependencies {
      // ASWM start
      implementation(project(":slimeworldmanager-api"))
      implementation(project(":core"))
 +    implementation("commons-io:commons-io:2.11.0")
      // ASWM end
      // Paper start
-     implementation("org.jline:jline-terminal-jansi:3.21.0")
+     implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
 diff --git a/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java b/src/main/java/com/infernalsuite/aswm/AdvancedSlimePaper.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..719bfb548cfe69cbb726d95b68527bdf45f1eb52
@@ -706,7 +706,7 @@ index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e
      }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index c8b82bc41f2042bb4b067f06265a3a22e51f7629..de34afd3ad9858ea0d1ff9f03ff376e22852b953 100644
+index ac8af406180bc680d46e8edc3da0fc2e5211345a..4936c074ad73d92f3b5ed6463126abb5017e221c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
@@ -717,7 +717,7 @@ index c8b82bc41f2042bb4b067f06265a3a22e51f7629..de34afd3ad9858ea0d1ff9f03ff376e2
  import com.mojang.authlib.GameProfile;
  import com.mojang.brigadier.StringReader;
  import com.mojang.brigadier.exceptions.CommandSyntaxException;
-@@ -1471,6 +1472,8 @@ public final class CraftServer implements Server {
+@@ -1487,6 +1488,8 @@ public final class CraftServer implements Server {
              return false;
          }
  

@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TechStreet <80351782+TechStreetDev@users.noreply.github.com>
+Date: Mon, 26 Aug 2024 21:27:08 +0100
+Subject: [PATCH] Fix chunk saving when unloading
+
+
+diff --git a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+index 187336ecaa4262e3f081a88702031b17c6037091..6a5a8fbd8ee013828685495267283d9518d32d20 100644
+--- a/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
++++ b/src/main/java/com/infernalsuite/aswm/level/SlimeLevelInstance.java
+@@ -25,6 +25,7 @@ import net.minecraft.world.Difficulty;
+ import net.minecraft.world.level.biome.Biome;
+ import net.minecraft.world.level.chunk.ChunkAccess;
+ import net.minecraft.world.level.chunk.ChunkGenerator;
++import net.minecraft.world.level.chunk.LevelChunk;
+ import net.minecraft.world.level.dimension.LevelStem;
+ import net.minecraft.world.level.storage.LevelStorageSource;
+ import net.minecraft.world.level.storage.PrimaryLevelData;
+@@ -200,9 +201,9 @@ public class SlimeLevelInstance extends ServerLevel {
+         propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
+     }
+ 
+-    //    @Override
+-    //    public void unload(LevelChunk chunk) {
+-    //        this.slimeInstance.unload(chunk);
+-    //        super.unload(chunk);
+-    //    }
++    @Override
++    public void unload(LevelChunk chunk) {
++        this.slimeInstance.unload(chunk);
++        super.unload(chunk);
++    }
+ }
+\ No newline at end of file

@@ -5,7 +5,7 @@ Subject: [PATCH] Slime World Manager
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index fd39ed209b20c927054b8482c400beeeeab460a3..9e413e83f422bba611adb8855b8700be68097006 100644
+index e29e5024fa693baae469d47fe77b57118f14627c..4da167f928789c1b5d55da2749a94e44912492ad 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -1,3 +1,5 @@
@@ -14,7 +14,7 @@ index fd39ed209b20c927054b8482c400beeeeab460a3..9e413e83f422bba611adb8855b8700be
  plugins {
      `java-library`
      `maven-publish`
-@@ -29,6 +31,7 @@ configurations.api {
+@@ -41,6 +43,7 @@ abstract class MockitoAgentProvider : CommandLineArgumentProvider {
  dependencies {
      api("com.mojang:brigadier:1.2.9") // Paper - Brigadier command api
      // api dependencies are listed transitively to API consumers
@@ -23,10 +23,10 @@ index fd39ed209b20c927054b8482c400beeeeab460a3..9e413e83f422bba611adb8855b8700be
      api("com.google.code.gson:gson:2.10.1")
      // Paper start - adventure
 diff --git a/src/main/java/io/papermc/paper/ServerBuildInfo.java b/src/main/java/io/papermc/paper/ServerBuildInfo.java
-index 9df9d09aa477d4cd3c496ba0933c816df1ef0964..316d5e4478dfc3ae5ce11b20de7baeab016a11f4 100644
+index 652ff54e7c50412503725d628bfe72ed03059790..9c5118e6193b0e9852ef6b52cb4ae92ded1ba464 100644
 --- a/src/main/java/io/papermc/paper/ServerBuildInfo.java
 +++ b/src/main/java/io/papermc/paper/ServerBuildInfo.java
-@@ -18,6 +18,11 @@ public interface ServerBuildInfo {
+@@ -19,6 +19,11 @@ public interface ServerBuildInfo {
       */
      Key BRAND_PAPER_ID = Key.key("papermc", "paper");
  
