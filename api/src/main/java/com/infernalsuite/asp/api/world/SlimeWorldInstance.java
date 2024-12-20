@@ -1,8 +1,10 @@
 package com.infernalsuite.asp.api.world;
 
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.BinaryTag;
 import org.bukkit.World;
+
+import java.util.concurrent.ConcurrentMap;
 
 public interface SlimeWorldInstance {
 
@@ -18,6 +20,6 @@ public interface SlimeWorldInstance {
 
     SlimeLoader getLoader();
 
-    CompoundBinaryTag getExtraData();
+    ConcurrentMap<String, BinaryTag> getExtraData();
 
 }
