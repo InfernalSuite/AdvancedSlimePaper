@@ -5,7 +5,6 @@ pluginManagement {
         gradlePluginPortal()
         maven("https://repo.papermc.io/repository/maven-public/")
     }
-    includeBuild("gradle/build-logic")
 }
 
 plugins {
