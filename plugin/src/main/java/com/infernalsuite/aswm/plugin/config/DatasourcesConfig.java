@@ -17,6 +17,8 @@ public class DatasourcesConfig {
 
     @Setting("api")
     private APIConfig apiConfig = new APIConfig();
+    @Setting("dynamodb")
+    private DynamoDbConfig dynamoDbConfig = new DynamoDbConfig();
 
     @ConfigSerializable
     public static class MysqlConfig {
@@ -272,6 +274,36 @@ public class DatasourcesConfig {
         }
     }
 
+    @ConfigSerializable
+    public static class DynamoDbConfig {
+        @Setting("enabled")
+        private boolean enabled = false;
+        @Setting("tableName")
+        private String tableName = "slimeworldmanager";
+        @Setting("awsRegion")
+        private String awsRegion = "us-east-1";
+        @Setting("awsAccessKeyId")
+        private String awsAccessKeyId = "";
+        @Setting("awsSecretAccessKey")
+        private String awsSecretAccessKey = "";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+        public String getTableName() {
+            return tableName;
+        }
+        public String getAwsRegion() {
+            return awsRegion;
+        }
+        public String getAwsAccessKeyId() {
+            return awsAccessKeyId;
+        }
+        public String getAwsSecretAccessKey() {
+            return awsSecretAccessKey;
+        }
+    }
+
     public FileConfig getFileConfig() {
         return fileConfig;
     }
@@ -306,6 +338,10 @@ public class DatasourcesConfig {
 
     public APIConfig getApiConfig() {
         return apiConfig;
+    }
+
+    public DynamoDbConfig getDynamoDbConfig() {
+        return dynamoDbConfig;
     }
 
     public void setApiConfig(APIConfig apiConfig) {

@@ -1,5 +1,6 @@
 package com.infernalsuite.aswm.plugin.loader;
 
+import com.infernalsuite.aswm.loaders.dynamodb.DynamoDbLoader;
 import com.infernalsuite.aswm.plugin.config.ConfigManager;
 import com.infernalsuite.aswm.plugin.config.DatasourcesConfig;
 import com.infernalsuite.aswm.api.loaders.SlimeLoader;
@@ -84,6 +85,17 @@ public class LoaderManager {
                     apiConfig.getUsername(),
                     apiConfig.getToken(),
                     apiConfig.isIgnoreSslCertificate()
+            ));
+        }
+
+        // DynamoDbLoader
+        DatasourcesConfig.DynamoDbConfig dynamoDbConfig = config.getDynamoDbConfig();
+        if (dynamoDbConfig.isEnabled()) {
+            registerLoader("dynamodb", new DynamoDbLoader(
+                    dynamoDbConfig.getTableName(),
+                    dynamoDbConfig.getAwsRegion(),
+                    dynamoDbConfig.getAwsAccessKeyId(),
+                    dynamoDbConfig.getAwsSecretAccessKey()
             ));
         }
     }
