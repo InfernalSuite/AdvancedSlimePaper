@@ -64,13 +64,6 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
     }
 
     protected ChunkAccess runOnMain(final SlimeChunk data) {
-        final PoiChunk poiChunk = this.chunkLoadTask.chunkHolder.getPoiChunk();
-        if (poiChunk == null) {
-            LOGGER.error("Expected poi chunk to be loaded with chunk for task " + this.toString());
-        } else {
-            poiChunk.load();
-        }
-
         // have tasks to run (at this point, it's just the POI consistency checking)
         try {
             //                if (data.tasks != null) {
