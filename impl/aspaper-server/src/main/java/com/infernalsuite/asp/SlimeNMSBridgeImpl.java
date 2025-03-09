@@ -208,7 +208,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
             default -> throw new IllegalArgumentException("Unknown dimension supplied");
         };
 
-        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, new ResourceLocation(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
+        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
         LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().registryOrThrow(Registries.LEVEL_STEM).get(dimension);
 
         SlimeLevelInstance level;

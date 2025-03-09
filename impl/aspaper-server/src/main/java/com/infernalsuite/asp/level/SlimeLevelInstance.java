@@ -1,6 +1,9 @@
 package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
@@ -9,9 +12,7 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-import io.papermc.paper.chunk.system.scheduling.ChunkLoadTask;
-import io.papermc.paper.chunk.system.scheduling.ChunkTaskScheduler;
-import io.papermc.paper.chunk.system.scheduling.GenericDataLoadTask;
+import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -106,7 +107,7 @@ public class SlimeLevelInstance extends ServerLevel {
     @Override
     public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
-        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, new ResourceLocation(biomeStr));
+        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeKey).orElseThrow();
         return new SlimeLevelGenerator(defaultBiome);
     }
@@ -144,12 +145,13 @@ public class SlimeLevelInstance extends ServerLevel {
         return CompletableFuture.completedFuture(null);
     }
 
+    /*
     @Override
     public void saveIncrementally(boolean doFull) {
         if (doFull) {
             this.save(null, false, false);
         }
-    }
+    }*/ // Most likely unused - kyngs
 
     private Future<?> saveInternal() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
@@ -180,6 +182,7 @@ public class SlimeLevelInstance extends ServerLevel {
         return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
     }
 
+    /*
     public void loadEntities(int chunkX, int chunkZ) {
         SlimeChunk slimeChunk = this.slimeInstance.getChunk(chunkX, chunkZ);
         if (slimeChunk != null) {
@@ -191,7 +194,7 @@ public class SlimeLevelInstance extends ServerLevel {
                             .toList()
             ), new ChunkPos(chunkX, chunkZ));
         }
-    }
+    }*/ // Most likely unused - kyngs
 
     @Override
     public void setDefaultSpawnPos(BlockPos pos, float angle) {

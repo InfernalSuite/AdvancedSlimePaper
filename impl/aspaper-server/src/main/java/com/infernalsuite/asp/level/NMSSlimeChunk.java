@@ -8,7 +8,7 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
-import io.papermc.paper.world.ChunkEntitySlices;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.LongArrayBinaryTag;
 import net.minecraft.core.Holder;

@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.level;
 
-import ca.spottedleaf.starlight.common.light.SWMRNibbleArray;
+import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
+import ca.spottedleaf.moonrise.patches.starlight.light.StarLightEngine;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
@@ -13,8 +14,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -26,6 +25,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluid;
@@ -46,8 +46,8 @@ public class SlimeChunkConverter {
         // Chunk sections
         LevelChunkSection[] sections = new LevelChunkSection[instance.getSectionsCount()];
 
-        SWMRNibbleArray[] blockNibbles = ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(instance);
-        SWMRNibbleArray[] skyNibbles = ca.spottedleaf.starlight.common.light.StarLightEngine.getFilledEmptyLight(instance);
+        SWMRNibbleArray[] blockNibbles = StarLightEngine.getFilledEmptyLight(instance);
+        SWMRNibbleArray[] skyNibbles = StarLightEngine.getFilledEmptyLight(instance);
         instance.getServer().scheduleOnMain(() -> {
             instance.getLightEngine().retainData(pos, true);
         });
@@ -109,8 +109,8 @@ public class SlimeChunkConverter {
             List<CompoundBinaryTag> entities = chunk.getEntities();
 
             if (entities != null) {
-                net.minecraft.server.level.ChunkMap.postLoadProtoChunk(instance, entities.stream()
-                        .map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList(), nmsChunk.getPos());
+                ChunkStatusTasks.postLoadProtoChunk(instance, entities.stream()
+                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), nmsChunk.getPos());
             }
         };
 
@@ -143,13 +143,13 @@ public class SlimeChunkConverter {
         }
 
         // Height Maps
-        EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();
+        EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getPersistedStatus().heightmapsAfter();
         CompoundBinaryTag heightMaps = chunk.getHeightMaps();
         EnumSet<Heightmap.Types> unsetHeightMaps = EnumSet.noneOf(Heightmap.Types.class);
 
         // Light
-        nmsChunk.setBlockNibbles(blockNibbles);
-        nmsChunk.setSkyNibbles(skyNibbles);
+        nmsChunk.starlight$setBlockNibbles(blockNibbles);
+        nmsChunk.starlight$setSkyNibbles(skyNibbles);
 
         for (Heightmap.Types type : heightMapTypes) {
             String name = type.getSerializedName();
