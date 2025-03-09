@@ -70,6 +70,7 @@ public class NMSSlimeChunk implements SlimeChunk {
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
         this.chunk = chunk;
         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
+        this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
         this.upgradeData = reference == null ? null : reference.getUpgradeData();
     }
 
