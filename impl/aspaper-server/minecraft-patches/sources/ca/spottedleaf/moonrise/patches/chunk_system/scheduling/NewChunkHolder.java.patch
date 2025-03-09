@@ -1,0 +1,11 @@
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+@@ -116,7 +_,7 @@
+         }
+ 
+         if (!transientChunk) {
+-            if (entityChunk != null) {
++            if (!(this.world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) && entityChunk != null) { //ASP
+                 final List<Entity> entities = ChunkEntitySlices.readEntities(this.world, entityChunk);
+ 
+                 ((ChunkSystemServerLevel)this.world).moonrise$getEntityLookup().addEntityChunkEntities(entities, new ChunkPos(this.chunkX, this.chunkZ));

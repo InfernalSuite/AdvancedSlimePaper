@@ -13,6 +13,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -104,31 +106,35 @@ public class SlimeChunkConverter {
 
 
         LevelChunk.PostLoadProcessor loadEntities = (nmsChunk) -> {
+            List<CompoundBinaryTag> entities = chunk.getEntities();
 
-            // TODO
-            // Load tile entities
-            List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
-
-            if (tileEntities != null) {
-                for (CompoundBinaryTag tag : tileEntities) {
-                    String type = tag.getString("id");
-
-                    if (!type.isEmpty()) {
-                        BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-                        BlockState blockData = nmsChunk.getBlockState(blockPosition);
-                        BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
-
-                        if (entity != null) {
-                            nmsChunk.setBlockEntity(entity);
-                        }
-                    }
-                }
+            if (entities != null) {
+                net.minecraft.server.level.ChunkMap.postLoadProtoChunk(instance, entities.stream()
+                        .map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList(), nmsChunk.getPos());
             }
         };
 
         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
         SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
+
+        List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
+
+        if (tileEntities != null) {
+            for (CompoundBinaryTag tag : tileEntities) {
+                String type = tag.getString("id");
+
+                if (!type.isEmpty()) {
+                    BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+                    BlockState blockData = nmsChunk.getBlockState(blockPosition);
+                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
+
+                    if (entity != null) {
+                        nmsChunk.setBlockEntity(entity);
+                    }
+                }
+            }
+        }
 
         // Height Maps
         EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getStatus().heightmapsAfter();

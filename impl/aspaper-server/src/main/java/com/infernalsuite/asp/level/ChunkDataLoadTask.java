@@ -2,11 +2,12 @@ package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
 import ca.spottedleaf.concurrentutil.util.Priority;
-import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.infernalsuite.asp.api.world.SlimeChunk;
+import com.infernalsuite.asp.Converter;
+import net.minecraft.nbt.CompoundTag;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -60,7 +61,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
 
         return new ImposterProtoChunk(new LevelChunk(this.world, new ChunkPos(this.chunkX, this.chunkZ), UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
-                0L, null, null, null), true);
+                0L, null, chunk -> {}, null), true);
     }
 
     protected ChunkAccess runOnMain(final SlimeChunk data) {
@@ -74,7 +75,12 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
 
             LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
 
-            return new ImposterProtoChunk(chunk, false);
+            ImposterProtoChunk protoChunk = new ImposterProtoChunk(chunk, false);
+            if (data != null) {
+                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
+            }
+
+            return protoChunk;
         } catch (final ThreadDeath death) {
             throw death;
         } catch (final Throwable thr2) {
