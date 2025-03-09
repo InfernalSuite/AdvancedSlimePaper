@@ -43,10 +43,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                         convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
                 );
             }
+            ChunkPos chunkPos = new ChunkPos(chunk.getX(), chunk.getZ());
 
             SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
             for (int i = 0; i < sections.length; i++) {
                 SlimeChunkSection dataSection = chunk.getSections()[i];
+                if (dataSection == null) continue;
 
                 CompoundBinaryTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
                     WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", currentVersion, newVersion);
@@ -63,15 +65,15 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                         dataSection.getSkyLight()
                 );
 
-                chunks.put(new ChunkPos(chunk.getX(), chunk.getZ()), new SlimeChunkSkeleton(
-                        chunk.getX(),
-                        chunk.getZ(),
-                        sections,
-                        chunk.getHeightMaps(),
-                        blockEntities,
-                        entities
-                ));
             }
+            chunks.put(new ChunkPos(chunk.getX(), chunk.getZ()), new SlimeChunkSkeleton(
+                    chunk.getX(),
+                    chunk.getZ(),
+                    sections,
+                    chunk.getHeightMaps(),
+                    blockEntities,
+                    entities
+            ));
 
         }
 
