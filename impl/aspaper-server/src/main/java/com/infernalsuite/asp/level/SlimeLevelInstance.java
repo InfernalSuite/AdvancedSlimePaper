@@ -167,8 +167,8 @@ public class SlimeLevelInstance extends ServerLevel {
                     long saveStart = System.currentTimeMillis();
                     slimeWorld.getLoader().saveWorld(slimeWorld.getName(), serializedWorld);
                     Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
-                } catch (IOException | IllegalStateException ex) {
-                    ex.printStackTrace();
+                } catch (Exception ex) {
+                    Bukkit.getLogger().log(Level.SEVERE, "There was an issue saving world " + slimeWorld.getName() + " asynchronously.", ex);
                 }
             });
 
