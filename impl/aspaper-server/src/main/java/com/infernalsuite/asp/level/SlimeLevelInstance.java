@@ -103,8 +103,6 @@ public class SlimeLevelInstance extends ServerLevel {
         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
-
-        this.keepSpawnInMemory = false;
     }
 
     @Override
@@ -123,7 +121,7 @@ public class SlimeLevelInstance extends ServerLevel {
 
                 //this.getChunkSource().save(forceSave);
                 this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
-                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save());
+                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
 
                 // Update level data
                 net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();

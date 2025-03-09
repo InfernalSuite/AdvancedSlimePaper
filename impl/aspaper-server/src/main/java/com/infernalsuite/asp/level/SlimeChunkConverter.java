@@ -76,7 +76,7 @@ public class SlimeChunkConverter {
                     DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                     });
-                    blockPalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
+                    blockPalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
                     blockPalette = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
                 }
@@ -87,7 +87,7 @@ public class SlimeChunkConverter {
                     DataResult<PalettedContainer<Holder<Biome>>> dataresult = codec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBiomeTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                     });
-                    biomePalette = dataresult.getOrThrow(false, System.err::println); // todo proper logging
+                    biomePalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
                     biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
                 }
@@ -133,7 +133,7 @@ public class SlimeChunkConverter {
                 if (!type.isEmpty()) {
                     BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
                     BlockState blockData = nmsChunk.getBlockState(blockPosition);
-                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag));
+                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag), net.minecraft.server.MinecraftServer.getServer().registryAccess());
 
                     if (entity != null) {
                         nmsChunk.setBlockEntity(entity);

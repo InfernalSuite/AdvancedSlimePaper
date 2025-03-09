@@ -49,18 +49,14 @@ public class NMSSlimeChunk implements SlimeChunk {
     static {
         {
             PalettedContainer<BlockState> empty = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
-            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow(false, (error) -> {
-                throw new AssertionError(error);
-            });
+            Tag tag = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
         }
         {
             Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
             PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.asHolderIdMap(), biomes.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
-            Tag tag = ChunkSerializer.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow(false, (error) -> {
-                throw new AssertionError(error);
-            });
+            Tag tag = ChunkSerializer.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
         }
@@ -113,7 +109,7 @@ public class NMSSlimeChunk implements SlimeChunk {
             if (section.hasOnlyAir()) {
                 blockStateTag = EMPTY_BLOCK_STATE_PALETTE;
             } else {
-                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(false, System.err::println); // todo error handling
+                Tag data = ChunkSerializer.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
                 blockStateTag = Converter.convertTag(data);
             }
 
@@ -123,7 +119,7 @@ public class NMSSlimeChunk implements SlimeChunk {
             if (biomes.data.palette().getSize() == 1 && biomes.data.palette().maybeHas((h) -> h.is(Biomes.PLAINS))) {
                 biomeTag = EMPTY_BIOME_PALETTE;
             } else {
-                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(false, System.err::println); // todo error handling
+                Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
                 biomeTag = Converter.convertTag(biomeData);
             }
 
@@ -151,7 +147,7 @@ public class NMSSlimeChunk implements SlimeChunk {
         List<CompoundTag> tileEntities = new ArrayList<>();
 
         for (BlockEntity entity : this.chunk.blockEntities.values()) {
-            CompoundTag entityNbt = entity.saveWithFullMetadata();
+            CompoundTag entityNbt = entity.saveWithFullMetadata(net.minecraft.server.MinecraftServer.getServer().registryAccess());
             tileEntities.add(entityNbt);
         }
 
