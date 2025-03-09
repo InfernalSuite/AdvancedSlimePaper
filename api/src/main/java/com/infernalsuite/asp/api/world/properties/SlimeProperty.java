@@ -35,7 +35,7 @@ public abstract class SlimeProperty<T, Z extends BinaryTag> {
     protected abstract Z cast(BinaryTag rawTag);
 
     public final boolean applyValidator(T value) {
-        return this.validator != null && this.validator.apply(value);
+        return this.validator == null || this.validator.apply(value);
     }
 
     public final String getKey() {
