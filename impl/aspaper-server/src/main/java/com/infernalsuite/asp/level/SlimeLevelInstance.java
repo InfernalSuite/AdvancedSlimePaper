@@ -129,8 +129,8 @@ public class SlimeLevelInstance extends ServerLevel {
                 this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
 
                 // Update level data
-                net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
-                net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
+//                net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
+//                net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
 
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
                     saveInternal().get(); // Async wait for it to finish

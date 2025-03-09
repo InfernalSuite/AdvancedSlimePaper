@@ -111,6 +111,10 @@ public class Converter {
                 List<BinaryTag> list = new ArrayList<>();
                 ListTag originalList = ((ListTag) base);
                 for (Tag entry : originalList) list.add(convertTag(entry));
+
+                if(list.isEmpty()) {
+                    yield (T) ListBinaryTag.empty();
+                }
                 yield (T) ListBinaryTag.listBinaryTag(list.getFirst().type(), list);
             }
             case Tag.TAG_COMPOUND -> {
