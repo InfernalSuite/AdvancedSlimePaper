@@ -49,7 +49,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
             try {
                 SlimeChunk chunk = ((SlimeLevelInstance) this.world).slimeInstance.getChunk(this.chunkX, this.chunkZ);
                 this.onRun.accept(new GenericDataLoadTask.TaskResult<>(runOnMain(chunk), null));
-            } catch (Throwable e) {
+            } catch (final Exception e) {
                 LOGGER.error("ERROR", e);
                 this.onRun.accept(new GenericDataLoadTask.TaskResult<>(null, e));
             }
@@ -81,10 +81,8 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
             }
 
             return protoChunk;
-        } catch (final ThreadDeath death) {
-            throw death;
-        } catch (final Throwable thr2) {
-            LOGGER.error("Failed to parse main tasks for task " + this.toString() + ", chunk data will be lost", thr2);
+        } catch (final Exception e) {
+            LOGGER.error("Failed to parse main tasks for task {}, chunk data will be lost", this, e);
             return this.getEmptyChunk();
         }
     }
