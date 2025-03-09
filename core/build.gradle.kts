@@ -4,5 +4,5 @@ plugins {
 dependencies {
     compileOnly(project(":api"))
     compileOnly(project(":slimeworldmanager-api"))
-    implementation("com.github.luben:zstd-jni:1.5.2-2")
+    implementation("com.github.luben:zstd-jni:1.5.7-1")
 }

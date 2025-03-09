@@ -11,7 +11,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 }
 
-version = "3.0.0-SNAPSHOT"
+version = "3.0.1-SNAPSHOT"
 
 java {
     withSourcesJar()
