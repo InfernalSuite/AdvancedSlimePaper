@@ -1,0 +1,13 @@
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/ChunkHolderManager.java
+@@ -184,7 +_,9 @@
+         };
+     }
+ 
+-    public void close(final boolean save, final boolean halt) {
++    public void close(boolean save, boolean halt) { // ASP
++        if (this.world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) save = false; // ASP
++
+         TickThread.ensureTickThread("Closing world off-main");
+         if (halt) {
+             LOGGER.info("Waiting 60s for chunk system to halt for world '" + WorldUtil.getWorldName(this.world) + "'");

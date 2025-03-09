@@ -1,3 +1,5 @@
 # This file is auto generated, any changes may be overridden!
 # See CONTRIBUTING.md on how to add access transformers.
 public ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entities
+public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask chunkHolder
+public net.minecraft.server.MinecraftServer commandStorage

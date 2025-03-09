@@ -1,5 +1,14 @@
 --- a/paper-api/build.gradle.kts
 +++ b/paper-api/build.gradle.kts
+@@ -39,7 +_,7 @@
+ }
+ 
+ dependencies {
+-
++    api(project(":api")) //ASP
+     // api dependencies are listed transitively to API consumers
+     api("com.google.guava:guava:33.3.1-jre")
+     api("com.google.code.gson:gson:2.11.0")
 @@ -93,7 +_,7 @@
      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
  }

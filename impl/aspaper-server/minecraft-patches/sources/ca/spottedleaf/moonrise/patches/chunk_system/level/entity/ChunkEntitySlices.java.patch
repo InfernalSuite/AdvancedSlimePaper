@@ -1,0 +1,11 @@
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/ChunkEntitySlices.java
+@@ -42,7 +_,7 @@
+     private final EntityCollectionBySection hardCollidingEntities;
+     private final Reference2ObjectOpenHashMap<Class<? extends Entity>, EntityCollectionBySection> entitiesByClass;
+     private final Reference2ObjectOpenHashMap<EntityType<?>, EntityCollectionBySection> entitiesByType;
+-    private final EntityList entities = new EntityList();
++    public final EntityList entities = new EntityList();
+ 
+     public FullChunkStatus status;
+     public final ChunkData chunkData;

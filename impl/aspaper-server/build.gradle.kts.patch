@@ -1,15 +1,17 @@
 --- a/paper-server/build.gradle.kts
 +++ b/paper-server/build.gradle.kts
-@@ -21,6 +_,17 @@
+@@ -21,6 +_,19 @@
      // macheOldPath = file("F:\\Projects\\PaperTooling\\mache\\versions\\1.21.4\\src\\main\\java")
      // gitFilePatches = true
  
 +    val fork = forks.register("aspaper") {
++        rootDirectory = project.rootProject.layout.projectDirectory.dir("impl")
++
 +        upstream.patchDir("paperServer") {
 +            upstreamPath = "paper-server"
 +            excludes = setOf("src/minecraft", "patches", "build.gradle.kts")
-+            patchesDir = rootDirectory.dir("impl/aspaper-server/paper-patches")
-+            outputDir = rootDirectory.dir("impl/paper-server")
++            patchesDir = rootDirectory.dir("aspaper-server/paper-patches")
++            outputDir = rootDirectory.dir("paper-server")
 +        }
 +    }
 +
@@ -40,12 +42,13 @@
  configurations.named(log4jPlugins.compileClasspathConfigurationName) {
      extendsFrom(configurations.compileClasspath.get())
  }
-@@ -119,7 +_,7 @@
+@@ -119,7 +_,8 @@
  }
  
  dependencies {
 -    implementation(project(":paper-api"))
-+    implementation(project(":impl:aspaper-api"))
++    implementation(project(":impl:aspaper-api")) //ASP
++    implementation(project(":core")) //ASP
      implementation("ca.spottedleaf:concurrentutil:0.0.3")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
