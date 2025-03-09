@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: evlad <emmanuelvlad@gmail.com>
+Date: Mon, 9 Sep 2024 21:33:11 +0300
+Subject: [PATCH] Disable dragon battle
+
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 253280d5bc2c050ce727e85c7daeccd306903af3..426a9fa0000266c569d69c6418e4d772adacd38c 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -690,7 +690,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         );
+         this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
+         if (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
+-            this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
++            // ASP START
++            if (bootstrap == null || bootstrap.initial().getPropertyMap().getValue(com.infernalsuite.asp.api.world.properties.SlimeProperties.DRAGON_BATTLE)) {
++                this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
++            } else {
++                this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), new EndDragonFight.Data(false, true, true, false,Optional.empty(),Optional.empty(),Optional.empty())); // ASP - disable dragon
++            }
++            // ASP END
+         } else {
+             this.dragonFight = null;
+         }
