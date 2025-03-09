@@ -22,6 +22,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
@@ -115,6 +116,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             this.chunkStorage.remove(Util.chunkPosition(x, z));
             return;
         }
+        CompoundBinaryTag pdcTag = Converter.convertTag(providedChunk.persistentDataContainer.toTagCompound());
+        chunk.getExtraData().put("ChunkBukkitValues", pdcTag);
 
         this.chunkStorage.put(Util.chunkPosition(x, z),
                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
