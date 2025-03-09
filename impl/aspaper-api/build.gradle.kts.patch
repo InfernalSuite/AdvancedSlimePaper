@@ -14,7 +14,7 @@
  }
  
 -val generatedApiPath: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()
-+val generatedApiPath: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-api/src/generated/java").asFile.toPath()
++val generatedApiPath: java.nio.file.Path = rootProject.layout.projectDirectory.dir("impl/paper-api/src/generated/java").asFile.toPath()
  idea {
      module {
          generatedSourceDirs.add(generatedApiPath.toFile())
