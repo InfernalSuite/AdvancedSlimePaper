@@ -220,7 +220,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                     } else {
                         chunk = safeNmsChunkWrapper.getWrapper().getChunk();
                     }
-                } else if  (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                } else if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
                     chunk = nmsSlimeChunk.getChunk();
                 }
 
@@ -277,5 +277,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     @Override
     public @NotNull PersistentDataContainer getPersistentDataContainer() {
         return this.extraPDC;
+    }
+
+    public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {
+        if (chunkStorage.get(new ChunkPos(chunk.locX, chunk.locZ)) instanceof SlimeChunkSkeleton skeleton) {
+            chunkStorage.put(new ChunkPos(chunk.locX, chunk.locZ), new NMSSlimeChunk(chunk, skeleton));
+        }
     }
 }

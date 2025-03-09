@@ -24,4 +24,10 @@ public class SlimeChunkLevel extends LevelChunk {
         super.unloadCallback();
         this.inMemoryWorld.unload(this);
     }
+
+    @Override
+    public void loadCallback() {
+        super.loadCallback();
+        this.inMemoryWorld.ensureChunkMarkedAsLoaded(this);
+    }
 }
