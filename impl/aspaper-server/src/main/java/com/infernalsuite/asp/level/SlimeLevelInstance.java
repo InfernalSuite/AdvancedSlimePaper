@@ -95,7 +95,11 @@ public class SlimeLevelInstance extends ServerLevel {
         SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
 
         this.serverLevelData.setDifficulty(Difficulty.valueOf(propertyMap.getValue(SlimeProperties.DIFFICULTY).toUpperCase()));
-        this.serverLevelData.setSpawn(new BlockPos(propertyMap.getValue(SlimeProperties.SPAWN_X), propertyMap.getValue(SlimeProperties.SPAWN_Y), propertyMap.getValue(SlimeProperties.SPAWN_Z)), 0);
+        this.serverLevelData.setSpawn(new BlockPos(
+                        propertyMap.getValue(SlimeProperties.SPAWN_X),
+                        propertyMap.getValue(SlimeProperties.SPAWN_Y),
+                        propertyMap.getValue(SlimeProperties.SPAWN_Z)),
+                propertyMap.getValue(SlimeProperties.SPAWN_YAW));
         super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
@@ -185,6 +189,17 @@ public class SlimeLevelInstance extends ServerLevel {
                             .toList()
             ), new ChunkPos(chunkX, chunkZ));
         }
+    }
+
+    @Override
+    public void setDefaultSpawnPos(BlockPos pos, float angle) {
+        super.setDefaultSpawnPos(pos, angle);
+
+        SlimePropertyMap propertyMap = this.slimeInstance.getPropertyMap();
+        propertyMap.setValue(SlimeProperties.SPAWN_X, pos.getX());
+        propertyMap.setValue(SlimeProperties.SPAWN_Y, pos.getY());
+        propertyMap.setValue(SlimeProperties.SPAWN_Z, pos.getZ());
+        propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
     }
 
     //    @Override
