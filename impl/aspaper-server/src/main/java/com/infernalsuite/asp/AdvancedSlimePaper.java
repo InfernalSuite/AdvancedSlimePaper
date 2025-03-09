@@ -15,6 +15,7 @@ import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import com.infernalsuite.asp.serialization.slime.reader.SlimeWorldReaderRegistry;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.util.NmsUtil;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -166,7 +167,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         Objects.requireNonNull(worldName, "World name cannot be null");
         Objects.requireNonNull(propertyMap, "Properties cannot be null");
 
-        return new SkeletonSlimeWorld(worldName, loader, readOnly, Map.of(), new ConcurrentHashMap<>(), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
+        return new SkeletonSlimeWorld(worldName, loader, readOnly, new Long2ObjectOpenHashMap<>(0), new ConcurrentHashMap<>(), propertyMap, BRIDGE_INSTANCE.getCurrentVersion());
     }
 
     @Override

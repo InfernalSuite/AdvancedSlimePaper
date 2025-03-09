@@ -12,6 +12,8 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.SharedConstants;
 
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
         long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
 
-        Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
+        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
         for (SlimeChunk chunk : data.getChunkStorage()) {
             List<CompoundBinaryTag> entities = new ArrayList<>();
             List<CompoundBinaryTag> blockEntities = new ArrayList<>();
@@ -47,7 +49,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                         convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
                 );
             }
-            ChunkPos chunkPos = new ChunkPos(chunk.getX(), chunk.getZ());
+            long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
 
             SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
             for (int i = 0; i < sections.length; i++) {

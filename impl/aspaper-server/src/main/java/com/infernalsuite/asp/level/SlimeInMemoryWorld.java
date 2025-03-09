@@ -1,7 +1,7 @@
 package com.infernalsuite.asp.level;
 
-import com.infernalsuite.asp.ChunkPos;
 import com.infernalsuite.asp.Converter;
+import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.pdc.AdventurePersistentDataContainer;
@@ -15,6 +15,8 @@ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.UpgradeData;
@@ -47,7 +49,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     private final SlimePropertyMap propertyMap;
     private final SlimeLoader loader;
 
-    private final Map<ChunkPos, SlimeChunk> chunkStorage = new HashMap<>();
+    private final Long2ObjectMap<SlimeChunk> chunkStorage = new Long2ObjectOpenHashMap<>();
     private boolean readOnly;
     // private final Map<ChunkPos, List<CompoundTag>> entityStorage = new HashMap<>();
 
@@ -59,7 +61,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         this.readOnly = bootstrap.initial().isReadOnly();
 
         for (SlimeChunk initial : bootstrap.initial().getChunkStorage()) {
-            ChunkPos pos = new ChunkPos(initial.getX(), initial.getZ());
+            long pos = Util.chunkPosition(initial.getX(), initial.getZ());
             List<CompoundBinaryTag> tags = new ArrayList<>(initial.getEntities());
 
             //  this.entityStorage.put(pos, tags);
@@ -96,7 +98,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
             chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk, chunk), chunk);
         }
-        this.chunkStorage.put(new ChunkPos(x, z), chunk);
+        this.chunkStorage.put(Util.chunkPosition(x, z), chunk);
 
         return levelChunk;
     }
@@ -110,18 +112,18 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
 
         if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
-            this.chunkStorage.remove(new ChunkPos(x, z));
+            this.chunkStorage.remove(Util.chunkPosition(x, z));
             return;
         }
 
-        this.chunkStorage.put(new ChunkPos(x, z),
+        this.chunkStorage.put(Util.chunkPosition(x, z),
                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
                         chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData(), null));
     }
 
     @Override
     public SlimeChunk getChunk(int x, int z) {
-        return this.chunkStorage.get(new ChunkPos(x, z));
+        return this.chunkStorage.get(Util.chunkPosition(x, z));
     }
 
     @Override
@@ -203,8 +205,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     public SlimeWorld getForSerialization() {
         SlimeWorld world = SkeletonCloning.weakCopy(this);
 
-        Map<ChunkPos, SlimeChunk> cloned = new HashMap<>();
-        for (Map.Entry<ChunkPos, SlimeChunk> entry : this.chunkStorage.entrySet()) {
+        Long2ObjectMap<SlimeChunk> cloned = new Long2ObjectOpenHashMap<>();
+        for (Long2ObjectMap.Entry<SlimeChunk> entry : this.chunkStorage.long2ObjectEntrySet()) {
             SlimeChunk clonedChunk = entry.getValue();
             // NMS "live" chunks need to be converted
             {
@@ -242,7 +244,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                 }
             }
 
-            cloned.put(entry.getKey(), clonedChunk);
+            cloned.put(entry.getLongKey(), clonedChunk);
         }
 
         // Serialize Bukkit Values (PDC)
@@ -275,8 +277,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {
-        if (chunkStorage.get(new ChunkPos(chunk.locX, chunk.locZ)) instanceof SlimeChunkSkeleton skeleton) {
-            chunkStorage.put(new ChunkPos(chunk.locX, chunk.locZ), new NMSSlimeChunk(chunk, skeleton));
+        if (chunkStorage.get(Util.chunkPosition(chunk.locX, chunk.locZ)) instanceof SlimeChunkSkeleton skeleton) {
+            chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), new NMSSlimeChunk(chunk, skeleton));
         }
     }
 }
