@@ -4,6 +4,7 @@ import com.infernalsuite.asp.ChunkPos;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.pdc.AdventurePersistentDataContainer;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import com.infernalsuite.asp.skeleton.SkeletonCloning;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
@@ -20,6 +21,8 @@ import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
 import org.bukkit.World;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     private final SlimeWorld liveWorld;
 
     private final ConcurrentMap<String, BinaryTag> extra;
+    private final AdventurePersistentDataContainer extraPDC;
     private final SlimePropertyMap propertyMap;
     private final SlimeLoader loader;
 
@@ -62,6 +66,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             this.chunkStorage.put(pos, initial);
         }
 
+        this.extraPDC = new AdventurePersistentDataContainer(this.extra);
         this.liveWorld = new NMSSlimeWorld(this);
     }
 
@@ -241,13 +246,12 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         // Serialize Bukkit Values (PDC)
 
         var nmsTag = new net.minecraft.nbt.CompoundTag();
-
-        instance.getWorld().storeBukkitValues(nmsTag);
+        this.instance.getWorld().storeBukkitValues(nmsTag);
 
         // Bukkit stores the relevant tag as a tag with the key "BukkitValues" in the tag we supply to it
-        var flowTag = Converter.convertTag("BukkitValues", nmsTag.getCompound("BukkitValues"));
+        var adventureTag = Converter.convertTag(nmsTag.getCompound("BukkitValues"));
 
-        world.getExtraData().getValue().put(flowTag);
+        world.getExtraData().put("BukkitValues", adventureTag);
 
         return new SkeletonSlimeWorld(world.getName(),
                 world.getLoader(),
@@ -261,5 +265,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     public SlimeLevelInstance getInstance() {
         return instance;
+    }
+
+    @Override
+    public @NotNull PersistentDataContainer getPersistentDataContainer() {
+        return this.extraPDC;
     }
 }

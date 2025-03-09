@@ -10,6 +10,8 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -89,5 +91,10 @@ public class NMSSlimeWorld implements SlimeWorld {
     @Override
     public int getDataVersion() {
         return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+    }
+
+    @Override
+    public @NotNull PersistentDataContainer getPersistentDataContainer() {
+        return this.memoryWorld.getPersistentDataContainer();
     }
 }

@@ -8,7 +8,7 @@ import com.infernalsuite.asp.level.SlimeBootstrap;
 import com.infernalsuite.asp.level.SlimeInMemoryWorld;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
 import com.mojang.serialization.Lifecycle;
-import net.kyori.adventure.util.Services;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +31,9 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -38,6 +41,7 @@ import java.util.Locale;
 
 public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
+    private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
     private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 
     private static final Logger LOGGER = LogManager.getLogger("ASP");
@@ -48,6 +52,22 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     public static SlimeNMSBridgeImpl instance() {
         return (SlimeNMSBridgeImpl) SlimeNMSBridge.instance();
+    }
+
+    @Override
+    public void extractCraftPDC(PersistentDataContainer source, CompoundBinaryTag.Builder builder) {
+        if (source instanceof CraftPersistentDataContainer craftPDC) {
+            craftPDC.getRaw().forEach((key, nmsTag) -> builder.put(key, Converter.convertTag(nmsTag)));
+        } else {
+            throw new IllegalArgumentException("PersistentDataContainer is not a CraftPersistentDataContainer");
+        }
+    }
+
+    @Override
+    public PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundBinaryTag source) {
+        CraftPersistentDataContainer container = new CraftPersistentDataContainer(REGISTRY);
+        source.forEach(entry -> container.put(entry.getKey(), Converter.convertTag(entry.getValue())));
+        return container;
     }
 
     @Override
@@ -180,7 +200,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         // level.setReady(true);
         level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS), world.getPropertyMap().getValue(SlimeProperties.ALLOW_ANIMALS));
 
-        var nmsExtraData = (CompoundTag) Converter.convertTag(world.getExtraData());
+        CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
 
         //Attempt to read PDC
         if (nmsExtraData.get("BukkitValues") != null) level.getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
