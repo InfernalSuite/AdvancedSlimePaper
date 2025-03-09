@@ -66,13 +66,14 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                 );
 
             }
-            chunks.put(new ChunkPos(chunk.getX(), chunk.getZ()), new SlimeChunkSkeleton(
+            chunks.put(chunkPos, new SlimeChunkSkeleton(
                     chunk.getX(),
                     chunk.getZ(),
                     sections,
                     chunk.getHeightMaps(),
                     blockEntities,
-                    entities
+                    entities,
+                    chunk.getExtraData()
             ));
 
         }

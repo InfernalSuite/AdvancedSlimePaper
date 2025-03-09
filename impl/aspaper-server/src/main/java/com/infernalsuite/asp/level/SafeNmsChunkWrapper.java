@@ -62,6 +62,15 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
         return this.wrapper.getEntities();
     }
 
+    @Override
+    public CompoundBinaryTag getExtraData() {
+        if (shouldDefaultBackToSlimeChunk()) {
+            return this.safety.getExtraData();
+        }
+
+        return this.wrapper.getExtraData();
+    }
+
     /*
 Slime chunks can still be requested but not actually loaded, this caused
 some things to not properly save because they are not "loaded" into the chunk.

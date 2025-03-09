@@ -162,6 +162,13 @@ public class SlimeChunkConverter {
             Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
         }
 
+        net.minecraft.nbt.CompoundTag nmsExtraData = (net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getExtraData());
+
+        // Attempt to read PDC from the extra tag
+        if (nmsExtraData.get("ChunkBukkitValues") != null) {
+            nmsChunk.persistentDataContainer.putAll(nmsExtraData.getCompound("ChunkBukkitValues"));
+        }
+
         return nmsChunk;
     }
 }

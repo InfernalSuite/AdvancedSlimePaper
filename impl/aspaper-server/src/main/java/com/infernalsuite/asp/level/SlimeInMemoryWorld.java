@@ -90,11 +90,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                     0L, null, null, null);
 
-            chunk = new NMSSlimeChunk(levelChunk);
+            chunk = new NMSSlimeChunk(levelChunk, getChunk(x, z));
 
         } else {
             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
-            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk), chunk);
+            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk, chunk), chunk);
         }
         this.chunkStorage.put(new ChunkPos(x, z), chunk);
 
@@ -107,7 +107,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk);
+        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
 
         if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
             this.chunkStorage.remove(new ChunkPos(x, z));
@@ -116,7 +116,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
         this.chunkStorage.put(new ChunkPos(x, z),
                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
-                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities()));
+                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData()));
     }
 
     @Override
@@ -229,13 +229,19 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                         continue;
                     }
 
+                    // Serialize Bukkit Values (PDC)
+
+                    CompoundBinaryTag adventureTag = Converter.convertTag(chunk.persistentDataContainer.toTagCompound());
+                    clonedChunk.getExtraData().put("ChunkBukkitValues", adventureTag);
+
                     clonedChunk = new SlimeChunkSkeleton(
                             clonedChunk.getX(),
                             clonedChunk.getZ(),
                             clonedChunk.getSections(),
                             clonedChunk.getHeightMaps(),
                             clonedChunk.getTileEntities(),
-                            clonedChunk.getEntities()
+                            clonedChunk.getEntities(),
+                            clonedChunk.getExtraData()
                     );
                 }
             }

@@ -47,14 +47,14 @@ public class NMSSlimeWorld implements SlimeWorld {
             return null;
         }
 
-        return new NMSSlimeChunk(chunk);
+        return new NMSSlimeChunk(chunk, memoryWorld.getChunk(x, z));
     }
 
     @Override
     public Collection<SlimeChunk> getChunkStorage() {
         List<ChunkHolder> chunks = io.papermc.paper.chunk.system.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
         return chunks.stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull)
-                .map(NMSSlimeChunk::new)
+                .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
                 .collect(Collectors.toList());
     }
 

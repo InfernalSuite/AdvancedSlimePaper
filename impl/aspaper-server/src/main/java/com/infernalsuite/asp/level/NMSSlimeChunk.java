@@ -67,9 +67,11 @@ public class NMSSlimeChunk implements SlimeChunk {
     }
 
     private LevelChunk chunk;
+    private CompoundBinaryTag extra;
 
-    public NMSSlimeChunk(LevelChunk chunk) {
+    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
         this.chunk = chunk;
+        this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
     }
 
     @Override
@@ -174,6 +176,11 @@ public class NMSSlimeChunk implements SlimeChunk {
         }
 
         return Lists.transform(entities, Converter::convertTag);
+    }
+
+    @Override
+    public CompoundBinaryTag getExtraData() {
+        return extra;
     }
 
     public LevelChunk getChunk() {
