@@ -34,13 +34,14 @@ import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class NMSSlimeChunk implements SlimeChunk {
-    private static final Logger LOGGER = LogUtils.getClassLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(NMSSlimeChunk.class);
 
     private static final CompoundBinaryTag EMPTY_BLOCK_STATE_PALETTE;
     private static final CompoundBinaryTag EMPTY_BIOME_PALETTE;

@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 1 Jun 2024 18:57:39 +0200
+Subject: [PATCH] Warning if people use old swm api
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
+index 3e82ea07ca4194844c5528446e2c4a46ff4acee5..1f8bff31ce60f9a1b143e749916fa51cf115f5d7 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
+@@ -64,6 +64,15 @@ class PaperPluginInstanceManager {
+     }
+ 
+     public @Nullable Plugin getPlugin(@NotNull String name) {
++        // ASP start - Warn if someone tries to get the old API instance
++        if (name.equals("SlimeWorldManager")) {
++            server.getLogger().warning("""
++                    Hey! It seems like you're trying to access the old SlimeWorldManager API.
++                    Since 1.21.0 the API is now provided by the server directly.
++                    See the documentation at https://infernalsuite.com/docs/asp/migrating for more information.
++                    """);
++        }
++        // ASP end
+         return this.lookupNames.get(name.replace(' ', '_').toLowerCase(java.util.Locale.ENGLISH)); // Paper
+     }
+ 

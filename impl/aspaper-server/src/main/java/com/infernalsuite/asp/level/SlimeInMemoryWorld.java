@@ -146,7 +146,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     @Override
     public boolean isReadOnly() {
-        return this.getSaveStrategy() == null || this.readOnly;
+        return this.getLoader() == null || this.readOnly;
     }
 
     @Override
@@ -184,11 +184,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     @Override
     public int getDataVersion() {
         return this.liveWorld.getDataVersion();
-    }
-
-    @Override
-    public SlimeLoader getSaveStrategy() {
-        return this.loader;
     }
 
     @Override

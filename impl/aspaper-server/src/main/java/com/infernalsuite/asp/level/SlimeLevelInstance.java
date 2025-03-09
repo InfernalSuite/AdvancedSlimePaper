@@ -24,7 +24,6 @@ import net.minecraft.util.ProgressListener;
 import net.minecraft.util.Unit;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.RandomSequences;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -34,11 +33,11 @@ import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.DirectoryValidator;
-import net.minecraft.world.level.validation.PathAllowList;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.jetbrains.annotations.Nullable;
+import org.spigotmc.AsyncCatcher;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +45,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -76,8 +76,6 @@ public class SlimeLevelInstance extends ServerLevel {
     private static final TicketType<Unit> SWM_TICKET = TicketType.create("swm-chunk", (a, b) -> 0);
 
     private final Object saveLock = new Object();
-
-    private boolean ready = false;
 
     public SlimeLevelInstance(SlimeBootstrap slimeBootstrap, PrimaryLevelData primaryLevelData,
                               ResourceKey<net.minecraft.world.level.Level> worldKey,
@@ -115,8 +113,13 @@ public class SlimeLevelInstance extends ServerLevel {
 
     @Override
     public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled, boolean close) {
+        if (!savingDisabled) save();
+    }
+
+    public Future<?> save() {
+        AsyncCatcher.catchOp("SWM world save");
         try {
-            if (!this.slimeInstance.isReadOnly() && !savingDisabled) {
+            if (!this.slimeInstance.isReadOnly() && this.slimeInstance.getLoader() != null) {
                 Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
                 //this.getChunkSource().save(forceSave);
@@ -128,16 +131,17 @@ public class SlimeLevelInstance extends ServerLevel {
                 net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
 
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
-                    save().get(); // Async wait for it to finish
-                    this.slimeInstance.getLoader().unlockWorld(this.slimeInstance.getName()); // Unlock
+                    saveInternal().get(); // Async wait for it to finish
                 } else {
-                    this.save();
+                    return this.saveInternal();
                     //WORLD_SAVER_SERVICE.execute(this::save);
                 }
             }
         } catch (Throwable e) {
             e.printStackTrace();
+            return CompletableFuture.failedFuture(e);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -147,7 +151,7 @@ public class SlimeLevelInstance extends ServerLevel {
         }
     }
 
-    private Future<?> save() {
+    private Future<?> saveInternal() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
             SlimeWorldInstance slimeWorld = this.slimeInstance;
             Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
@@ -158,7 +162,7 @@ public class SlimeLevelInstance extends ServerLevel {
                 try {
                     byte[] serializedWorld = SlimeSerializer.serialize(world);
                     long saveStart = System.currentTimeMillis();
-                    slimeWorld.getSaveStrategy().saveWorld(slimeWorld.getName(), serializedWorld);
+                    slimeWorld.getLoader().saveWorld(slimeWorld.getName(), serializedWorld);
                     Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
                 } catch (IOException | IllegalStateException ex) {
                     ex.printStackTrace();

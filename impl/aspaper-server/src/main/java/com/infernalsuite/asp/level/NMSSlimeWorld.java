@@ -37,7 +37,7 @@ public class NMSSlimeWorld implements SlimeWorld {
 
     @Override
     public SlimeLoader getLoader() {
-        return this.instance.slimeInstance.getSaveStrategy();
+        return this.instance.slimeInstance.getLoader();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class NMSSlimeWorld implements SlimeWorld {
 
     @Override
     public Collection<SlimeChunk> getChunkStorage() {
-        List<ChunkHolder> chunks = io.papermc.paper.chunk.system.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
+        List<ChunkHolder> chunks = ca.spottedleaf.moonrise.common.util.ChunkSystem.getVisibleChunkHolders(this.instance); // Paper
         return chunks.stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull)
                 .map((chunkLevel) -> new NMSSlimeChunk(chunkLevel, memoryWorld.getChunk(chunkLevel.getPos().x, chunkLevel.getPos().z))) // This sucks, is there a better way?
                 .collect(Collectors.toList());

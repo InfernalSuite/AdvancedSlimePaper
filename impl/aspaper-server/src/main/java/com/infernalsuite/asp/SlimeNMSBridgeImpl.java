@@ -47,8 +47,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
     private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
     private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 
-    private static final Logger LOGGER = LogManager.getLogger("ASP");
-
     private SlimeWorld defaultWorld;
     private SlimeWorld defaultNetherWorld;
     private SlimeWorld defaultEndWorld;
@@ -125,6 +123,13 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         return true;
     }
 
+    /**
+     * Sets the default worlds for the server.<br>
+     * <b>NOTE: These worlds should be unloaded!</b>
+     * @param normalWorld The default overworld
+     * @param netherWorld The default nether
+     * @param endWorld The default end
+     */
     @Override
     public void setDefaultWorlds(SlimeWorld normalWorld, SlimeWorld netherWorld, SlimeWorld endWorld) {
         if (normalWorld != null) {

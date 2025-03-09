@@ -42,13 +42,14 @@
  configurations.named(log4jPlugins.compileClasspathConfigurationName) {
      extendsFrom(configurations.compileClasspath.get())
  }
-@@ -119,7 +_,8 @@
+@@ -119,7 +_,9 @@
  }
  
  dependencies {
 -    implementation(project(":paper-api"))
 +    implementation(project(":impl:aspaper-api")) //ASP
 +    implementation(project(":core")) //ASP
++    implementation("commons-io:commons-io:2.11.0")
      implementation("ca.spottedleaf:concurrentutil:0.0.3")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
