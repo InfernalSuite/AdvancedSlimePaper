@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.level;
 
 import com.infernalsuite.asp.ChunkPos;
+import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
@@ -236,6 +237,17 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
             cloned.put(entry.getKey(), clonedChunk);
         }
+
+        // Serialize Bukkit Values (PDC)
+
+        var nmsTag = new net.minecraft.nbt.CompoundTag();
+
+        instance.getWorld().storeBukkitValues(nmsTag);
+
+        // Bukkit stores the relevant tag as a tag with the key "BukkitValues" in the tag we supply to it
+        var flowTag = Converter.convertTag("BukkitValues", nmsTag.getCompound("BukkitValues"));
+
+        world.getExtraData().getValue().put(flowTag);
 
         return new SkeletonSlimeWorld(world.getName(),
                 world.getLoader(),

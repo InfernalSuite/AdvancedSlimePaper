@@ -11,6 +11,7 @@ import com.mojang.serialization.Lifecycle;
 import net.kyori.adventure.util.Services;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -178,6 +179,11 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
         // level.setReady(true);
         level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS), world.getPropertyMap().getValue(SlimeProperties.ALLOW_ANIMALS));
+
+        var nmsExtraData = (CompoundTag) Converter.convertTag(world.getExtraData());
+
+        //Attempt to read PDC
+        if (nmsExtraData.get("BukkitValues") != null) level.getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
 
         return level;
     }
