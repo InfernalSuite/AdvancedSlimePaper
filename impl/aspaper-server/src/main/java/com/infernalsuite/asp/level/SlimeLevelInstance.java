@@ -30,6 +30,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -207,9 +208,9 @@ public class SlimeLevelInstance extends ServerLevel {
         propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
     }
 
-    //    @Override
-    //    public void unload(LevelChunk chunk) {
-    //        this.slimeInstance.unload(chunk);
-    //        super.unload(chunk);
-    //    }
+    @Override
+    public void unload(LevelChunk chunk) {
+        this.slimeInstance.unload(chunk);
+        super.unload(chunk);
+    }
 }
