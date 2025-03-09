@@ -3,3 +3,4 @@
 public ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entities
 public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask chunkHolder
 public net.minecraft.server.MinecraftServer commandStorage
+public net.minecraft.world.level.chunk.storage.SerializableChunkData makeBiomeCodec(Lnet/minecraft/core/Registry;)Lcom/mojang/serialization/Codec;

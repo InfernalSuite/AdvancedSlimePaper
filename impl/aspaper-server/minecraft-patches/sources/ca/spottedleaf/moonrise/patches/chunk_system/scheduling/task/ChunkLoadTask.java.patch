@@ -1,12 +1,10 @@
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/task/ChunkLoadTask.java
-@@ -32,8 +_,8 @@
- 
+@@ -33,7 +_,7 @@
      private static final Logger LOGGER = LoggerFactory.getLogger(ChunkLoadTask.class);
  
--    private final NewChunkHolder chunkHolder;
+     public final NewChunkHolder chunkHolder;
 -    private final ChunkDataLoadTask loadTask;
-+    public final NewChunkHolder chunkHolder;
 +    private final com.infernalsuite.asp.level.CommonLoadTask loadTask; // ASP
  
      private volatile boolean cancelled;
