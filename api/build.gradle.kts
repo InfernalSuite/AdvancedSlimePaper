@@ -15,7 +15,7 @@ version = "3.0.1-SNAPSHOT"
 
 java {
     withSourcesJar()
-    withJavadocJar()
+//    withJavadocJar()
 }
 
 profiles {
