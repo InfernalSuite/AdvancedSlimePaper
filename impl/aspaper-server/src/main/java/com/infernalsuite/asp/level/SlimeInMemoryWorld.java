@@ -105,11 +105,11 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     // Authored by: Kenox <muranelp@gmail.com>
     // Don't use the NMS live chunk in the chunk map
-    public void unload(LevelChunk providedChunk) {
+    public void unload(LevelChunk providedChunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entitySlices) {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
+        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z), entitySlices);
 
         if (FastChunkPruner.canBePruned(this.liveWorld, providedChunk)) {
             this.chunkStorage.remove(Util.chunkPosition(x, z));

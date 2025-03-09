@@ -208,9 +208,7 @@ public class SlimeLevelInstance extends ServerLevel {
         propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
     }
 
-    @Override
-    public void unload(LevelChunk chunk) {
-        this.slimeInstance.unload(chunk);
-        super.unload(chunk);
+    public void onChunkUnloaded(LevelChunk chunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entityChunk) {
+        this.slimeInstance.unload(chunk, entityChunk);
     }
 }

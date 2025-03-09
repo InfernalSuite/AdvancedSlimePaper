@@ -66,11 +66,18 @@ public class NMSSlimeChunk implements SlimeChunk {
     private final CompoundBinaryTag extra;
     private final CompoundBinaryTag upgradeData;
 
+    private final ChunkEntitySlices entitySlices;
+
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
+        this(chunk, reference, null);
+    }
+
+    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference, ChunkEntitySlices slices) {
         this.chunk = chunk;
         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
         this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
         this.upgradeData = reference == null ? null : reference.getUpgradeData();
+        this.entitySlices = slices;
     }
 
     @Override
@@ -159,9 +166,7 @@ public class NMSSlimeChunk implements SlimeChunk {
     public List<CompoundBinaryTag> getEntities() {
         List<CompoundTag> entities = new ArrayList<>();
 
-        if (this.chunk == null || this.chunk.getChunkHolder() == null) return new ArrayList<>();
-
-        ChunkEntitySlices slices = this.chunk.getChunkHolder().getEntityChunk();
+        ChunkEntitySlices slices = getEntitySlices();
         if (slices == null) return new ArrayList<>();
 
         // Work by <gunther@gameslabs.net>
@@ -175,6 +180,16 @@ public class NMSSlimeChunk implements SlimeChunk {
         }
 
         return Lists.transform(entities, Converter::convertTag);
+    }
+
+    private ChunkEntitySlices getEntitySlices() {
+        if (this.entitySlices != null) return this.entitySlices;
+
+        if (this.chunk == null || this.chunk.getChunkHolder() == null) {
+            return null;
+        }
+
+        return this.chunk.getChunkHolder().getEntityChunk();
     }
 
     @Override

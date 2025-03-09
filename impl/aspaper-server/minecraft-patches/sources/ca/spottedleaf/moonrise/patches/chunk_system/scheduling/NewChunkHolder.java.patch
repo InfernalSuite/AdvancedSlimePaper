@@ -9,3 +9,17 @@
                  final List<Entity> entities = ChunkEntitySlices.readEntities(this.world, entityChunk);
  
                  ((ChunkSystemServerLevel)this.world).moonrise$getEntityLookup().addEntityChunkEntities(entities, new ChunkPos(this.chunkX, this.chunkZ));
+@@ -895,6 +_,13 @@
+         final PoiChunk poiChunk = state.poiChunk();
+ 
+         final boolean shouldLevelChunkNotSave = PlatformHooks.get().forceNoSave(chunk);
++
++        // ASP start - Chunk unloading
++        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance slime && chunk instanceof LevelChunk levelChunk) {
++            //The custom entity slices need to be passed on for entities to be saved
++            slime.onChunkUnloaded(levelChunk, entityChunk);
++        }
++        // ASP end - Chunk unloading
+ 
+         // unload chunk data
+         if (chunk != null) {
