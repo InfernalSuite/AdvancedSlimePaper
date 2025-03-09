@@ -1,5 +1,8 @@
 package com.infernalsuite.asp;
 
+import ca.spottedleaf.dataconverter.converters.DataConverter;
+import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeNMSBridge;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
@@ -68,6 +71,20 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         CraftPersistentDataContainer container = new CraftPersistentDataContainer(REGISTRY);
         source.forEach(entry -> container.put(entry.getKey(), Converter.convertTag(entry.getValue())));
         return container;
+    }
+
+    @Override
+    public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
+        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
+
+        int version = nmsTag.getInt("DataVersion");
+
+        long encodedNewVersion = DataConverter.encodeVersions(1624, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
+
+        MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
+
+        return Converter.convertTag(nmsTag);
     }
 
     @Override

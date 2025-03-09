@@ -116,7 +116,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
         this.chunkStorage.put(new ChunkPos(x, z),
                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
-                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData()));
+                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData(), null));
     }
 
     @Override
@@ -241,7 +241,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                             clonedChunk.getHeightMaps(),
                             clonedChunk.getTileEntities(),
                             clonedChunk.getEntities(),
-                            clonedChunk.getExtraData()
+                            clonedChunk.getExtraData(),
+                            clonedChunk.getUpgradeData()
                     );
                 }
             }

@@ -116,7 +116,13 @@ public class SlimeChunkConverter {
 
         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
-        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
+        UpgradeData upgradeData;
+        if (chunk.getUpgradeData() != null) {
+            upgradeData = new UpgradeData((net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getUpgradeData()), instance);
+        } else {
+            upgradeData = UpgradeData.EMPTY;
+        }
+        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, upgradeData, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
 
         List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
 

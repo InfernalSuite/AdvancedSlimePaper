@@ -67,11 +67,13 @@ public class NMSSlimeChunk implements SlimeChunk {
     }
 
     private LevelChunk chunk;
-    private CompoundBinaryTag extra;
+    private final CompoundBinaryTag extra;
+    private final CompoundBinaryTag upgradeData;
 
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
         this.chunk = chunk;
         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
+        this.upgradeData = reference == null ? null : reference.getUpgradeData();
     }
 
     @Override
@@ -181,6 +183,11 @@ public class NMSSlimeChunk implements SlimeChunk {
     @Override
     public CompoundBinaryTag getExtraData() {
         return extra;
+    }
+
+    @Override
+    public CompoundBinaryTag getUpgradeData() {
+        return upgradeData;
     }
 
     public LevelChunk getChunk() {

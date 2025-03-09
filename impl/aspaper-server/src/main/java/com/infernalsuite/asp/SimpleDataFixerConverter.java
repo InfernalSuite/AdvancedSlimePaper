@@ -1,5 +1,6 @@
 package com.infernalsuite.asp;
 
+import ca.spottedleaf.dataconverter.converters.DataConverter;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
@@ -29,18 +30,21 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
             return data;
         }
 
+        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
+
         Map<com.infernalsuite.asp.ChunkPos, SlimeChunk> chunks = new HashMap<>();
         for (SlimeChunk chunk : data.getChunkStorage()) {
             List<CompoundBinaryTag> entities = new ArrayList<>();
             List<CompoundBinaryTag> blockEntities = new ArrayList<>();
             for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
                 blockEntities.add(
-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
+                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
                 );
             }
             for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
                 entities.add(
-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), currentVersion, newVersion))
+                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
                 );
             }
             ChunkPos chunkPos = new ChunkPos(chunk.getX(), chunk.getZ());
@@ -51,11 +55,11 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                 if (dataSection == null) continue;
 
                 CompoundBinaryTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
-                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", currentVersion, newVersion);
+                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
                 });
 
                 CompoundBinaryTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
-                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", currentVersion, newVersion);
+                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
                 });
 
                 sections[i] = new SlimeChunkSectionSkeleton(
@@ -73,7 +77,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                     chunk.getHeightMaps(),
                     blockEntities,
                     entities,
-                    chunk.getExtraData()
+                    chunk.getExtraData(),
+                    chunk.getUpgradeData()
             ));
 
         }
