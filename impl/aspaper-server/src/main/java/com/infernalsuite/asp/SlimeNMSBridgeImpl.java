@@ -209,7 +209,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         };
 
         ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
-        LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().registryOrThrow(Registries.LEVEL_STEM).get(dimension);
+        LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().lookupOrThrow(Registries.LEVEL_STEM).get(dimension).orElseThrow().value();
 
         SlimeLevelInstance level;
 
@@ -220,7 +220,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         }
 
         // level.setReady(true);
-        level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS), world.getPropertyMap().getValue(SlimeProperties.ALLOW_ANIMALS));
+        level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS));
 
         CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
 

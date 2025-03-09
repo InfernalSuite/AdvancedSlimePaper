@@ -26,14 +26,13 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
-import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 
 public class SlimeChunkConverter {
 
@@ -52,10 +51,10 @@ public class SlimeChunkConverter {
             instance.getLightEngine().retainData(pos, true);
         });
 
-        Registry<Biome> biomeRegistry = instance.registryAccess().registryOrThrow(Registries.BIOME);
+        Registry<Biome> biomeRegistry = instance.registryAccess().lookupOrThrow(Registries.BIOME);
         // Ignore deprecated method
 
-        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.getHolderOrThrow(Biomes.PLAINS), null);
+        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow(), null);
 
         for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
             SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
@@ -73,7 +72,7 @@ public class SlimeChunkConverter {
 
                 PalettedContainer<BlockState> blockPalette;
                 if (slimeSection.getBlockStatesTag() != null) {
-                    DataResult<PalettedContainer<BlockState>> dataresult = ChunkSerializer.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
+                    DataResult<PalettedContainer<BlockState>> dataresult = SerializableChunkData.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                     });
                     blockPalette = dataresult.getOrThrow(); // todo proper logging
@@ -89,7 +88,7 @@ public class SlimeChunkConverter {
                     });
                     biomePalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES, null);
+                    biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.get(Biomes.PLAINS).orElseThrow(), PalettedContainer.Strategy.SECTION_BIOMES, null);
                 }
 
                 if (sectionId < sections.length) {

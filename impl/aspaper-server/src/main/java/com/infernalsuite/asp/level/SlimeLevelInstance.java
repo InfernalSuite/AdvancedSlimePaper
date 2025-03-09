@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.level;
 
-import ca.spottedleaf.concurrentutil.executor.standard.PrioritisedExecutor;
+import ca.spottedleaf.concurrentutil.util.Priority;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
@@ -87,8 +87,8 @@ public class SlimeLevelInstance extends ServerLevel {
         super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
                 CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
                 primaryLevelData, worldKey, worldDimension,
-                MinecraftServer.getServer().progressListenerFactory.create(11), false, null, 0,
-                Collections.emptyList(), true, environment, null, null);
+                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
+                Collections.emptyList(), true, null, environment, null, null);
         this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 
 
@@ -100,7 +100,7 @@ public class SlimeLevelInstance extends ServerLevel {
                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
                         propertyMap.getValue(SlimeProperties.SPAWN_Z)),
                 propertyMap.getValue(SlimeProperties.SPAWN_YAW));
-        super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+        super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS));
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
     }
@@ -109,7 +109,7 @@ public class SlimeLevelInstance extends ServerLevel {
     public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
         ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
-        Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME).getHolder(biomeKey).orElseThrow();
+        Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
         return new SlimeLevelGenerator(defaultBiome);
     }
 
@@ -179,7 +179,7 @@ public class SlimeLevelInstance extends ServerLevel {
         return this.slimeInstance;
     }
 
-    public ChunkDataLoadTask getLoadTask(ChunkLoadTask task, ChunkTaskScheduler scheduler, ServerLevel world, int chunkX, int chunkZ, PrioritisedExecutor.Priority priority, Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
+    public ChunkDataLoadTask getLoadTask(ChunkLoadTask task, ChunkTaskScheduler scheduler, ServerLevel world, int chunkX, int chunkZ, Priority priority, Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
         return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
     }
 
