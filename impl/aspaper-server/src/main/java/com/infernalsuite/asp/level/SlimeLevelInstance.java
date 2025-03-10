@@ -118,6 +118,14 @@ public class SlimeLevelInstance extends ServerLevel {
         if (!savingDisabled) save();
     }
 
+    @Override
+    public void saveIncrementally(boolean doFull) {
+        if(doFull) {
+            //Avoid doing the internal save because it saves the level.dat into the temp folder. That causes pterodactyl users to have issues.
+            save();
+        }
+    }
+
     public Future<?> save() {
         AsyncCatcher.catchOp("SWM world save");
         try {
