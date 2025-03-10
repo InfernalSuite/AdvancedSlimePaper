@@ -38,12 +38,16 @@ import net.minecraft.world.level.validation.DirectoryValidator;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spigotmc.AsyncCatcher;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
@@ -218,5 +222,41 @@ public class SlimeLevelInstance extends ServerLevel {
 
     public void onChunkUnloaded(LevelChunk chunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entityChunk) {
         this.slimeInstance.unload(chunk, entityChunk);
+    }
+
+    public void deleteTempFiles() {
+        WORLD_SAVER_SERVICE.execute(() -> {
+            Path path = this.levelStorageAccess.levelDirectory.path();
+            try {
+                // We do this manually and not use the deleteLevel function as it would cause a level deleted message
+                // to appear in the log which might be confusing for our users
+                Files.walkFileTree(path, new SimpleFileVisitor<>() {
+                    @Override
+                    public @NotNull FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) throws IOException {
+                        if (!file.equals(path)) {
+                            Files.delete(file);
+                        }
+
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public @NotNull FileVisitResult postVisitDirectory(Path dir, @javax.annotation.Nullable IOException exception) throws IOException {
+                        if (exception != null) {
+                            throw exception;
+                        } else {
+                            if (dir.equals(levelStorageAccess.levelDirectory.path())) {
+                                Files.deleteIfExists(path);
+                            }
+
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    }
+                });
+            } catch (IOException e) {
+                Bukkit.getLogger().log(Level.WARNING, "Unable to delete temp level directory" , e);
+            }
+        });
     }
 }
