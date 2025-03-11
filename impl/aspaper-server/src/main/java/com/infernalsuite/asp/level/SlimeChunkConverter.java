@@ -52,9 +52,9 @@ public class SlimeChunkConverter {
         });
 
         Registry<Biome> biomeRegistry = instance.registryAccess().lookupOrThrow(Registries.BIOME);
-        // Ignore deprecated method
 
-        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow(), null);
+        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(),
+                biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow(), null);
 
         for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
             SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
@@ -98,21 +98,6 @@ public class SlimeChunkConverter {
             }
         }
 
-        // Keep the chunk loaded at level 33 to avoid light glitches
-        // Such a high level will let the server not tick the chunk,
-        // but at the same time it won't be completely unloaded from memory
-        //        getChunkProvider().addTicket(SWM_TICKET, pos, 33, Unit.INSTANCE);
-
-
-        LevelChunk.PostLoadProcessor loadEntities = (nmsChunk) -> {
-            List<CompoundBinaryTag> entities = chunk.getEntities();
-
-            if (entities != null) {
-                ChunkStatusTasks.postLoadProtoChunk(instance, entities.stream()
-                        .map(flowTag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(flowTag)).toList(), nmsChunk.getPos());
-            }
-        };
-
         LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
         LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
         UpgradeData upgradeData;
@@ -121,25 +106,15 @@ public class SlimeChunkConverter {
         } else {
             upgradeData = UpgradeData.EMPTY;
         }
-        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, upgradeData, blockLevelChunkTicks, fluidLevelChunkTicks, 0L, sections, loadEntities, null);
 
-        List<CompoundBinaryTag> tileEntities = chunk.getTileEntities();
+        LevelChunk.PostLoadProcessor processor = SerializableChunkData.postLoadChunk(
+                instance,
+                chunk.getEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList(),
+                chunk.getTileEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList()
+        );
 
-        if (tileEntities != null) {
-            for (CompoundBinaryTag tag : tileEntities) {
-                String type = tag.getString("id");
-
-                if (!type.isEmpty()) {
-                    BlockPos blockPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-                    BlockState blockData = nmsChunk.getBlockState(blockPosition);
-                    BlockEntity entity = BlockEntity.loadStatic(blockPosition, blockData, (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag), net.minecraft.server.MinecraftServer.getServer().registryAccess());
-
-                    if (entity != null) {
-                        nmsChunk.setBlockEntity(entity);
-                    }
-                }
-            }
-        }
+        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, upgradeData, blockLevelChunkTicks,
+                fluidLevelChunkTicks, 0L, sections, processor, null);
 
         // Height Maps
         EnumSet<Heightmap.Types> heightMapTypes = nmsChunk.getPersistedStatus().heightmapsAfter();

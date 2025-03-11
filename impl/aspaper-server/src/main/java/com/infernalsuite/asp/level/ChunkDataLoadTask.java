@@ -76,9 +76,9 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
             LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
 
             ImposterProtoChunk protoChunk = new ImposterProtoChunk(chunk, false);
-            if (data != null) {
-                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
-            }
+//            if (data != null) {
+//                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
+//            }
 
             return protoChunk;
         } catch (final Exception e) {
