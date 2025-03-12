@@ -39,7 +39,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSlimePaper.class);
     private static final SlimeNMSBridge BRIDGE_INSTANCE = SlimeNMSBridge.instance();
 
-    private final Map<String, SlimeWorld> loadedWorlds = new ConcurrentHashMap<>();
+    private final Map<String, SlimeWorldInstance> loadedWorlds = new ConcurrentHashMap<>();
 
     static {
         System.setProperty("org.slf4j.simpleLogger.showShortLogName", "true");
@@ -74,7 +74,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
     }
 
     @Override
-    public SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException {
+    public SlimeWorldInstance loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException {
         AsyncCatcher.catchOp("SWM world load");
         Objects.requireNonNull(world, "SlimeWorld cannot be null");
 
@@ -86,17 +86,17 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         long start = System.currentTimeMillis();
 
         SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(world);
-        SlimeWorld mirror = instance.getSlimeWorldMirror();
+        SlimeWorld mirror = instance.getSlimeWorld();
 
         Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
         if (callWorldLoadEvent) {
             Bukkit.getPluginManager().callEvent(new WorldLoadEvent(instance.getBukkitWorld()));
         }
 
-        registerWorld(mirror);
+        registerWorld(instance);
 
         LOGGER.info("World {} loaded in {}ms.", world.getName(), System.currentTimeMillis() - start);
-        return mirror;
+        return instance;
     }
 
     @Override
@@ -153,12 +153,12 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
     }
 
     @Override
-    public SlimeWorld getLoadedWorld(String worldName) {
+    public SlimeWorldInstance getLoadedWorld(String worldName) {
         return loadedWorlds.get(worldName);
     }
 
     @Override
-    public List<SlimeWorld> getLoadedWorlds() {
+    public List<SlimeWorldInstance> getLoadedWorlds() {
         return List.copyOf(loadedWorlds.values());
     }
 
@@ -232,7 +232,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
      *
      * @param world the world to register
      */
-    private void registerWorld(SlimeWorld world) {
+    private void registerWorld(SlimeWorldInstance world) {
         this.loadedWorlds.put(world.getName(), world);
     }
 

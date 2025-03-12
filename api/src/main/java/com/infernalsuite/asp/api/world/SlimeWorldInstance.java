@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.api.world;
 
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import net.kyori.adventure.nbt.BinaryTag;
 import org.bukkit.World;
 
@@ -12,9 +13,9 @@ public interface SlimeWorldInstance {
 
     World getBukkitWorld();
 
-    SlimeWorld getSlimeWorldMirror();
+    SlimeWorld getSlimeWorld();
 
-    com.infernalsuite.asp.api.world.properties.SlimePropertyMap getPropertyMap();
+    SlimePropertyMap getPropertyMap();
 
     boolean isReadOnly();
 

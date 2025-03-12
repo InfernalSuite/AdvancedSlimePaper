@@ -132,7 +132,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     @Override
-    public SlimeWorld getSlimeWorldMirror() {
+    public SlimeWorld getSlimeWorld() {
         return this;
     }
 

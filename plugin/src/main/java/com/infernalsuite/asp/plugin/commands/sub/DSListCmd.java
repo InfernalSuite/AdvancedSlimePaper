@@ -91,7 +91,7 @@ public class DSListCmd extends com.infernalsuite.asp.plugin.commands.SlimeComman
         World world = Bukkit.getWorld(worldName);
 
         if (world != null) {
-            SlimeWorld slimeWorld = SlimeNMSBridge.instance().getInstance(world).getSlimeWorldMirror();
+            SlimeWorld slimeWorld = SlimeNMSBridge.instance().getInstance(world).getSlimeWorld();
 
             if (slimeWorld != null) {
                 return loader.equals(slimeWorld.getLoader());
