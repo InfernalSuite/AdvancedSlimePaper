@@ -108,13 +108,12 @@ public class Converter {
             case Tag.TAG_BYTE_ARRAY -> (T) ByteArrayBinaryTag.byteArrayBinaryTag(((ByteArrayTag) base).getAsByteArray());
             case Tag.TAG_STRING -> (T) StringBinaryTag.stringBinaryTag(((StringTag) base).getAsString());
             case Tag.TAG_LIST -> {
-                List<BinaryTag> list = new ArrayList<>();
                 ListTag originalList = ((ListTag) base);
-                for (Tag entry : originalList) list.add(convertTag(entry));
-
-                if(list.isEmpty()) {
+                if(originalList.isEmpty()) {
                     yield (T) ListBinaryTag.empty();
                 }
+                List<BinaryTag> list = new ArrayList<>(originalList.size());
+                for (Tag entry : originalList) list.add(convertTag(entry));
                 yield (T) ListBinaryTag.listBinaryTag(list.getFirst().type(), list);
             }
             case Tag.TAG_COMPOUND -> {
