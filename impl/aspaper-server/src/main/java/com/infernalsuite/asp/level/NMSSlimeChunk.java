@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -151,34 +152,36 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     @Override
     public List<CompoundBinaryTag> getTileEntities() {
-        List<CompoundTag> tileEntities = new ArrayList<>();
+        Collection<BlockEntity> blockEntities = this.chunk.blockEntities.values();
+        List<CompoundBinaryTag> tileEntities = new ArrayList<>(blockEntities.size());
 
-        for (BlockEntity entity : this.chunk.blockEntities.values()) {
+        for (BlockEntity entity : blockEntities) {
             CompoundTag entityNbt = entity.saveWithFullMetadata(net.minecraft.server.MinecraftServer.getServer().registryAccess());
-            tileEntities.add(entityNbt);
+            tileEntities.add(Converter.convertTag(entityNbt));
         }
 
-        return Lists.transform(tileEntities, Converter::convertTag);
+        return tileEntities;
     }
 
     @Override
     public List<CompoundBinaryTag> getEntities() {
-        List<CompoundTag> entities = new ArrayList<>();
 
         ChunkEntitySlices slices = getEntitySlices();
         if (slices == null) return new ArrayList<>();
+
+        List<CompoundBinaryTag> entities = new ArrayList<>(slices.entities.size());
 
         // Work by <gunther@gameslabs.net>
         for (Entity entity : slices.entities) {
             CompoundTag entityNbt = new CompoundTag();
             try {
-                if (entity.save(entityNbt)) entities.add(entityNbt);
+                if (entity.save(entityNbt)) entities.add(Converter.convertTag(entityNbt));
             } catch (final Exception e) {
                 LOGGER.error("Could not save the entity = {}, exception = {}", entity, e);
             }
         }
 
-        return Lists.transform(entities, Converter::convertTag);
+        return entities;
     }
 
     private ChunkEntitySlices getEntitySlices() {
