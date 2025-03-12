@@ -128,7 +128,8 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
+            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), importData.loader() == null,
+                    chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);
