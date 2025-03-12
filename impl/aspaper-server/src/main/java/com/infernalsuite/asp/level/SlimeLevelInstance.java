@@ -197,7 +197,7 @@ public class SlimeLevelInstance extends ServerLevel {
                     @Override
                     public @NotNull FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) throws IOException {
                         if (!file.equals(path)) {
-                            Files.delete(file);
+                            Files.deleteIfExists(file);
                         }
 
                         return FileVisitResult.CONTINUE;
@@ -212,7 +212,7 @@ public class SlimeLevelInstance extends ServerLevel {
                                 Files.deleteIfExists(path);
                             }
 
-                            Files.delete(dir);
+                            Files.deleteIfExists(dir);
                             return FileVisitResult.CONTINUE;
                         }
                     }
