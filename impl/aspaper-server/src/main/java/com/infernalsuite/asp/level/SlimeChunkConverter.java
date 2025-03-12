@@ -48,6 +48,7 @@ public class SlimeChunkConverter {
         SWMRNibbleArray[] blockNibbles = StarLightEngine.getFilledEmptyLight(instance);
         SWMRNibbleArray[] skyNibbles = StarLightEngine.getFilledEmptyLight(instance);
         instance.getServer().scheduleOnMain(() -> {
+            //TODO: Figure out if this is important. Seems empty in paper
             instance.getLightEngine().retainData(pos, true);
         });
 
