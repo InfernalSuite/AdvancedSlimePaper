@@ -97,7 +97,6 @@ public class NMSSlimeChunk implements SlimeChunk {
 
         Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
 
-        // Ignore deprecation, spigot only method
         Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow());
 
         for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
