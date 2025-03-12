@@ -5,14 +5,11 @@ import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskSchedule
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
-import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -20,17 +17,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.util.ProgressListener;
-import net.minecraft.util.Unit;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -48,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -57,7 +48,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class SlimeLevelInstance extends ServerLevel {
 
@@ -79,7 +69,6 @@ public class SlimeLevelInstance extends ServerLevel {
 
     private static final ExecutorService WORLD_SAVER_SERVICE = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder()
             .setNameFormat("SWM Pool Thread #%1$d").build());
-    private static final TicketType<Unit> SWM_TICKET = TicketType.create("swm-chunk", (a, b) -> 0);
 
     private final Object saveLock = new Object();
 
@@ -110,7 +99,7 @@ public class SlimeLevelInstance extends ServerLevel {
     }
 
     @Override
-    public ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
+    public @NotNull ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
         ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
@@ -158,14 +147,6 @@ public class SlimeLevelInstance extends ServerLevel {
         return CompletableFuture.completedFuture(null);
     }
 
-    /*
-    @Override
-    public void saveIncrementally(boolean doFull) {
-        if (doFull) {
-            this.save(null, false, false);
-        }
-    }*/ // Most likely unused - kyngs
-
     private Future<?> saveInternal() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
             SlimeWorldInstance slimeWorld = this.slimeInstance;
@@ -195,20 +176,6 @@ public class SlimeLevelInstance extends ServerLevel {
         return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
     }
 
-    /*
-    public void loadEntities(int chunkX, int chunkZ) {
-        SlimeChunk slimeChunk = this.slimeInstance.getChunk(chunkX, chunkZ);
-        if (slimeChunk != null) {
-            this.getEntityLookup().addLegacyChunkEntities(new ArrayList<>(
-                    EntityType.loadEntitiesRecursive(slimeChunk.getEntities()
-                                    .stream()
-                                    .map((tag) -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag))
-                                    .collect(Collectors.toList()), this)
-                            .toList()
-            ), new ChunkPos(chunkX, chunkZ));
-        }
-    }*/ // Most likely unused - kyngs
-
     @Override
     public void setDefaultSpawnPos(BlockPos pos, float angle) {
         super.setDefaultSpawnPos(pos, angle);
@@ -218,10 +185,6 @@ public class SlimeLevelInstance extends ServerLevel {
         propertyMap.setValue(SlimeProperties.SPAWN_Y, pos.getY());
         propertyMap.setValue(SlimeProperties.SPAWN_Z, pos.getZ());
         propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
-    }
-
-    public void onChunkUnloaded(LevelChunk chunk, ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entityChunk) {
-        this.slimeInstance.unload(chunk, entityChunk);
     }
 
     public void deleteTempFiles() {

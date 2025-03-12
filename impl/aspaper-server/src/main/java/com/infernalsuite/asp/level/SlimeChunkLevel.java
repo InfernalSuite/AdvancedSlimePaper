@@ -1,5 +1,8 @@
 package com.infernalsuite.asp.level;
 
+import ca.spottedleaf.moonrise.common.list.EntityList;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemServerLevel;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -23,5 +26,14 @@ public class SlimeChunkLevel extends LevelChunk {
     public void loadCallback() {
         super.loadCallback();
         this.inMemoryWorld.ensureChunkMarkedAsLoaded(this);
+    }
+
+    @Override
+    public void unloadCallback() {
+        super.unloadCallback();
+
+        ChunkEntitySlices entities = ((ChunkSystemServerLevel) this.level).moonrise$getChunkTaskScheduler()
+                .chunkHolderManager.getChunkHolder(this.locX, this.locZ).getEntityChunk();
+        inMemoryWorld.unload(this, entities);
     }
 }
