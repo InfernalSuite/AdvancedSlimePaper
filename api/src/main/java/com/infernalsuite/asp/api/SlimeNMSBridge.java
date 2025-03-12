@@ -37,13 +37,9 @@ public interface SlimeNMSBridge {
 
     void extractCraftPDC(PersistentDataContainer source, CompoundBinaryTag.Builder builder);
 
-    PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundBinaryTag source);
-
     @ApiStatus.Internal
     class Holder {
         private static final SlimeNMSBridge INSTANCE = Services.service(SlimeNMSBridge.class).orElseThrow();
     }
-
-    CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag);
 
 }

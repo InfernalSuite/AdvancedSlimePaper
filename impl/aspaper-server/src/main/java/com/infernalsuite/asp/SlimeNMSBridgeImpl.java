@@ -65,27 +65,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
     }
 
     @Override
-    public PersistentDataContainer extractCompoundMapIntoCraftPDC(CompoundBinaryTag source) {
-        CraftPersistentDataContainer container = new CraftPersistentDataContainer(REGISTRY);
-        source.forEach(entry -> container.put(entry.getKey(), Converter.convertTag(entry.getValue())));
-        return container;
-    }
-
-    @Override
-    public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
-        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
-
-        int version = nmsTag.getInt("DataVersion");
-
-        long encodedNewVersion = DataConverter.encodeVersions(1624, Integer.MAX_VALUE);
-        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
-
-        MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
-
-        return Converter.convertTag(nmsTag);
-    }
-
-    @Override
     public boolean loadOverworldOverride() {
         if (defaultWorld == null) {
             return false;

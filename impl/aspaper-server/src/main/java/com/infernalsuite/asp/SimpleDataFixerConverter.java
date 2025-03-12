@@ -17,7 +17,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.SharedConstants;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -56,7 +55,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                 SlimeChunkSection dataSection = chunk.getSections()[i];
                 if (dataSection == null) continue;
 
-                CompoundBinaryTag blockStateTag = blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+                CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
                     WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
                 });
 
