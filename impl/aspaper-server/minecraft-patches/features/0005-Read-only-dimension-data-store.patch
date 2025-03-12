@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Thu, 13 Mar 2025 00:09:20 +0100
+Subject: [PATCH] Read only dimension data store
+
+
+diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
+index 6540b2d6a1062d883811ce240c49d30d1925b291..f89eb4e909c2eeb22732dcb368b3758637f036f7 100644
+--- a/net/minecraft/server/level/ServerChunkCache.java
++++ b/net/minecraft/server/level/ServerChunkCache.java
+@@ -207,7 +207,13 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+             LOGGER.error("Failed to create dimension data storage directory", (Throwable)var15);
+         }
+ 
+-        this.dataStorage = new DimensionDataStorage(path, fixerUpper, level.registryAccess());
++        //ASP start - No dimension data storage
++        if(level instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
++            this.dataStorage = new com.infernalsuite.asp.level.ReadOnlyDimensionDataStorage(path, fixerUpper, level.registryAccess());
++        } else {
++            this.dataStorage = new DimensionDataStorage(path, fixerUpper, level.registryAccess());
++        }
++        //ASP end - No dimension data storage
+         this.chunkMap = new ChunkMap(
+             level,
+             levelStorageAccess,
