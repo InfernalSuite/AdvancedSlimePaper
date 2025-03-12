@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.api.events;
 
+import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -9,9 +10,9 @@ import java.util.Objects;
 public class LoadSlimeWorldEvent extends Event {
 
   private static final HandlerList handlers = new HandlerList();
-  private final com.infernalsuite.asp.api.world.SlimeWorld slimeWorld;
+  private final SlimeWorldInstance slimeWorld;
 
-  public LoadSlimeWorldEvent(com.infernalsuite.asp.api.world.SlimeWorld slimeWorld) {
+  public LoadSlimeWorldEvent(SlimeWorldInstance slimeWorld) {
     super(false);
     this.slimeWorld = Objects.requireNonNull(slimeWorld, "slimeWorld cannot be null");
   }
@@ -25,7 +26,7 @@ public class LoadSlimeWorldEvent extends Event {
     return handlers;
   }
 
-  public com.infernalsuite.asp.api.world.SlimeWorld getSlimeWorld() {
+  public SlimeWorldInstance getSlimeWorld() {
     return slimeWorld;
   }
 }

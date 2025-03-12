@@ -86,9 +86,8 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         long start = System.currentTimeMillis();
 
         SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(world);
-        SlimeWorld mirror = instance.getSlimeWorld();
 
-        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(mirror));
+        Bukkit.getPluginManager().callEvent(new LoadSlimeWorldEvent(instance));
         if (callWorldLoadEvent) {
             Bukkit.getPluginManager().callEvent(new WorldLoadEvent(instance.getBukkitWorld()));
         }

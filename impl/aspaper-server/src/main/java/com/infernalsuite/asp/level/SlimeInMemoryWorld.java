@@ -127,14 +127,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     @Override
-    public World getBukkitWorld() {
+    public @NotNull World getBukkitWorld() {
         return this.instance.getWorld();
     }
 
-    @Override
-    public SlimeWorld getSlimeWorld() {
-        return this;
-    }
 
     @Override
     public SlimePropertyMap getPropertyMap() {
