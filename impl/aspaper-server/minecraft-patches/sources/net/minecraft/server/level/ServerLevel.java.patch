@@ -42,7 +42,7 @@
          // CraftBukkit start
          super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
          this.pvpMode = server.isPvpAllowed();
-@@ -614,10 +_,18 @@
+@@ -614,6 +_,13 @@
              chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
          }
          // CraftBukkit end
@@ -56,11 +56,6 @@
          boolean flag = server.forceSynchronousWrites();
          DataFixer fixerUpper = server.getFixerUpper();
          // Paper - rewrite chunk system
-         this.chunkSource = new ServerChunkCache(
-+            bootstrap, //ASP
-             this,
-             levelStorageAccess,
-             fixerUpper,
 @@ -695,6 +_,12 @@
      public void setDragonFight(@Nullable EndDragonFight dragonFight) {
          this.dragonFight = dragonFight;
