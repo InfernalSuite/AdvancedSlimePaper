@@ -1,6 +1,8 @@
 package com.infernalsuite.asp.util;
 
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import com.infernalsuite.asp.InternalPlugin;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.scheduler.CraftScheduler;
 import org.bukkit.plugin.Plugin;
@@ -42,5 +44,9 @@ public class NmsUtil {
         if (runtimeException[0] != null) {
             throw runtimeException[0];
         }
+    }
+
+    public static NewChunkHolder getChunkHolder(LevelChunk chunk) {
+        return chunk.level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunk.getPos().x, chunk.getPos().z);
     }
 }

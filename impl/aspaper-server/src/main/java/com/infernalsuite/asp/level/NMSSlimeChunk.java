@@ -1,12 +1,12 @@
 package com.infernalsuite.asp.level;
 
-import com.google.common.collect.Lists;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
-import com.mojang.logging.LogUtils;
+import com.infernalsuite.asp.util.NmsUtil;
 import com.mojang.serialization.Codec;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class NMSSlimeChunk implements SlimeChunk {
     private static final Logger LOGGER = LoggerFactory.getLogger(NMSSlimeChunk.class);
@@ -187,11 +186,15 @@ public class NMSSlimeChunk implements SlimeChunk {
     private ChunkEntitySlices getEntitySlices() {
         if (this.entitySlices != null) return this.entitySlices;
 
-        if (this.chunk == null || this.chunk.getChunkHolder() == null) {
+        if (this.chunk == null) {
+            return null;
+        }
+        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
+        if(chunkHolder == null) {
             return null;
         }
 
-        return this.chunk.getChunkHolder().getEntityChunk();
+        return chunkHolder.getEntityChunk();
     }
 
     @Override

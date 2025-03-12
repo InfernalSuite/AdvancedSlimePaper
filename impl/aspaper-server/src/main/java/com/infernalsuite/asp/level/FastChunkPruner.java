@@ -1,19 +1,23 @@
 package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.asp.util.NmsUtil;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 public class FastChunkPruner {
 
     public static boolean canBePruned(SlimeWorld world, LevelChunk chunk) {
+        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
+
         // Kenox <muranelp@gmail.com>
         // It's not safe to assume that the chunk can be pruned
         // if there isn't a loaded chunk there
-        if (chunk == null || chunk.getChunkHolder() == null) {
+        if (chunkHolder == null) {
             return false;
         }
 
@@ -39,7 +43,7 @@ public class FastChunkPruner {
 
         String pruningSetting = world.getPropertyMap().getValue(SlimeProperties.CHUNK_PRUNING);
         if (pruningSetting.equals("aggressive")) {
-            ChunkEntitySlices slices = chunk.getChunkHolder().getEntityChunk();
+            ChunkEntitySlices slices = chunkHolder.getEntityChunk();
 
             return chunk.blockEntities.isEmpty() && (slices == null || slices.isEmpty()) && areSectionsEmpty(chunk);
         }
