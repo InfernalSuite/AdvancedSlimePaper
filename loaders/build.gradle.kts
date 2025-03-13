@@ -6,14 +6,16 @@ plugins {
 dependencies {
     compileOnly(project(":api"))
 
-    api(libs.hikari)
-    api(libs.mongo)
-    api(libs.lettuce)
+    api(project(":loaders:api-loader"))
+    api(project(":loaders:file-loader"))
+    api(project(":loaders:mongo-loader"))
+    api(project(":loaders:mysql-loader"))
+    api(project(":loaders:redis-loader"))
 
     compileOnly(paperApi())
 }
 
 publishConfiguration {
     name = "Advanced Slime Paper Loaders"
-    description = "Default loaders for Advanced Slime Paper"
+    description = "Default loaders for Advanced Slime Paper. There might be more loaders available then included in this BOM package"
 }

@@ -4,6 +4,7 @@ import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
+import com.infernalsuite.asp.loaders.redis.util.StringByteCodec;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,7 @@ public class RedisLoader implements SlimeLoader {
     public RedisLoader(String uri) {
         this.connection = RedisClient
             .create(uri)
-            .connect(com.infernalsuite.asp.loaders.redis.util.StringByteCodec.INSTANCE)
+            .connect(StringByteCodec.INSTANCE)
             .sync();
     }
 

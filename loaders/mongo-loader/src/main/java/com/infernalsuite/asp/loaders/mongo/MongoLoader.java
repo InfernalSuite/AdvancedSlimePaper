@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.loaders.mongo;
 
 import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
+import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.*;
@@ -20,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MongoLoader extends com.infernalsuite.asp.loaders.UpdatableLoader {
+public class MongoLoader extends UpdatableLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoLoader.class);
 
@@ -39,6 +40,18 @@ public class MongoLoader extends com.infernalsuite.asp.loaders.UpdatableLoader {
 
         this.client = MongoClients.create(parsedUri);
 
+        init();
+    }
+
+    public MongoLoader(MongoClient client, String database, String collection) {
+        this.database = database;
+        this.collection = collection;
+        this.client = client;
+
+        init();
+    }
+
+    private void init() {
         MongoDatabase mongoDatabase = client.getDatabase(database);
         MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 

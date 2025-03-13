@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.loaders.mysql;
 
 import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
+import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MysqlLoader extends com.infernalsuite.asp.loaders.UpdatableLoader {
+public class MysqlLoader extends UpdatableLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MysqlLoader.class);
 
@@ -79,7 +80,7 @@ public class MysqlLoader extends com.infernalsuite.asp.loaders.UpdatableLoader {
     }
 
     @Override
-    public void update() throws IOException, NewerDatabaseException {
+    public void update() throws IOException, NewerStorageException {
         try (Connection con = source.getConnection()) {
             int version;
 
@@ -89,7 +90,7 @@ public class MysqlLoader extends com.infernalsuite.asp.loaders.UpdatableLoader {
             }
 
             if (version > CURRENT_DB_VERSION) {
-                throw new NewerDatabaseException(CURRENT_DB_VERSION, version);
+                throw new NewerStorageException(CURRENT_DB_VERSION, version);
             }
 
             if (version < CURRENT_DB_VERSION) {
