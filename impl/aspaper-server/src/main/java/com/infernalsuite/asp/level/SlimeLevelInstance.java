@@ -129,19 +129,14 @@ public class SlimeLevelInstance extends ServerLevel {
                 this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
                 this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
 
-                // Update level data
-//                net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
-//                net.minecraft.nbt.CompoundTag nbtTagCompound = this.serverLevelData.createTag(MinecraftServer.getServer().registryAccess(), compound);
-
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
                     saveInternal().get(); // Async wait for it to finish
                 } else {
                     return this.saveInternal();
-                    //WORLD_SAVER_SERVICE.execute(this::save);
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "There was a problem saving the SlimeLevelInstance " + serverLevelData.getLevelName(), e);
             return CompletableFuture.failedFuture(e);
         }
         return CompletableFuture.completedFuture(null);
