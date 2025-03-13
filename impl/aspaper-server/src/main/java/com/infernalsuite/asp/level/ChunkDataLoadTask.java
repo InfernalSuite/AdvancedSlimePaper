@@ -47,7 +47,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
 
         this.task = this.scheduler.createChunkTask(this.chunkX, this.chunkZ, () -> {
             try {
-                SlimeChunk chunk = ((SlimeLevelInstance) this.world).slimeInstance.getChunk(this.chunkX, this.chunkZ);
+                SlimeChunk chunk = this.world.slimeInstance.getChunk(this.chunkX, this.chunkZ);
                 this.onRun.accept(new GenericDataLoadTask.TaskResult<>(runOnMain(chunk), null));
             } catch (final Exception e) {
                 LOGGER.error("ERROR", e);
@@ -64,23 +64,10 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
                 0L, null, chunk -> {}, null), true);
     }
 
-    protected ChunkAccess runOnMain(final SlimeChunk data) {
-        // have tasks to run (at this point, it's just the POI consistency checking)
+    private ChunkAccess runOnMain(final SlimeChunk data) {
         try {
-            //                if (data.tasks != null) {
-            //                    for (int i = 0, len = data.tasks.size(); i < len; i) {
-            //                        data.tasks.poll().run();
-            //                    }
-            //                }
-
             LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
-
-            ImposterProtoChunk protoChunk = new ImposterProtoChunk(chunk, false);
-//            if (data != null) {
-//                data.getEntities().stream().map(flowTag -> (CompoundTag) Converter.convertTag(flowTag)).forEach(protoChunk::addEntity);
-//            }
-
-            return protoChunk;
+            return new ImposterProtoChunk(chunk, false);
         } catch (final Exception e) {
             LOGGER.error("Failed to parse main tasks for task {}, chunk data will be lost", this, e);
             return this.getEmptyChunk();
