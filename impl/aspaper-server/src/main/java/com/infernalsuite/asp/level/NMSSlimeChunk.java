@@ -95,7 +95,7 @@ public class NMSSlimeChunk implements SlimeChunk {
         SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getSectionsCount()];
         LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
 
-        Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+        Registry<Biome> biomeRegistry = chunk.biomeRegistry;
 
         Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow());
 
