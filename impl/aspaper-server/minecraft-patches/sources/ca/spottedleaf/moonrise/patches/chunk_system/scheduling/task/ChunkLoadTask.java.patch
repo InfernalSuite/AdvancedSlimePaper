@@ -20,16 +20,16 @@
 -        });
 +        // ASWM start
 +        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance levelInstance) {
-+
 +            this.loadTask = levelInstance.getLoadTask(this, scheduler, world, chunkX, chunkZ, priority, result -> {
-+                ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
++                ChunkLoadTask.this.loadResult = result; // must be before getAndDecrement
++                ChunkLoadTask.this.tryCompleteLoad();
 +            });
 +        } else {
-+            ChunkDataLoadTask task = new ChunkDataLoadTask(scheduler, world, chunkX, chunkZ, priority);
-+            task.addCallback((final GenericDataLoadTask.TaskResult<ChunkAccess, Throwable> result) -> {
-+                ChunkLoadTask.this.complete(result == null ? null : result.left(), result == null ? null : result.right());
++            this.loadTask = new ChunkDataLoadTask(scheduler, world, chunkX, chunkZ, priority);
++            ((ChunkDataLoadTask) this.loadTask).addCallback((final GenericDataLoadTask.TaskResult<ChunkAccess, Throwable> result) -> {
++                ChunkLoadTask.this.loadResult = result; // must be before getAndDecrement
++                ChunkLoadTask.this.tryCompleteLoad();
 +            });
-+            this.loadTask = task;
 +        }
 +        // ASWM end
      }
