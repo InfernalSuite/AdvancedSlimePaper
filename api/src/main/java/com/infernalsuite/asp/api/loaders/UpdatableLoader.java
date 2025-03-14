@@ -6,7 +6,7 @@ public abstract class UpdatableLoader implements SlimeLoader {
 
     public abstract void update() throws NewerStorageException, IOException;
 
-    public class NewerStorageException extends Exception {
+    public static class NewerStorageException extends Exception {
 
         private final int implementationVersion;
         private final int storageVersion;
