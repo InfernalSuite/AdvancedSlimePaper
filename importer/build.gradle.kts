@@ -12,7 +12,7 @@ dependencies {
 tasks {
     jar {
         manifest {
-            attributes["Main-Class"] = "com.infernalsuite.asp.importer.ASPImporter"
+            attributes["Main-Class"] = "com.infernalsuite.asp.importer.SWMImporter"
         }
     }
     shadowJar {
