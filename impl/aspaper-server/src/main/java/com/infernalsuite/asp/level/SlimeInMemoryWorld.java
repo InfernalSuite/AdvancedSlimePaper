@@ -86,6 +86,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                     0L, null, null, null);
 
+            //Make SlimeProperties.DEFAULT_BIOME work
+            levelChunk.fillBiomesFromNoise(instance.chunkSource.getGenerator().getBiomeSource(),
+                    instance.chunkSource.randomState().sampler());
+
             chunk = new NMSSlimeChunk(levelChunk, getChunk(x, z));
         } else {
             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
