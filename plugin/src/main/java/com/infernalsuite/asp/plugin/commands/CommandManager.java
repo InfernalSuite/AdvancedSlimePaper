@@ -134,8 +134,7 @@ public class CommandManager {
                 new com.infernalsuite.asp.plugin.commands.sub.UnloadWorldCmd(this),
                 new com.infernalsuite.asp.plugin.commands.sub.VersionCmd(this),
                 new com.infernalsuite.asp.plugin.commands.sub.WorldListCmd(this),
-                new com.infernalsuite.asp.plugin.commands.sub.HelpCmd(this, commandManager),
-                new TestCommand(this)
+                new com.infernalsuite.asp.plugin.commands.sub.HelpCmd(this, commandManager)
         );
 
     }
