@@ -66,12 +66,6 @@ public class CommandManager {
             LOGGER.warn("Brigadier is not supported on this server version."); // This should never happen since we use ASP, but just in case
         }
 
-        commandManager.command(commandManager.commandBuilder("test").required("count", IntegerParser.integerParser()).handler(commandContext -> {
-            int count = commandContext.get("count");
-
-
-        }));
-
         ParserRegistry<CommandSender> parserRegistry = commandManager.parserRegistry();
 
         parserRegistry.registerSuggestionProvider("known-slime-worlds", new com.infernalsuite.asp.plugin.commands.parser.suggestion.KnownSlimeWorldSuggestionProvider());
@@ -140,7 +134,8 @@ public class CommandManager {
                 new com.infernalsuite.asp.plugin.commands.sub.UnloadWorldCmd(this),
                 new com.infernalsuite.asp.plugin.commands.sub.VersionCmd(this),
                 new com.infernalsuite.asp.plugin.commands.sub.WorldListCmd(this),
-                new com.infernalsuite.asp.plugin.commands.sub.HelpCmd(this, commandManager)
+                new com.infernalsuite.asp.plugin.commands.sub.HelpCmd(this, commandManager),
+                new TestCommand(this)
         );
 
     }

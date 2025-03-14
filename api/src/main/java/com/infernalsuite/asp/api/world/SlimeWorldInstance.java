@@ -13,7 +13,11 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface SlimeWorldInstance extends SlimeWorld {
 
-    @NotNull
-    World getBukkitWorld();
+    /**
+     * Returns the bukkit instance of the loaded world.
+     *
+     * @return The bukkit world.
+     */
+    @NotNull World getBukkitWorld();
 
 }
