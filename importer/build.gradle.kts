@@ -18,6 +18,9 @@ tasks {
     shadowJar {
         minimize()
     }
+    assemble {
+        dependsOn(shadowJar)
+    }
 }
 
 description = "asp-importer"
