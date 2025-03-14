@@ -23,6 +23,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -109,6 +110,12 @@ public class SlimeLevelInstance extends ServerLevel {
     @Override
     public void save(@Nullable ProgressListener progressUpdate, boolean forceSave, boolean savingDisabled, boolean close) {
         if (!savingDisabled) save();
+    }
+
+    @Override
+    public void unload(@NotNull LevelChunk chunk) {
+        slimeInstance.unload(chunk);
+        super.unload(chunk);
     }
 
     @Override

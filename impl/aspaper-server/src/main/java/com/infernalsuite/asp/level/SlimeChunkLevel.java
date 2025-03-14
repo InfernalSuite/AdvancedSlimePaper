@@ -27,13 +27,4 @@ public class SlimeChunkLevel extends LevelChunk {
         super.loadCallback();
         this.inMemoryWorld.ensureChunkMarkedAsLoaded(this);
     }
-
-    @Override
-    public void unloadCallback() {
-        super.unloadCallback();
-
-        ChunkEntitySlices entities = ((ChunkSystemServerLevel) this.level).moonrise$getChunkTaskScheduler()
-                .chunkHolderManager.getChunkHolder(this.locX, this.locZ).getEntityChunk();
-        inMemoryWorld.unload(this, entities);
-    }
 }

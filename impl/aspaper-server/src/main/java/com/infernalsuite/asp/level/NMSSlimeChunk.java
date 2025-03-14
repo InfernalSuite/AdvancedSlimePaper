@@ -66,18 +66,11 @@ public class NMSSlimeChunk implements SlimeChunk {
     private final CompoundBinaryTag extra;
     private final CompoundBinaryTag upgradeData;
 
-    private final ChunkEntitySlices entitySlices;
-
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
-        this(chunk, reference, null);
-    }
-
-    public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference, ChunkEntitySlices slices) {
         this.chunk = chunk;
         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
         this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
         this.upgradeData = reference == null ? null : reference.getUpgradeData();
-        this.entitySlices = slices;
     }
 
     @Override
@@ -163,7 +156,7 @@ public class NMSSlimeChunk implements SlimeChunk {
     @Override
     public List<CompoundBinaryTag> getEntities() {
 
-        ChunkEntitySlices slices = getEntitySlices();
+        ChunkEntitySlices slices = NmsUtil.getChunkHolder(chunk).getEntityChunk();
         if (slices == null) return new ArrayList<>();
 
         List<CompoundBinaryTag> entities = new ArrayList<>(slices.entities.size());
@@ -179,20 +172,6 @@ public class NMSSlimeChunk implements SlimeChunk {
         }
 
         return entities;
-    }
-
-    private ChunkEntitySlices getEntitySlices() {
-        if (this.entitySlices != null) return this.entitySlices;
-
-        if (this.chunk == null) {
-            return null;
-        }
-        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
-        if(chunkHolder == null) {
-            return null;
-        }
-
-        return chunkHolder.getEntityChunk();
     }
 
     @Override

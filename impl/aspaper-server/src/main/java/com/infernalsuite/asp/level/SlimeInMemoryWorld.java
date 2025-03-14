@@ -102,7 +102,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     // Authored by: Kenox <muranelp@gmail.com>
     // Don't use the NMS live chunk in the chunk map
-    public void unload(LevelChunk providedChunk, ChunkEntitySlices entitySlices) {
+    public void unload(LevelChunk providedChunk) {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
@@ -110,7 +110,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             this.chunkStorage.remove(Util.chunkPosition(x, z));
             return;
         }
-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z), entitySlices);
+        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
 
         CompoundBinaryTag pdcTag = Converter.convertTag(providedChunk.persistentDataContainer.toTagCompound());
         chunk.getExtraData().put("ChunkBukkitValues", pdcTag);
