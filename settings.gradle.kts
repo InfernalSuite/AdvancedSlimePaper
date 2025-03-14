@@ -16,7 +16,7 @@ rootProject.name = "ASPaper"
 include(":gradle:platform")
 include(":api")
 include(":core")
-//include(":importer")
+include(":importer")
 include(":loaders")
 include(":plugin")
 include(":impl")
