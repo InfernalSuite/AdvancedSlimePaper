@@ -109,8 +109,6 @@ public class NMSSlimeChunk implements SlimeChunk {
             // Sky light Nibble Array
             NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
 
-            // Tile/Entity Data
-
             // Block Data
             CompoundBinaryTag blockStateTag;
             if (section.hasOnlyAir()) {

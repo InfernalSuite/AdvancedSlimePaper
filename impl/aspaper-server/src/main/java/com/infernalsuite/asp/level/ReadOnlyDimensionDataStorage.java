@@ -11,6 +11,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+/*
+ * This dimension data storage does not serialize and/or load from disk.
+ */
 public class ReadOnlyDimensionDataStorage extends DimensionDataStorage {
 
     public ReadOnlyDimensionDataStorage(Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
