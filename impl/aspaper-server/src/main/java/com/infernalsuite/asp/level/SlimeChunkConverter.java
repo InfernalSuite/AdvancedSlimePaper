@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -143,11 +144,9 @@ public class SlimeChunkConverter {
             Heightmap.primeHeightmaps(nmsChunk, unsetHeightMaps);
         }
 
-        net.minecraft.nbt.CompoundTag nmsExtraData = (net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getExtraData());
-
         // Attempt to read PDC from the extra tag
-        if (nmsExtraData.get("ChunkBukkitValues") != null) {
-            nmsChunk.persistentDataContainer.putAll(nmsExtraData.getCompound("ChunkBukkitValues"));
+        if (chunk.getExtraData().containsKey("ChunkBukkitValues")) {
+            nmsChunk.persistentDataContainer.putAll((CompoundTag) Converter.convertTag(chunk.getExtraData().get("ChunkBukkitValues")));
         }
 
         return nmsChunk;

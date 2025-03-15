@@ -1,8 +1,10 @@
 package com.infernalsuite.asp.api.world;
 
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
@@ -63,7 +65,7 @@ public interface SlimeChunk {
      *
      * @return A {@link CompoundBinaryTag} containing the extra data of the chunk,
      */
-    CompoundBinaryTag getExtraData();
+    Map<String, BinaryTag> getExtraData();
 
     /**
      * Upgrade data used to fix the chunks.

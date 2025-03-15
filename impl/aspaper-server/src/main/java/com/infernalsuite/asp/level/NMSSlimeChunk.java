@@ -9,6 +9,7 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.util.NmsUtil;
 import com.mojang.serialization.Codec;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.LongArrayBinaryTag;
 import net.minecraft.core.Holder;
@@ -35,9 +36,7 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class NMSSlimeChunk implements SlimeChunk {
     private static final Logger LOGGER = LoggerFactory.getLogger(NMSSlimeChunk.class);
@@ -63,12 +62,12 @@ public class NMSSlimeChunk implements SlimeChunk {
     }
 
     private LevelChunk chunk;
-    private final CompoundBinaryTag extra;
+    private final Map<String, BinaryTag> extra;
     private final CompoundBinaryTag upgradeData;
 
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
         this.chunk = chunk;
-        this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
+        this.extra = reference == null ? new HashMap<>() : reference.getExtraData();
         this.upgradeData = reference == null ? null : reference.getUpgradeData();
         updateExtraData();
     }
@@ -181,7 +180,7 @@ public class NMSSlimeChunk implements SlimeChunk {
     }
 
     @Override
-    public CompoundBinaryTag getExtraData() {
+    public Map<String, BinaryTag> getExtraData() {
         return extra;
     }
 

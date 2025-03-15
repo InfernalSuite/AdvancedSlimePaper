@@ -142,7 +142,7 @@ public class SlimeSerializer {
             if (chunk.getExtraData() == null) {
                 LOGGER.warn("Chunk at " + chunk.getX() + ", " + chunk.getZ() + " from world " + world.getName() + " has no extra data! When deserialized, this chunk will have an empty extra data tag!");
             }
-            byte[] extra = serializeCompoundTag(chunk.getExtraData());
+            byte[] extra = serializeCompoundTag(CompoundBinaryTag.from(chunk.getExtraData()));
 
             outStream.writeInt(extra.length);
             outStream.write(extra);

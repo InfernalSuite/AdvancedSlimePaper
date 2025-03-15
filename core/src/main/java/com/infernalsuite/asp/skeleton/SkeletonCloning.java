@@ -12,6 +12,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -74,7 +75,7 @@ public class SkeletonCloning {
                             CompoundBinaryTag.builder().put(chunk.getHeightMaps()).build(),
                             deepClone(chunk.getTileEntities()),
                             deepClone(chunk.getEntities()),
-                            CompoundBinaryTag.builder().put(chunk.getExtraData()).build(),
+                            new HashMap<>(chunk.getExtraData()),
                             null
                     ));
         }

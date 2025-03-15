@@ -2,9 +2,11 @@ package com.infernalsuite.asp.level;
 
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.List;
+import java.util.Map;
 
 public class SafeNmsChunkWrapper implements SlimeChunk {
 
@@ -63,7 +65,7 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
     }
 
     @Override
-    public CompoundBinaryTag getExtraData() {
+    public Map<String, BinaryTag> getExtraData() {
         if (shouldDefaultBackToSlimeChunk()) {
             return this.safety.getExtraData();
         }
