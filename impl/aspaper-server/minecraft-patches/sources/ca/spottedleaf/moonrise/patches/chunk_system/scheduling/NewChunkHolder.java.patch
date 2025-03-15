@@ -1,0 +1,18 @@
+--- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
++++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
+@@ -910,8 +_,15 @@
+             }
+ 
+             if (chunk instanceof LevelChunk levelChunk) {
++                //ASP start - unloadStage1 sets the entitySlices to null, so we can't get them otherwise unfortunately.
++                //This needs to be above world.unload since world.unload removes block entities
++                if(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance instance) {
++                    instance.unload(levelChunk, entityChunk);
++                }
++                //ASP end
+                 this.world.unload(levelChunk);
+             }
++
+         }
+ 
+         // unload entity data

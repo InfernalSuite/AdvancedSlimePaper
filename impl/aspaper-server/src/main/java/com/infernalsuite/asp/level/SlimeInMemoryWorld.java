@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.level;
 
+import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
@@ -100,7 +101,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     // Authored by: Kenox <muranelp@gmail.com>
     // Don't use the NMS live chunk in the chunk map
-    public void unload(LevelChunk providedChunk) {
+    public void unload(LevelChunk providedChunk, ChunkEntitySlices slices) {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
@@ -116,9 +117,16 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         }
         chunk.updatePersistentDataContainer();
 
-        this.chunkStorage.put(Util.chunkPosition(x, z),
-                new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
-                        chunk.getHeightMaps(), chunk.getTileEntities(), chunk.getEntities(), chunk.getExtraData(), null));
+        this.chunkStorage.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(
+                chunk.getX(),
+                chunk.getZ(),
+                chunk.getSections(),
+                chunk.getHeightMaps(),
+                chunk.getTileEntities(),
+                chunk.getEntities(slices), //As the slices are not available anymore, we can't get the entities otherwise
+                chunk.getExtraData(),
+                null
+        ));
     }
 
     @Override
@@ -135,7 +143,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     public @NotNull World getBukkitWorld() {
         return this.instance.getWorld();
     }
-
 
     @Override
     public SlimePropertyMap getPropertyMap() {

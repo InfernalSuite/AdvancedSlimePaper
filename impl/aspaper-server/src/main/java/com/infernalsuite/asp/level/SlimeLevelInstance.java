@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.concurrentutil.util.Priority;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
@@ -112,10 +113,8 @@ public class SlimeLevelInstance extends ServerLevel {
         if (!savingDisabled) save();
     }
 
-    @Override
-    public void unload(@NotNull LevelChunk chunk) {
-        slimeInstance.unload(chunk);
-        super.unload(chunk);
+    public void unload(@NotNull LevelChunk chunk, ChunkEntitySlices slices) {
+        slimeInstance.unload(chunk, slices);
     }
 
     @Override
