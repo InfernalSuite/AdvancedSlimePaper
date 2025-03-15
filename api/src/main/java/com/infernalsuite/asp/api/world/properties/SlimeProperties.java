@@ -103,7 +103,7 @@ public class SlimeProperties {
     @ApiStatus.Experimental
     public static final SlimePropertyInt CHUNK_SECTION_MIN = SlimePropertyInt.create("chunkSectionMin", -4);
     @ApiStatus.Experimental
-    public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMin", 19);
+    public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMax", 19);
 
 
 }
