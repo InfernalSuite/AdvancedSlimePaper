@@ -105,7 +105,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
-        if (FastChunkPruner.canBePruned(this, providedChunk)) {
+        if (FastChunkPruner.canBePruned(this, providedChunk, slices)) {
             this.chunkStorage.remove(Util.chunkPosition(x, z));
             return;
         }
