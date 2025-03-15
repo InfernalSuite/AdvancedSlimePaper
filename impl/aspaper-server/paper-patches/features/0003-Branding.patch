@@ -97,7 +97,7 @@ index 774556a62eb240da42e84db4502e2ed43495be17..ee1ffebaf4e9f7e2f8e0fd8406357b64
          String result = "Unknown-Version";
  
 -        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/io.papermc.paper/paper-api/pom.properties");
-+        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.aswm/slimeworldmanager-api/pom.properties");
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.asp/aspaper-api/pom.properties");
          Properties properties = new Properties();
  
          if (stream != null) {
