@@ -1,25 +1,23 @@
 package com.infernalsuite.asp.api.world;
 
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import net.kyori.adventure.nbt.BinaryTag;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentMap;
 
-public interface SlimeWorldInstance {
+/*
+ * Represents a loaded SlimeWorld. This world is synchronized with the state of the bukkit world.
+ */
+public interface SlimeWorldInstance extends SlimeWorld {
 
-    String getName();
-
-    World getBukkitWorld();
-
-    SlimeWorld getSlimeWorldMirror();
-
-    com.infernalsuite.asp.api.world.properties.SlimePropertyMap getPropertyMap();
-
-    boolean isReadOnly();
-
-    SlimeLoader getLoader();
-
-    ConcurrentMap<String, BinaryTag> getExtraData();
+    /**
+     * Returns the bukkit instance of the loaded world.
+     *
+     * @return The bukkit world.
+     */
+    @NotNull World getBukkitWorld();
 
 }

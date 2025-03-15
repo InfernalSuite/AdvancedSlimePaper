@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Sun, 9 Mar 2025 20:50:45 +0100
+Subject: [PATCH] API Branding
+
+
+diff --git a/src/main/java/io/papermc/paper/ServerBuildInfo.java b/src/main/java/io/papermc/paper/ServerBuildInfo.java
+index 652ff54e7c50412503725d628bfe72ed03059790..d26bbab5b67b6456a2713e67c2bcfa17e7478992 100644
+--- a/src/main/java/io/papermc/paper/ServerBuildInfo.java
++++ b/src/main/java/io/papermc/paper/ServerBuildInfo.java
+@@ -19,6 +19,12 @@ public interface ServerBuildInfo {
+      */
+     Key BRAND_PAPER_ID = Key.key("papermc", "paper");
+ 
++
++    /**
++     * The brand id for AdvancedSlimePaper.
++     */
++    Key BRAND_ADVANCED_SLIME_PAPER_ID = Key.key("infernalsuite", "advancedslimepaper");
++
+     /**
+      * Gets the {@code ServerBuildInfo}.
+      *

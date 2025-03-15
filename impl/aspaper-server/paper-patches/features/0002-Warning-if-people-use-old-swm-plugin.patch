@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: kyngs <kyngs@users.noreply.github.com>
+Date: Sat, 1 Jun 2024 18:57:39 +0200
+Subject: [PATCH] Warning if people use old swm plugin
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java b/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
+index 26422904751647a061397ce978bba752149003cd..4940083475948eac4fc06446f7ee7e1e8e04d676 100644
+--- a/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
++++ b/src/main/java/io/papermc/paper/plugin/storage/SimpleProviderStorage.java
+@@ -26,6 +26,15 @@ public abstract class SimpleProviderStorage<T> implements ProviderStorage<T> {
+ 
+     @Override
+     public void register(PluginProvider<T> provider) {
++        // ASP start - sanity check for old SlimeWorldManager
++        if (provider.getMeta().getName().equals("SlimeWorldManager")) {
++            LOGGER.warn("""
++                    Hey! It looks like you're trying to load the old SlimeWorldManager plugin.
++                    ASP no longer works like that, and you should remove the plugin from your server.
++                    See the documentation at https://infernalsuite.com/docs/asp/migrating for more information.
++                    """);
++            return;
++        } // ASP end
+         this.providers.add(provider);
+     }
+ 

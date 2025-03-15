@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.plugin;
 
 import com.infernalsuite.asp.plugin.commands.CommandManager;
+import com.infernalsuite.asp.plugin.config.ConfigManager;
 import com.infernalsuite.asp.plugin.config.WorldData;
 import com.infernalsuite.asp.plugin.config.WorldsConfig;
 import com.infernalsuite.asp.plugin.loader.LoaderManager;
@@ -19,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 
 public class SWPlugin extends JavaPlugin {
 
@@ -96,9 +98,27 @@ public class SWPlugin extends JavaPlugin {
         worldsToLoad.clear(); // Don't unnecessarily hog up memory
     }
 
+    @Override
+    public void onDisable() {
+        WorldsConfig config = ConfigManager.getWorldConfig();
+
+        for (Map.Entry<String, WorldData> entry : config.getWorlds().entrySet()) {
+            SlimeWorld world = ASP.getLoadedWorld(entry.getKey());
+
+            if (world != null && !world.isReadOnly()) {
+                try {
+                    ASP.saveWorld(world); //Save the world sync
+                } catch (RuntimeException | IOException ex) {
+                    getLogger().log(Level.SEVERE, "Failed to unload world " + world.getName(), ex);
+                }
+            }
+            Bukkit.unloadWorld(world.getName(), false); //Unload without saving as we have just saved (if not read only)
+        }
+    }
+
     private List<String> loadWorlds() {
         List<String> erroredWorlds = new ArrayList<>();
-        WorldsConfig config = com.infernalsuite.asp.plugin.config.ConfigManager.getWorldConfig();
+        WorldsConfig config = ConfigManager.getWorldConfig();
 
         for (Map.Entry<String, WorldData> entry : config.getWorlds().entrySet()) {
             String worldName = entry.getKey();

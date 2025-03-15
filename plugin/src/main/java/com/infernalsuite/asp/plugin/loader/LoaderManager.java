@@ -1,7 +1,7 @@
 package com.infernalsuite.asp.plugin.loader;
 
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
-import com.infernalsuite.asp.loaders.UpdatableLoader;
+import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.infernalsuite.asp.loaders.api.APILoader;
 import com.infernalsuite.asp.loaders.file.FileLoader;
 import com.infernalsuite.asp.loaders.mongo.MongoLoader;
@@ -94,9 +94,9 @@ public class LoaderManager {
         if (loader instanceof UpdatableLoader) {
             try {
                 ((UpdatableLoader) loader).update();
-            } catch (final UpdatableLoader.NewerDatabaseException e) {
-                LOGGER.error("Data source {} version is {}, while this SWM version only supports up to version {}.",
-                        dataSource, e.getDatabaseVersion(), e.getCurrentVersion(), e);
+            } catch (final UpdatableLoader.NewerStorageException e) {
+                LOGGER.error("Data source {} version is {}, while this loader version only supports up to version {}.",
+                        dataSource, e.getStorageVersion(), e.getImplementationVersion(), e);
                 return;
             } catch (final IOException ex) {
                 LOGGER.error("Failed to update data source {}", dataSource, ex);

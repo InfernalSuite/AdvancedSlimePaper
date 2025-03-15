@@ -11,6 +11,7 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -23,7 +24,9 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -138,12 +141,11 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             // Extra Tag
             byte[] rawExtra = read(chunkData);
             CompoundBinaryTag extra = readCompound(rawExtra);
-            // If the extra tag is empty, the serializer will save it as null.
-            // So if we deserialize a null extra tag, we will assume it was empty.
-            if (extra == null) extra = CompoundBinaryTag.empty();
 
-            chunkMap.put(Util.chunkPosition(x, z),
-                    new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extra, null));
+            Map<String, BinaryTag> extraData = new HashMap<>();
+            if (extra != null) extra.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+
+            chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null));
         }
         return chunkMap;
     }

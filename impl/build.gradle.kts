@@ -28,11 +28,6 @@ paperweight {
             patchesDir = file("aspaper-api/paper-patches")
             outputDir = file("paper-api")
         }
-        patchDir("paperApiGenerator") {
-            upstreamPath = "paper-api-generator"
-            patchesDir = file("aspaper-api-generator/paper-patches")
-            outputDir = file("paper-api-generator")
-        }
     }
 }
 

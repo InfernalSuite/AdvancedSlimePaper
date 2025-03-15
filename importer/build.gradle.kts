@@ -6,17 +6,20 @@ plugins {
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
-    implementation(project(":aspaper-api"))
+    implementation(project(":impl:aspaper-api"))
 }
 
 tasks {
     jar {
         manifest {
-            attributes["Main-Class"] = "com.infernalsuite.asp.importer.ASPImporter"
+            attributes["Main-Class"] = "com.infernalsuite.asp.importer.SWMImporter"
         }
     }
     shadowJar {
         minimize()
+    }
+    assemble {
+        dependsOn(shadowJar)
     }
 }
 

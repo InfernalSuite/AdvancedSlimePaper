@@ -30,10 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -128,7 +125,8 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
 
-            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), true, chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
+            return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), importData.loader() == null,
+                    chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);
@@ -308,10 +306,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             sectionArray[index - minSectionY] = new SlimeChunkSectionSkeleton(blockStatesTag, biomesTag, blockLightArray, skyLightArray);
         }
 
-        CompoundBinaryTag.Builder extraTagBuilder = CompoundBinaryTag.builder();
+        Map<String, BinaryTag> extraTag = new HashMap<>();
         CompoundBinaryTag chunkBukkitValues = compound.getCompound("ChunkBukkitValues");
-        if (chunkBukkitValues.size() > 0) extraTagBuilder.put("ChunkBukkitValues", chunkBukkitValues);
-        CompoundBinaryTag extraTag = extraTagBuilder.build();
+        if (!chunkBukkitValues.isEmpty()) extraTag.put("ChunkBukkitValues", chunkBukkitValues);
 
         // Find first non-null chunk section. If all sections are null, chunk is empty so return null
         return Arrays.stream(sectionArray)

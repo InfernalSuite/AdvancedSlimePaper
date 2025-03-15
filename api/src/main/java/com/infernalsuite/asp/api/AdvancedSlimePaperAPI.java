@@ -8,6 +8,7 @@ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.infernalsuite.asp.api.exceptions.WorldTooBigException;
 import com.infernalsuite.asp.api.world.SlimeWorld;
+import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import net.kyori.adventure.util.Services;
@@ -50,7 +51,7 @@ public interface AdvancedSlimePaperAPI {
      * @param worldName the name of the world to get
      * @return the loaded world, or {@code null} if no loaded world matches the given name
      */
-    SlimeWorld getLoadedWorld(String worldName);
+    SlimeWorldInstance getLoadedWorld(String worldName);
 
     /**
      * Gets a list of worlds which have been loaded by ASWM.
@@ -58,7 +59,7 @@ public interface AdvancedSlimePaperAPI {
      *
      * @return a list of worlds
      */
-    List<SlimeWorld> getLoadedWorlds();
+    List<SlimeWorldInstance> getLoadedWorlds();
 
     /**
      * Generates a Minecraft World from a {@link SlimeWorld} and
@@ -66,12 +67,12 @@ public interface AdvancedSlimePaperAPI {
      * <br>
      * <b>This method must be called in sync with the Server Thread</b>
      *
-     * @param world              {@link SlimeWorld} world to be added to the server's world list
+     * @param world              {@link SlimeWorldInstance} world to be added to the server's world list
      * @param callWorldLoadEvent Whether to call {@link org.bukkit.event.world.WorldLoadEvent}
      * @throws IllegalArgumentException if the world is already loaded
      * @return Returns a slime world representing a live minecraft world
      */
-    SlimeWorld loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException;
+    SlimeWorldInstance loadWorld(SlimeWorld world, boolean callWorldLoadEvent) throws IllegalArgumentException;
 
     /**
      * Checks if a {@link SlimeWorld} is loaded on the server.

@@ -57,7 +57,7 @@ public class ChunkPruner {
                 }
                 List<CompoundBinaryTag> palette = paletteTag.stream().map(tag -> (CompoundBinaryTag) tag).toList();
                 if (palette.size() > 1) return false; // If there is more than one palette, the section is not empty
-                if (palette.getFirst().getString("Name").equals("minecraft:air")) return false; // If the only palette entry is not air, the section is not empty
+                if (!palette.getFirst().getString("Name").equals("minecraft:air")) return false; // If the only palette entry is not air, the section is not empty
             } catch (final Exception e) {
                 return false;
             }
