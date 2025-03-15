@@ -161,12 +161,11 @@ public class NMSSlimeChunk implements SlimeChunk {
         if(chunkHolder == null) return new ArrayList<>();
 
         ChunkEntitySlices slices = chunkHolder.getEntityChunk();
-        if (slices == null) return new ArrayList<>();
-
         return getEntities(slices);
     }
 
     public List<CompoundBinaryTag> getEntities(ChunkEntitySlices slices) {
+        if (slices == null) return new ArrayList<>();
         List<CompoundBinaryTag> entities = new ArrayList<>(slices.entities.size());
 
         // Work by <gunther@gameslabs.net>
