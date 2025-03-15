@@ -1,6 +1,5 @@
 package com.infernalsuite.asp.level;
 
-import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
@@ -76,26 +75,25 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         return this.loader;
     }
 
-    public LevelChunk promote(int x, int z, SlimeChunk chunk) {
+    public LevelChunk createChunk(int x, int z, SlimeChunk chunk) {
         SlimeChunkLevel levelChunk;
         if (chunk == null) {
             net.minecraft.world.level.ChunkPos pos = new net.minecraft.world.level.ChunkPos(x, z);
             LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
             LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
 
-            levelChunk = new SlimeChunkLevel(this.instance, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
+            levelChunk = new SlimeChunkLevel(this.instance, null, pos, UpgradeData.EMPTY, blockLevelChunkTicks, fluidLevelChunkTicks,
                     0L, null, null, null);
 
             //Make SlimeProperties.DEFAULT_BIOME work
             levelChunk.fillBiomesFromNoise(instance.chunkSource.getGenerator().getBiomeSource(),
                     instance.chunkSource.randomState().sampler());
 
-            chunk = new NMSSlimeChunk(levelChunk, getChunk(x, z));
         } else {
             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);
-            chunk = new SafeNmsChunkWrapper(new NMSSlimeChunk(levelChunk, chunk), chunk);
         }
-        this.chunkStorage.put(Util.chunkPosition(x, z), chunk);
+
+        //Don't put this chunk in chunkStorage yet, as creating a chunk does not guarantee it is loaded in the future.
 
         return levelChunk;
     }
@@ -110,7 +108,13 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             this.chunkStorage.remove(Util.chunkPosition(x, z));
             return;
         }
-        SlimeChunk chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
+        NMSSlimeChunk chunk;
+        if(providedChunk instanceof SlimeChunkLevel slimeChunkLevel) {
+            chunk = slimeChunkLevel.getNmsSlimeChunk();
+            chunk.updateExtraData();
+        } else {
+            chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
+        }
 
         CompoundBinaryTag pdcTag = Converter.convertTag(providedChunk.persistentDataContainer.toTagCompound());
         chunk.getExtraData().put("ChunkBukkitValues", pdcTag);
@@ -266,9 +270,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         return this.extraPDC;
     }
 
-    public void ensureChunkMarkedAsLoaded(SlimeChunkLevel chunk) {
-        if (chunkStorage.get(Util.chunkPosition(chunk.locX, chunk.locZ)) instanceof SlimeChunkSkeleton skeleton) {
-            chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), new NMSSlimeChunk(chunk, skeleton));
-        }
+    public void promoteInChunkStorage(SlimeChunkLevel chunk) {
+        chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), chunk.getSafeSlimeReference());
     }
 }

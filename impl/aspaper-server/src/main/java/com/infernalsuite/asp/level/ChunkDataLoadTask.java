@@ -6,8 +6,6 @@ import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskSchedule
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.infernalsuite.asp.api.world.SlimeChunk;
-import com.infernalsuite.asp.Converter;
-import net.minecraft.nbt.CompoundTag;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -66,7 +64,7 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
 
     private ChunkAccess runOnMain(final SlimeChunk data) {
         try {
-            LevelChunk chunk = this.world.slimeInstance.promote(chunkX, chunkZ, data);
+            LevelChunk chunk = this.world.slimeInstance.createChunk(chunkX, chunkZ, data);
             return new ImposterProtoChunk(chunk, false);
         } catch (final Exception e) {
             LOGGER.error("Failed to parse main tasks for task {}, chunk data will be lost", this, e);

@@ -69,8 +69,12 @@ public class NMSSlimeChunk implements SlimeChunk {
     public NMSSlimeChunk(LevelChunk chunk, SlimeChunk reference) {
         this.chunk = chunk;
         this.extra = reference == null ? CompoundBinaryTag.empty() : reference.getExtraData();
-        this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
         this.upgradeData = reference == null ? null : reference.getUpgradeData();
+        updateExtraData();
+    }
+
+    public void updateExtraData() {
+        this.extra.put("ChunkBukkitValues", Converter.convertTag(chunk.persistentDataContainer.toTagCompound()));
     }
 
     @Override
@@ -155,8 +159,10 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     @Override
     public List<CompoundBinaryTag> getEntities() {
+        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
+        if(chunkHolder == null) return new ArrayList<>();
 
-        ChunkEntitySlices slices = NmsUtil.getChunkHolder(chunk).getEntityChunk();
+        ChunkEntitySlices slices = chunkHolder.getEntityChunk();
         if (slices == null) return new ArrayList<>();
 
         List<CompoundBinaryTag> entities = new ArrayList<>(slices.entities.size());

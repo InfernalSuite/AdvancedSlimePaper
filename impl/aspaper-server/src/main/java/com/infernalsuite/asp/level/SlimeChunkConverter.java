@@ -114,7 +114,7 @@ public class SlimeChunkConverter {
                 chunk.getTileEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList()
         );
 
-        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, pos, upgradeData, blockLevelChunkTicks,
+        SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, chunk, pos, upgradeData, blockLevelChunkTicks,
                 fluidLevelChunkTicks, 0L, sections, processor, null);
 
         // Height Maps
