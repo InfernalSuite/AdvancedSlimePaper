@@ -12,6 +12,10 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 public class FastChunkPruner {
 
     public static boolean canBePruned(SlimeWorld world, LevelChunk chunk) {
+        return canBePruned(world, chunk);
+    }
+
+    public static boolean canBePruned(SlimeWorld world, LevelChunk chunk, ChunkEntitySlices slices) {
         NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
 
         // Kenox <muranelp@gmail.com>
@@ -43,7 +47,10 @@ public class FastChunkPruner {
 
         String pruningSetting = world.getPropertyMap().getValue(SlimeProperties.CHUNK_PRUNING);
         if (pruningSetting.equals("aggressive")) {
-            ChunkEntitySlices slices = chunkHolder.getEntityChunk();
+            if(slices == null) {
+                //in case no slices were provided, try getting them from the chunk holder
+                slices = chunkHolder.getEntityChunk();
+            }
 
             return chunk.blockEntities.isEmpty() && (slices == null || slices.isEmpty()) && areSectionsEmpty(chunk);
         }
