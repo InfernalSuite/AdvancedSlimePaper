@@ -12,7 +12,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 public class FastChunkPruner {
 
     public static boolean canBePruned(SlimeWorld world, LevelChunk chunk) {
-        return canBePruned(world, chunk);
+        return canBePruned(world, chunk, null);
     }
 
     public static boolean canBePruned(SlimeWorld world, LevelChunk chunk, ChunkEntitySlices slices) {
