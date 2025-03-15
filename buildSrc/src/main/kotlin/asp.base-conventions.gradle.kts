@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    api(platform(project(":gradle:platform")))
+//    api(platform(project(":gradle:platform")))
 }
 
 tasks {
