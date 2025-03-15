@@ -111,13 +111,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         NMSSlimeChunk chunk;
         if(providedChunk instanceof SlimeChunkLevel slimeChunkLevel) {
             chunk = slimeChunkLevel.getNmsSlimeChunk();
-            chunk.updateExtraData();
         } else {
             chunk = new NMSSlimeChunk(providedChunk, getChunk(x, z));
         }
-
-        CompoundBinaryTag pdcTag = Converter.convertTag(providedChunk.persistentDataContainer.toTagCompound());
-        chunk.getExtraData().put("ChunkBukkitValues", pdcTag);
+        chunk.updatePersistentDataContainer();
 
         this.chunkStorage.put(Util.chunkPosition(x, z),
                 new SlimeChunkSkeleton(chunk.getX(), chunk.getZ(), chunk.getSections(),
