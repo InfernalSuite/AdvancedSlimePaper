@@ -24,6 +24,8 @@ tasks {
     }
 
     shadowJar {
+        archiveClassifier.set("")
+        
         relocate("org.bstats", "com.infernalsuite.asp.libs.bstats")
         relocate("org.spongepowered.configurate", "com.infernalsuite.asp.libs.configurate")
         relocate("com.zaxxer.hikari", "com.infernalsuite.asp.libs.hikari")
