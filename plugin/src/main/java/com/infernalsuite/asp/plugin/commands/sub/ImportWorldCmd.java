@@ -87,14 +87,9 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                         ));
 
                         com.infernalsuite.asp.plugin.config.WorldData worldData = new com.infernalsuite.asp.plugin.config.WorldData();
-                        StringBuilder spawn = new StringBuilder();
+
                         for (String key : world.getPropertyMap().getProperties().keySet()) {
                             switch (key.toLowerCase()) {
-                                case "spawnx" ->
-                                        spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_X)).append(", ");
-                                case "spawny" ->
-                                        spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_Y)).append(", ");
-                                case "spawnz" -> spawn.append(world.getPropertyMap().getValue(SlimeProperties.SPAWN_Z));
                                 case "environment" ->
                                         worldData.setEnvironment(world.getPropertyMap().getValue(SlimeProperties.ENVIRONMENT));
                                 case "difficulty" ->
@@ -112,7 +107,11 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                         }
 
                         worldData.setDataSource(loader.name());
-                        worldData.setSpawn(spawn.toString().isEmpty() ? "0.5, 255, 0.5" : spawn.toString());
+                        worldData.setSpawn(
+                                world.getPropertyMap().getValue(SlimeProperties.SPAWN_X) + ", " +
+                                world.getPropertyMap().getValue(SlimeProperties.SPAWN_Y) + ", " +
+                                world.getPropertyMap().getValue(SlimeProperties.SPAWN_Z)
+                        );
                         config.getWorlds().put(worldName, worldData);
                         config.save();
 
