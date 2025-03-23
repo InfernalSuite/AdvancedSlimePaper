@@ -94,14 +94,15 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             Path entityDir = environmentDir.resolve("entities");
             if (Files.exists(entityDir)) {
                 if (!Files.isDirectory(entityDir)) throw new InvalidWorldException(environmentDir, "'entities' is not a directory!");
-            }
 
-            try (var stream = Files.newDirectoryStream(entityDir, path -> path.toString().endsWith(".mca"))) {
-                for (final Path path : stream) {
-                    LOGGER.info("Loading entity region file {}...", path.getFileName());
-                    loadEntities(path, worldVersion, chunks);
+                try (var stream = Files.newDirectoryStream(entityDir, path -> path.toString().endsWith(".mca"))) {
+                    for (final Path path : stream) {
+                        LOGGER.info("Loading entity region file {}...", path.getFileName());
+                        loadEntities(path, worldVersion, chunks);
+                    }
                 }
             }
+
 
             if (chunks.isEmpty()) {
                 throw new InvalidWorldException(environmentDir);
@@ -152,7 +153,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
     private static LevelData readLevelData(Path file) throws IOException, InvalidWorldException {
         CompoundBinaryTag tag;
 
-        tag = BinaryTagIO.unlimitedReader().read(file);
+        tag = BinaryTagIO.unlimitedReader().read(file, BinaryTagIO.Compression.GZIP);
 
         CompoundBinaryTag dataTag = tag.getCompound("Data");
         if (dataTag.size() != 0) {
