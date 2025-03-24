@@ -6,7 +6,7 @@ plugins {
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
-    implementation(project(":impl:aspaper-api"))
+    implementation(project(":aspaper-api"))
 }
 
 tasks {

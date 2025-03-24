@@ -8,10 +8,10 @@ build/
 
 **/*.iml
 
-impl/aspaper-server/build.gradle.kts
-impl/aspaper-server/src/minecraft/
-impl/paper-server/
-impl/aspaper-api/build.gradle.kts
-impl/paper-api/
-impl/paper-api-generator/
-/impl/aspaper-server/.gradle/
+aspaper-server/build.gradle.kts
+aspaper-server/src/minecraft/
+paper-server/
+aspaper-api/build.gradle.kts
+paper-api/
+paper-api-generator/
+aspaper-server/.gradle/

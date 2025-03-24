@@ -19,9 +19,8 @@ include(":core")
 include(":importer")
 include(":loaders")
 include(":plugin")
-include(":impl")
-include(":impl:aspaper-api")
-include(":impl:aspaper-server")
+include(":aspaper-api")
+include(":aspaper-server")
 
 include("loaders:mongo-loader")
 findProject(":loaders:mongo-loader")?.name = "mongo-loader"

@@ -1,12 +1,10 @@
 --- a/paper-server/build.gradle.kts
 +++ b/paper-server/build.gradle.kts
-@@ -21,6 +_,19 @@
+@@ -21,6 +_,17 @@
      // macheOldPath = file("F:\\Projects\\PaperTooling\\mache\\versions\\1.21.4\\src\\main\\java")
      // gitFilePatches = true
  
-+    val fork = forks.register("aspaper") {
-+        rootDirectory = project.rootProject.layout.projectDirectory.dir("impl")
-+
++    val aspaper = forks.register("aspaper") {
 +        upstream.patchDir("paperServer") {
 +            upstreamPath = "paper-server"
 +            excludes = setOf("src/minecraft", "patches", "build.gradle.kts")
@@ -15,7 +13,7 @@
 +        }
 +    }
 +
-+    activeFork = fork
++    activeFork = aspaper
 +
      spigot {
          buildDataRef = "3edaf46ec1eed4115ce1b18d2846cded42577e42"
@@ -47,7 +45,7 @@
  
  dependencies {
 -    implementation(project(":paper-api"))
-+    implementation(project(":impl:aspaper-api")) //ASP
++    implementation(project(":aspaper-api")) //ASP
 +    implementation(project(":core")) //ASP
 +    implementation("commons-io:commons-io:2.11.0")
      implementation("ca.spottedleaf:concurrentutil:0.0.3")
