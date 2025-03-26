@@ -60,8 +60,8 @@ public class SkeletonCloning {
                 NibbleArray skyLight = original.getSkyLight();
 
                 copied[i] = new SlimeChunkSectionSkeleton(
-                        original.getBlockStatesTag() == null ? null : CompoundBinaryTag.builder().put(original.getBlockStatesTag()).build(),
-                        original.getBiomeTag() == null ? null : CompoundBinaryTag.builder().put(original.getBiomeTag()).build(),
+                        original.getBlockStatesTag(), //No need to copy block states since adventure nbt is immutable
+                        original.getBiomeTag(), //No need to copy biome since adventure nbt is immutable
                         blockLight == null ? null : blockLight.clone(),
                         skyLight == null ? null : skyLight.clone()
                 );
@@ -72,21 +72,12 @@ public class SkeletonCloning {
                             chunk.getX(),
                             chunk.getZ(),
                             copied,
-                            CompoundBinaryTag.builder().put(chunk.getHeightMaps()).build(),
-                            deepClone(chunk.getTileEntities()),
-                            deepClone(chunk.getEntities()),
-                            new HashMap<>(chunk.getExtraData()),
+                            chunk.getHeightMaps(), //No need to copy heightmaps since adventure nbt is immutable
+                            new ArrayList<>(chunk.getTileEntities()), //No need to copy contents since adventure nbt is immutable
+                            new ArrayList<>(chunk.getEntities()), //No need to copy contents since adventure nbt is immutable
+                            new ConcurrentHashMap<>(chunk.getExtraData()),
                             null
                     ));
-        }
-
-        return cloned;
-    }
-
-    private static List<CompoundBinaryTag> deepClone(List<CompoundBinaryTag> tags) {
-        List<CompoundBinaryTag> cloned = new ArrayList<>(tags.size());
-        for (CompoundBinaryTag tag : tags) {
-            cloned.add(CompoundBinaryTag.builder().put(tag).build());
         }
 
         return cloned;
