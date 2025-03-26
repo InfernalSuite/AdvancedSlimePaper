@@ -255,7 +255,21 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         if (chunk == null) {
             LOGGER.warn("Lost entity chunk data at: {},{}", chunkX, chunkZ);
         } else {
-            compound.getList("Entities", BinaryTagTypes.COMPOUND).forEach(entityTag -> chunk.getEntities().add((CompoundBinaryTag) entityTag));
+            List<CompoundBinaryTag> entities = new ArrayList<>(chunk.getEntities());
+            for (BinaryTag binaryTag : compound.getList("Entities", BinaryTagTypes.COMPOUND)) {
+                entities.add((CompoundBinaryTag) binaryTag);
+            }
+
+            slimeChunkMap.put(Util.chunkPosition(chunkX, chunkZ), new SlimeChunkSkeleton(
+                    chunk.getX(),
+                    chunk.getZ(),
+                    chunk.getSections(),
+                    chunk.getHeightMaps(),
+                    chunk.getTileEntities(),
+                    entities,
+                    chunk.getExtraData(),
+                    chunk.getUpgradeData()
+            ));
         }
     }
 
