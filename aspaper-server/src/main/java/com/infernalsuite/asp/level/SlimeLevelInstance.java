@@ -117,13 +117,14 @@ public class SlimeLevelInstance extends ServerLevel {
         slimeInstance.unload(chunk, slices);
     }
 
-    @Override
-    public void saveIncrementally(boolean doFull) {
-        if(doFull) {
-            //Avoid doing the internal save because it saves the level.dat into the temp folder. That causes pterodactyl users to have issues.
-            save();
-        }
-    }
+    //TODO(david): Figure out why thats missing in 1.21.5
+//    @Override
+//    public void saveIncrementally(boolean doFull) {
+//        if(doFull) {
+//            //Avoid doing the internal save because it saves the level.dat into the temp folder. That causes pterodactyl users to have issues.
+//            save();
+//        }
+//    }
 
     public Future<?> save() {
         AsyncCatcher.catchOp("SWM world save");

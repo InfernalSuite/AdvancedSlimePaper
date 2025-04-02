@@ -1,9 +1,9 @@
 package com.infernalsuite.asp;
 
-import ca.spottedleaf.dataconverter.converters.DataConverter;
+/*import ca.spottedleaf.dataconverter.converters.DataConverter;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
-import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+import ca.spottedleaf.dataconverter.types.nbt.NBTMapType; 1.21.5 */
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -24,7 +24,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
-        int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        return data; //TODO(david): re-add this as soon as dataconverter is back in paper
+        /* int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion(); 1.21.5
         int currentVersion = data.getDataVersion();
         // Already fixed
         if (currentVersion == newVersion) {
@@ -92,7 +93,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
                 data.getExtraData(),
                 data.getPropertyMap(),
                 newVersion
-        );
+        ); */
     }
 
 

@@ -252,7 +252,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         this.instance.getWorld().storeBukkitValues(nmsTag);
 
         // Bukkit stores the relevant tag as a tag with the key "BukkitValues" in the tag we supply to it
-        var adventureTag = Converter.convertTag(nmsTag.getCompound("BukkitValues"));
+        var adventureTag = Converter.convertTag(nmsTag.getCompoundOrEmpty("BukkitValues"));
         world.getExtraData().put("BukkitValues", adventureTag);
 
         return new SkeletonSlimeWorld(world.getName(),
