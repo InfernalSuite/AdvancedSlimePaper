@@ -24,15 +24,24 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
-        return data; //TODO(david): re-add this as soon as dataconverter is back in paper
-        /* int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion(); 1.21.5
+        int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
         int currentVersion = data.getDataVersion();
         // Already fixed
         if (currentVersion == newVersion) {
             return data;
         }
 
-        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
+        System.out.println("""
+                You tried loading a world from a previous minecraft version with the dev build of 1.21.5
+                This is currently unsupported until paper reintroduces the dataconverter.
+                This functionality will come back in a future release.
+                
+                Also: Please don't bug the paper team to re-add dataconverter. As of 02.04.2025, paper 1.21.5 isn't even released.
+                Give them time. Thank you.
+                """);
+        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+        //TODO(david): re-add this as soon as dataconverter is back in paper
+        /*long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE); 1.21.5
         long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
 
         Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
