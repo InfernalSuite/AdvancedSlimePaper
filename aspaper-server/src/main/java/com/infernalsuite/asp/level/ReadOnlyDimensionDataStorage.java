@@ -23,7 +23,11 @@ public class ReadOnlyDimensionDataStorage extends DimensionDataStorage {
 
     @Override
     public @Nullable <T extends SavedData> T get(SavedDataType<T> type) {
-        return (T) this.cache.get(type).orElse(null);
+        Optional<SavedData> optional = this.cache.get(type);
+        if(optional == null) {
+            return null;
+        }
+        return (T) optional.orElse(null);
     }
 
     @Override
