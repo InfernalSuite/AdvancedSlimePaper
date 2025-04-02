@@ -117,7 +117,7 @@ public class SlimeLevelInstance extends ServerLevel {
         slimeInstance.unload(chunk, slices);
     }
 
-    //TODO(david): Figure out why thats missing in 1.21.5
+    //TODO(david): Re-add this once the following patch is applied: https://github.com/PaperMC/Paper/blob/update/1.21.5/paper-server/patches/unapplied/0024-Incremental-chunk-and-player-saving.patch
 //    @Override
 //    public void saveIncrementally(boolean doFull) {
 //        if(doFull) {
