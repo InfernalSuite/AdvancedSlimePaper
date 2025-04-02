@@ -5,10 +5,10 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 60608cea4e564c1ce47f8a4de2c1a48986bbdecb..1b5d65136421b63353b1c6cd8ae5d413ec070b92 100644
+index 16493872aa3a4384c180b1de4dff4617ad5978da..5c89b8cda6383d7feb5b83fd7c805af819a17f8b 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -614,7 +614,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -605,7 +605,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
@@ -16,12 +16,12 @@ index 60608cea4e564c1ce47f8a4de2c1a48986bbdecb..1b5d65136421b63353b1c6cd8ae5d413
 +        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs; Async-Anti-Xray: Pass executor //ASP - Optimize world config
          this.pvpMode = server.isPvpAllowed();
          this.levelStorageAccess = levelStorageAccess;
-         this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getUUID(levelStorageAccess.levelDirectory.path().toFile()) : UUID.randomUUID(); //ASP - avoid IO calls
+         this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 1dbe7c7c1051c3972105534a07ce50d4cf98fc85..e1d3c292b9efccb032245f4f1618f2650f0bc619 100644
+index 3a254bc46e320364d660c48d67d6db86c72acf94..7ff98d209298da2e57fe03bddfb3f18fa619b25f 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
-@@ -851,7 +851,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -837,7 +837,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
          this.maxSectionY = this.maxY >> 4;
          this.sectionsCount = this.maxSectionY - this.minSectionY + 1;
          // Paper end - getblock optimisations - cache world height/sections

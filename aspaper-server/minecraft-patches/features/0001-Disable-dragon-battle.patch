@@ -5,10 +5,10 @@ Subject: [PATCH] Disable dragon battle
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c5ddf6c0f0ff795da2f7aec8915a081b334423ec..a373f5b8e03f4179a4d9f63d79abc19a38f952b6 100644
+index af678738023b3ee4c9333a3b92817decc60f95fd..c156efe43a04490cdf7f0870179c0aa06902b96a 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -689,7 +689,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -680,7 +680,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          );
          this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
          if (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
