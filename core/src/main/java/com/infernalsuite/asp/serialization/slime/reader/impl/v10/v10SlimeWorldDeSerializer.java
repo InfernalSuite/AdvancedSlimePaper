@@ -1,11 +1,5 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v10;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.DoubleTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.stream.NBTInputStream;
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.CorruptedWorldException;
@@ -18,16 +12,19 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 
+import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.kyori.adventure.nbt.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWorld> {
@@ -51,14 +48,15 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         byte[] extra = readCompressed(dataStream);
 
         // Entity deserialization
-        com.flowpowered.nbt.CompoundTag entitiesCompound = readCompound(entities);
-        {
-            List<CompoundTag> serializedEntities = ((ListTag<CompoundTag>) entitiesCompound.getValue().get("entities")).getValue();
-            for (CompoundTag entityCompound : serializedEntities) {
-                ListTag<DoubleTag> listTag = (ListTag<DoubleTag>) entityCompound.getAsListTag("Pos").get();
+        CompoundBinaryTag entitiesCompound = readCompound(entities);
+        if(entitiesCompound != null) {
+            for (BinaryTag binaryTag : entitiesCompound.getList("entities", BinaryTagTypes.COMPOUND)) {
+                CompoundBinaryTag entityCompound = (CompoundBinaryTag) binaryTag;
 
-                int chunkX = listTag.getValue().get(0).getValue().intValue() >> 4;
-                int chunkZ = listTag.getValue().get(2).getValue().intValue() >> 4;
+                ListBinaryTag listTag = entityCompound.getList("Pos", BinaryTagTypes.DOUBLE);
+
+                int chunkX = ((int) listTag.getDouble(0)) >> 4;
+                int chunkZ = ((int) listTag.getDouble(2)) >> 4;
                 long chunkKey = Util.chunkPosition(chunkX, chunkZ);
                 SlimeChunk chunk = chunks.get(chunkKey);
                 if (chunk != null) {
@@ -68,36 +66,46 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         }
 
         // Tile Entity deserialization
-        com.flowpowered.nbt.CompoundTag tileEntitiesCompound = readCompound(tileEntities);
-        for (CompoundTag tileEntityCompound : ((com.flowpowered.nbt.ListTag<com.flowpowered.nbt.CompoundTag>) tileEntitiesCompound.getValue().get("tiles")).getValue()) {
-            int chunkX = ((IntTag) tileEntityCompound.getValue().get("x")).getValue() >> 4;
-            int chunkZ = ((IntTag) tileEntityCompound.getValue().get("z")).getValue() >> 4;
-            long pos = Util.chunkPosition(chunkX, chunkZ);
-            SlimeChunk chunk = chunks.get(pos);
+        CompoundBinaryTag tileEntitiesCompound = readCompound(tileEntities);
+        if(tileEntitiesCompound != null) {
+            for (BinaryTag binaryTag : (tileEntitiesCompound.getList("tiles", BinaryTagTypes.COMPOUND))) {
+                CompoundBinaryTag tileEntityCompound = (CompoundBinaryTag) binaryTag;
 
-            if (chunk == null) {
-                throw new CorruptedWorldException(worldName);
+                int chunkX = tileEntityCompound.getInt("x") >> 4;
+                int chunkZ = tileEntityCompound.getInt("z") >> 4;
+                long pos = Util.chunkPosition(chunkX, chunkZ);
+                SlimeChunk chunk = chunks.get(pos);
+
+                if (chunk == null) {
+                    throw new CorruptedWorldException(worldName);
+                }
+
+                chunk.getTileEntities().add(tileEntityCompound);
             }
-
-            chunk.getTileEntities().add(tileEntityCompound);
         }
 
         // Extra Data
-        com.flowpowered.nbt.CompoundTag extraCompound = readCompound(extra);
+        CompoundBinaryTag extraCompound = readCompound(extra);
 
         // World properties
         SlimePropertyMap worldPropertyMap = propertyMap;
-        Optional<CompoundMap> propertiesMap = extraCompound
-                .getAsCompoundTag("properties")
-                .map(com.flowpowered.nbt.CompoundTag::getValue);
+        CompoundBinaryTag propertiesMap = extraCompound != null && extraCompound.get("properties") != null
+                ? extraCompound.getCompound("properties")
+                : null;
 
-        if (propertiesMap.isPresent()) {
-            worldPropertyMap = new SlimePropertyMap(propertiesMap.get());
+        if (propertiesMap != null) {
+            Map<String, BinaryTag> wpm = new HashMap<>();
+            propertiesMap.forEach(entry -> wpm.put(entry.getKey(), entry.getValue()));
+
+            worldPropertyMap = new SlimePropertyMap(wpm);
             worldPropertyMap.merge(propertyMap); // Override world properties
         }
 
+        ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
+        if (extraCompound != null) extraCompound.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+
         return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks,
-                extraCompound,
+                extraData,
                 worldPropertyMap,
                 worldVersion
         );
@@ -116,7 +124,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
             // Height Maps
             byte[] heightMapData = new byte[chunkData.readInt()];
             chunkData.read(heightMapData);
-            com.flowpowered.nbt.CompoundTag heightMaps = readCompound(heightMapData);
+            CompoundBinaryTag heightMaps = readCompound(heightMapData);
 
             // Chunk Sections
             {
@@ -149,22 +157,23 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                     // Block data
                     byte[] blockStateData = new byte[chunkData.readInt()];
                     chunkData.read(blockStateData);
-                    com.flowpowered.nbt.CompoundTag blockStateTag = readCompound(blockStateData);
+                    CompoundBinaryTag blockStateTag = readCompound(blockStateData);
 
                     // Biome Data
                     byte[] biomeData = new byte[chunkData.readInt()];
                     chunkData.read(biomeData);
-                    com.flowpowered.nbt.CompoundTag biomeTag = readCompound(biomeData);
+                    CompoundBinaryTag biomeTag = readCompound(biomeData);
 
-                    chunkSectionArray[sectionId] = new com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton(
+                    chunkSectionArray[sectionId] = new SlimeChunkSectionSkeleton(
                             blockStateTag,
                             biomeTag,
                             blockLightArray,
-                            skyLightArray);
+                            skyLightArray
+                    );
                 }
 
                 chunkMap.put(Util.chunkPosition(x, z),
-                        new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new CompoundTag("", new CompoundMap()), null)
+                        new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new HashMap<>(), null)
                 );
             }
         }
@@ -192,14 +201,10 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         return normal;
     }
 
-    private static com.flowpowered.nbt.CompoundTag readCompound(byte[] bytes) throws IOException {
-        if (bytes.length == 0) {
-            return null;
-        }
+    private static CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
+        if (tagBytes.length == 0) return null;
 
-        NBTInputStream stream = new NBTInputStream(new ByteArrayInputStream(bytes), NBTInputStream.NO_COMPRESSION, ByteOrder.BIG_ENDIAN);
-        return (com.flowpowered.nbt.CompoundTag) stream.readTag();
+        return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
     }
-
 
 }
