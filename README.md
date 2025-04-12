@@ -8,7 +8,7 @@ Its goal is to provide server administrators with an easy-to-use tool to load wo
 
 ## Releases
 
-ASP builds can be found [here](https://infernalsuite.com/download/asp). Other older
+ASP builds can be found [here](https://infernalsuite.com/download/asp). Older
 builds can be found in the [Discord](https://discord.gg/YevvsMa) under the #aspaper-builds channel.
 
 ## Wiki
