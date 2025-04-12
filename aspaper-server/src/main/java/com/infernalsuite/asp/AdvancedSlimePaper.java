@@ -62,7 +62,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
 
         SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
         LOGGER.info("Applying datafixers for {}.", worldName);
-        SlimeWorld dataFixed = SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
+        SlimeWorld dataFixed = SlimeNMSBridge.instance().getSlimeDataConverter().applyDataFixers(slimeWorld);
 
         // If the dataFixed and slimeWorld are same, then no datafixers were applied
         if (!readOnly && dataFixed != slimeWorld)

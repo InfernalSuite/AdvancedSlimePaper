@@ -1,28 +1,41 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.upgrade;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.LongArrayTag;
-import com.flowpowered.nbt.Tag;
+import com.infernalsuite.asp.api.SlimeDataConverter;
+import com.infernalsuite.asp.api.SlimeNMSBridge;
 import com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunkSection;
 import com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeWorld;
+import net.kyori.adventure.nbt.BinaryTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.LongArrayBinaryTag;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class v1_16WorldUpgrade implements com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.Upgrade {
+
+    private static final int DATA_VERSION = 2586;
 
     private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{
             0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
     };
 
     @Override
-    public void upgrade(v1_9SlimeWorld world) {
+    public void upgrade(v1_9SlimeWorld world, SlimeDataConverter slimeDataConverter) {
         for (com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunk chunk : world.chunks.values()) {
-            // Add padding to height maps and block states
-            CompoundTag heightMaps = chunk.heightMap;
+            chunk.tileEntities = slimeDataConverter.convertTileEntities(chunk.tileEntities, world.getDataVersion(), DATA_VERSION);
+            chunk.entities = slimeDataConverter.convertEntities(chunk.entities, world.getDataVersion(), DATA_VERSION);
 
-            for (Tag<?> map : heightMaps.getValue().values()) {
-                if (map instanceof LongArrayTag arrayTag) {
-                    arrayTag.setValue(addPadding(256, 9, arrayTag.getValue()));
+
+            // Add padding to height maps and block states
+            CompoundBinaryTag heightMaps = CompoundBinaryTag.builder().build();
+
+            for (Map.Entry<String, ? extends BinaryTag> heightMapEntry : chunk.heightMap) {
+                if (heightMapEntry.getValue() instanceof LongArrayBinaryTag arrayTag) {
+                    heightMaps.put(heightMapEntry.getKey(), LongArrayBinaryTag.longArrayBinaryTag(
+                        addPadding(256, 9, arrayTag.value())
+                    ));
+                } else {
+                    heightMaps.put(heightMapEntry.getKey(), heightMapEntry.getValue());
                 }
             }
 
@@ -30,7 +43,9 @@ public class v1_16WorldUpgrade implements com.infernalsuite.asp.serialization.sl
                 v1_9SlimeChunkSection section = chunk.sections[sectionIndex];
 
                 if (section != null) {
-                    int bitsPerBlock = Math.max(4, ceillog2(section.palette.getValue().size()));
+                    section.palette = slimeDataConverter.convertBlockPalette(section.palette, world.getDataVersion(), DATA_VERSION);
+
+                    int bitsPerBlock = Math.max(4, ceillog2(section.palette.size()));
 
                     if (!isPowerOfTwo(bitsPerBlock)) {
                         section = new v1_9SlimeChunkSection(null, null, section.palette,

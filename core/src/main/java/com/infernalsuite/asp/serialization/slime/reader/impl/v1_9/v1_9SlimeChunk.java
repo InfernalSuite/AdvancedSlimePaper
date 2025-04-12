@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v1_9;
 
-import com.flowpowered.nbt.CompoundTag;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.List;
 
@@ -11,12 +11,12 @@ public final class v1_9SlimeChunk {
     public v1_9SlimeChunkSection[] sections;
     public final int minY;
     public final int maxY;
-    public final CompoundTag heightMap;
+    public CompoundBinaryTag heightMap;
     public int[] biomes;
-    public final List<CompoundTag> tileEntities;
-    public final List<CompoundTag> entities;
+    public List<CompoundBinaryTag> tileEntities;
+    public List<CompoundBinaryTag> entities;
     // Used for 1.13 world upgrading
-    public CompoundTag upgradeData;
+    public CompoundBinaryTag upgradeData;
 
     v1_9SlimeChunk(String worldName,
                    int x,
@@ -24,10 +24,10 @@ public final class v1_9SlimeChunk {
                    v1_9SlimeChunkSection[] sections,
                    int minY,
                    int maxY,
-                   CompoundTag heightMap,
+                   CompoundBinaryTag heightMap,
                    int[] biomes,
-                   List<CompoundTag> tileEntities,
-                   List<CompoundTag> entities) {
+                   List<CompoundBinaryTag> tileEntities,
+                   List<CompoundBinaryTag> entities) {
         this.worldName = worldName;
         this.x = x;
         this.z = z;

@@ -1,14 +1,17 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.upgrade;
 
-import com.flowpowered.nbt.*;
+import com.infernalsuite.asp.api.SlimeDataConverter;
+import net.kyori.adventure.nbt.*;
 
 import java.util.*;
 
 public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.Upgrade {
 
     private static final String[] BIOMES_BY_ID = new String[256]; // rip datapacks
+    private static final int DATA_VERSION = 2975;
 
     static {
+        //Unfortunately DFU only supports 1.18 biome upgrades on chunk conversion, so we have to do this manually
         BIOMES_BY_ID[0] = "minecraft:ocean";
         BIOMES_BY_ID[1] = "minecraft:plains";
         BIOMES_BY_ID[2] = "minecraft:desert";
@@ -142,64 +145,12 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
     }
 
     @Override
-    public void upgrade(com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeWorld world) {
+    public void upgrade(com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeWorld world, SlimeDataConverter converter) {
         for (com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunk chunk : world.chunks.values()) {
+            chunk.tileEntities = converter.convertTileEntities(chunk.tileEntities, world.getDataVersion(), DATA_VERSION);
+            chunk.entities = converter.convertEntities(chunk.entities, world.getDataVersion(), DATA_VERSION);
 
-            // SpawnerSpawnDataFix
-            for (CompoundTag tileEntity : chunk.tileEntities) {
-                CompoundMap value = tileEntity.getValue();
-                Optional<String> id = tileEntity.getStringValue("id");
-                if (id.equals(Optional.of("minecraft:mob_spawner"))) {
-                    Optional<ListTag<?>> spawnPotentials = tileEntity.getAsListTag("SpawnPotentials");
-                    Optional<CompoundTag> spawnData = tileEntity.getAsCompoundTag("SpawnData");
-                    if (spawnPotentials.isPresent()) {
-                        ListTag<CompoundTag> spawnPotentialsList = (ListTag<CompoundTag>) spawnPotentials.get();
-                        List<CompoundTag> spawnPotentialsListValue = spawnPotentialsList.getValue();
-                        for (CompoundTag spawnPotentialsTag : spawnPotentialsListValue) {
-                            CompoundMap spawnPotentialsValue = spawnPotentialsTag.getValue();
-                            Optional<Integer> weight = spawnPotentialsTag.getIntValue("Weight");
-                            if (weight.isPresent()) {
-                                int weightVal = weight.get();
-                                spawnPotentialsValue.remove("Weight");
-                                spawnPotentialsValue.put("weight", new IntTag("weight", weightVal));
-                            }
-                            Optional<CompoundTag> entity = spawnPotentialsTag.getAsCompoundTag("Entity");
-                            if (entity.isPresent()) {
-                                CompoundTag entityTag = entity.get();
-                                spawnPotentialsValue.remove("Entity");
-                                entityTag.getValue();
-                                CompoundMap dataMap = new CompoundMap();
-                                dataMap.put(new CompoundTag("entity", entityTag.getValue()));
-                                spawnPotentialsValue.put("data", new CompoundTag("data", dataMap));
-                            }
-                        }
-                        value.put("SpawnPotentials", spawnPotentialsList);
-                        if (!spawnPotentialsListValue.isEmpty()) {
-                            CompoundTag compoundTag = spawnPotentialsListValue.get(0);
-                            CompoundTag entityTag = compoundTag.getAsCompoundTag("data").
-                                    get().getAsCompoundTag("entity").get();
-                            CompoundMap spawnDataMap = new CompoundMap();
-                            spawnDataMap.put(entityTag.clone());
-                            value.put("SpawnData", new CompoundTag("SpawnData", spawnDataMap));
-                        }
-                    } else if (spawnData.isPresent()) {
-                        CompoundTag spawnDataTag = spawnData.get();
-                        CompoundMap spawnDataValue = spawnDataTag.getValue();
-                        Optional<CompoundTag> entityTag = spawnDataTag.getAsCompoundTag("entity");
-                        Optional<StringTag> idTag = spawnDataTag.getAsStringTag("id");
-                        if (entityTag.isEmpty() && idTag.isPresent()) {
-                            StringTag entityTypeTag = idTag.get();
-                            spawnDataValue.remove("id");
-                            CompoundMap entityMap = new CompoundMap();
-                            entityMap.put(entityTypeTag);
-                            spawnDataValue.put("entity", new CompoundTag("entity", entityMap));
-                            value.put("SpawnData", spawnDataTag);
-                        }
-                    }
-                }
-            }
-
-            CompoundTag[] tags = createBiomeSections(chunk.biomes, false, 0);
+            CompoundBinaryTag[] tags = createBiomeSections(chunk.biomes, false, 0);
 
             com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunkSection[] sections = chunk.sections;
             for (int i = 0; i < sections.length; i++) {
@@ -208,7 +159,7 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
                     continue;
                 }
 
-
+                section.palette = converter.convertBlockPalette(section.palette, world.getDataVersion(), DATA_VERSION);
                 section.blockStatesTag = wrapPalette(section.palette, section.blockStates);
                 section.biomeTag = tags[i];
             }
@@ -221,14 +172,19 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
 
             com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunkSection[] sectionArray = chunk.sections;
 
-            CompoundMap emptyBiomes = new CompoundMap();
-            emptyBiomes.put("palette", new ListTag<>("palette", TagType.TAG_STRING, List.of(new StringTag("", "minecraft:plains"))));
+            CompoundBinaryTag emptyBiomes = CompoundBinaryTag.builder()
+                    .put("palette", ListBinaryTag.listBinaryTag(BinaryTagTypes.STRING, List.of(StringBinaryTag.stringBinaryTag("minecraft:plains"))))
+                    .build();
 
-            CompoundMap blocks = new CompoundMap();
-            emptyBiomes.put("palette", new ListTag<>("palette", TagType.TAG_STRING, List.of(new StringTag("", "minecraft:air"))));
+            CompoundBinaryTag blocks = CompoundBinaryTag.builder()
+                    .put("palette", ListBinaryTag.listBinaryTag(BinaryTagTypes.COMPOUND, List.of(
+                            CompoundBinaryTag.builder()
+                                    .put("Name", StringBinaryTag.stringBinaryTag("minecraft:air"))
+                                    .build()
+                    )))
+                    .build();
 
-            CompoundTag blockTag = new CompoundTag("", blocks);
-            CompoundTag emptyBiomesTag = new CompoundTag("", emptyBiomes);
+
             for (int i = 0; i < sectionArray.length; i++) {
                 com.infernalsuite.asp.serialization.slime.reader.impl.v1_9.v1_9SlimeChunkSection section = sectionArray[i];
                 if (section == null) {
@@ -237,8 +193,8 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
                             null,
                             null,
                             null,
-                            blockTag,
-                            emptyBiomesTag,
+                            blocks,
+                            emptyBiomes,
                             null,
                             null
                     );
@@ -247,8 +203,8 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
         }
     }
 
-    private static CompoundTag[] createBiomeSections(int[] biomes, final boolean wantExtendedHeight, final int minSection) {
-        final CompoundTag[] ret = new CompoundTag[wantExtendedHeight ? 24 : 16];
+    private static CompoundBinaryTag[] createBiomeSections(int[] biomes, final boolean wantExtendedHeight, final int minSection) {
+        final CompoundBinaryTag[] ret = new CompoundBinaryTag[wantExtendedHeight ? 24 : 16];
 
         if (biomes != null && biomes.length == 1536) { // magic value for 24 sections of biomes (24 * 4^3)
             //isAlreadyExtended.setValue(true);
@@ -274,11 +230,11 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
 //                }
 //            }
         } else {
-            ArrayList<StringTag> palette = new ArrayList<>();
-            palette.add(new StringTag("", "minecraft:plains"));
+            ArrayList<BinaryTag> palette = new ArrayList<>();
+            palette.add(StringBinaryTag.stringBinaryTag("minecraft:plains"));
 
             for (int i = 0; i < ret.length; ++i) {
-                ret[i] = wrapPalette(new ListTag<>("", TagType.TAG_STRING, palette).clone(), null); // copy palette so that later possible modifications don't trash all sections
+                ret[i] = wrapPalette(ListBinaryTag.listBinaryTag(BinaryTagTypes.STRING, palette), null); // copy palette so that later possible modifications don't trash all sections
             }
         }
 
@@ -289,7 +245,7 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
         return value == 0 ? 0 : Integer.SIZE - Integer.numberOfLeadingZeros(value - 1); // see doc of numberOfLeadingZeros
     }
 
-    private static CompoundTag createBiomeSection(final int[] biomes, final int offset, final int mask) {
+    private static CompoundBinaryTag createBiomeSection(final int[] biomes, final int offset, final int mask) {
         final Map<Integer, Integer> paletteId = new HashMap<>();
 
         for (int idx = 0; idx < 64; ++idx) {
@@ -297,7 +253,7 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
             paletteId.putIfAbsent(biome, paletteId.size());
         }
 
-        List<StringTag> paletteString = new ArrayList<>();
+        List<BinaryTag> paletteString = new ArrayList<>();
         for (final Iterator<Integer> iterator = paletteId.keySet().iterator(); iterator.hasNext(); ) {
             final int biomeId = iterator.next();
             String biome = biomeId >= 0 && biomeId < BIOMES_BY_ID.length ? BIOMES_BY_ID[biomeId] : null;
@@ -306,12 +262,12 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
                 biome = update;
             }
 
-            paletteString.add(new StringTag("", biome == null ? "minecraft:plains" : biome));
+            paletteString.add(StringBinaryTag.stringBinaryTag(biome == null ? "minecraft:plains" : biome));
         }
 
         final int bitsPerObject = ceilLog2(paletteString.size());
         if (bitsPerObject == 0) {
-            return wrapPalette(new ListTag<>("", TagType.TAG_STRING, paletteString), null);
+            return wrapPalette(ListBinaryTag.listBinaryTag(BinaryTagTypes.STRING, paletteString), null);
         }
 
         // manually create packed integer data
@@ -342,19 +298,17 @@ public class v1_18WorldUpgrade implements com.infernalsuite.asp.serialization.sl
             packed[idx] = curr;
         }
 
-        return wrapPalette(new ListTag<>("", TagType.TAG_STRING, paletteString), packed);
+        return wrapPalette(ListBinaryTag.listBinaryTag(BinaryTagTypes.STRING, paletteString), packed);
     }
 
-    private static CompoundTag wrapPalette(ListTag<?> palette, final long[] blockStates) {
-        CompoundMap map = new CompoundMap();
-        CompoundTag tag = new CompoundTag("", map);
-
-        map.put(new ListTag<>("palette", palette.getElementType(), palette.getValue()));
+    private static CompoundBinaryTag wrapPalette(ListBinaryTag palette, final long[] blockStates) {
+        CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder()
+                .put("palette", palette);
         if (blockStates != null) {
-            map.put(new LongArrayTag("data", blockStates));
+            builder.put("data", LongArrayBinaryTag.longArrayBinaryTag(blockStates));
         }
 
-        return tag;
+        return builder.build();
     }
 
 }

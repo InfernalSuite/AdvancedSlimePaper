@@ -3,6 +3,7 @@ package com.infernalsuite.asp;
 import ca.spottedleaf.dataconverter.converters.DataConverter;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.api.SlimeNMSBridge;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
@@ -12,6 +13,7 @@ import com.infernalsuite.asp.level.SlimeInMemoryWorld;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
 import com.mojang.serialization.Lifecycle;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -40,6 +42,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
@@ -62,6 +65,11 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         } else {
             throw new IllegalArgumentException("PersistentDataContainer is not a CraftPersistentDataContainer");
         }
+    }
+
+    @Override
+    public SlimeDataConverter getSlimeDataConverter() {
+        return DATA_FIXER_CONVERTER;
     }
 
     @Override
@@ -154,11 +162,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         }
 
         return worldServer.getSlimeInstance();
-    }
-
-    @Override
-    public SlimeWorld applyDataFixers(SlimeWorld world) {
-        return DATA_FIXER_CONVERTER.readFromData(world);
     }
 
 
