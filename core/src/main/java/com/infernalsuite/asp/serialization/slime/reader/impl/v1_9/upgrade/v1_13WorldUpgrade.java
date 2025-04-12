@@ -26,7 +26,6 @@ public class v1_13WorldUpgrade implements Upgrade {
         List<v1_9SlimeChunk> chunks = new ArrayList<>(world.chunks.values());
         long lastMessage = -1;
 
-        System.out.println("Upgrading from " + world.getDataVersion());
         for (int i = 0; i < chunks.size(); i++) {
             v1_9SlimeChunk chunk = chunks.get(i);
 
