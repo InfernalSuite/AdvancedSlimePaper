@@ -138,7 +138,7 @@ public interface AdvancedSlimePaperAPI {
      * Returns the {@link SlimeSerializationAdapter} used to serialize and deserialize SlimeWorlds.
      * Manual de-/serialization is considered experimental and may change in future versions.
      * <p>
-     * <strong>Please use SlimeLoaders where possible</p>
+     * <strong>Please use SlimeLoaders where possible</strong>
      *
      * @return A adapter for serializing and deserializing SlimeWorlds
      */
