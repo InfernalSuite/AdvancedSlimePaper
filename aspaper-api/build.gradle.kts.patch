@@ -1,10 +1,9 @@
 --- a/paper-api/build.gradle.kts
 +++ b/paper-api/build.gradle.kts
-@@ -39,7 +_,7 @@
+@@ -41,6 +_,7 @@
  }
  
  dependencies {
--
 +    api(project(":api")) //ASP
      // api dependencies are listed transitively to API consumers
      api("com.google.guava:guava:33.3.1-jre")
@@ -13,15 +12,15 @@
      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
  }
  
--val generatedApiPath: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()
-+val generatedApiPath: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-api/src/generated/java").asFile.toPath()
+-val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()
++val generatedDir: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-api/src/generated/java").asFile.toPath()
  idea {
      module {
-         generatedSourceDirs.add(generatedApiPath.toFile())
+         generatedSourceDirs.add(generatedDir.toFile())
 @@ -103,6 +_,18 @@
      main {
          java {
-             srcDir(generatedApiPath)
+             srcDir(generatedDir)
 +            srcDir(file("../paper-api/src/main/java"))
 +        }
 +        resources {

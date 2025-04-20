@@ -99,14 +99,14 @@ public class Converter {
     public static <T extends BinaryTag> T convertTag(Tag base) {
         return switch (base.getId()) {
             case Tag.TAG_END -> (T) EndBinaryTag.endBinaryTag();
-            case Tag.TAG_BYTE -> (T) ByteBinaryTag.byteBinaryTag(((ByteTag) base).getAsByte());
-            case Tag.TAG_SHORT -> (T) ShortBinaryTag.shortBinaryTag(((ShortTag) base).getAsShort());
-            case Tag.TAG_INT -> (T) IntBinaryTag.intBinaryTag(((IntTag) base).getAsInt());
-            case Tag.TAG_LONG -> (T) LongBinaryTag.longBinaryTag(((LongTag) base).getAsLong());
-            case Tag.TAG_FLOAT -> (T) FloatBinaryTag.floatBinaryTag(((FloatTag) base).getAsFloat());
-            case Tag.TAG_DOUBLE -> (T) DoubleBinaryTag.doubleBinaryTag(((DoubleTag) base).getAsDouble());
+            case Tag.TAG_BYTE -> (T) ByteBinaryTag.byteBinaryTag(((ByteTag) base).byteValue());
+            case Tag.TAG_SHORT -> (T) ShortBinaryTag.shortBinaryTag(((ShortTag) base).shortValue());
+            case Tag.TAG_INT -> (T) IntBinaryTag.intBinaryTag(((IntTag) base).intValue());
+            case Tag.TAG_LONG -> (T) LongBinaryTag.longBinaryTag(((LongTag) base).longValue());
+            case Tag.TAG_FLOAT -> (T) FloatBinaryTag.floatBinaryTag(((FloatTag) base).floatValue());
+            case Tag.TAG_DOUBLE -> (T) DoubleBinaryTag.doubleBinaryTag(((DoubleTag) base).doubleValue());
             case Tag.TAG_BYTE_ARRAY -> (T) ByteArrayBinaryTag.byteArrayBinaryTag(((ByteArrayTag) base).getAsByteArray());
-            case Tag.TAG_STRING -> (T) StringBinaryTag.stringBinaryTag(((StringTag) base).getAsString());
+            case Tag.TAG_STRING -> (T) StringBinaryTag.stringBinaryTag(((StringTag) base).asString().orElseThrow()); //TODO(david): Figure out what to do with optional?
             case Tag.TAG_LIST -> {
                 ListTag originalList = ((ListTag) base);
                 if(originalList.isEmpty()) {
@@ -119,7 +119,7 @@ public class Converter {
             case Tag.TAG_COMPOUND -> {
                 CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder();
                 CompoundTag originalCompound = ((CompoundTag) base);
-                for (String key : originalCompound.getAllKeys()) builder.put(key, convertTag(Objects.requireNonNull(originalCompound.get(key))));
+                for (String key : originalCompound.keySet()) builder.put(key, convertTag(Objects.requireNonNull(originalCompound.get(key))));
                 yield (T) builder.build();
             }
             case Tag.TAG_INT_ARRAY -> (T) IntArrayBinaryTag.intArrayBinaryTag(((IntArrayTag) base).getAsIntArray());

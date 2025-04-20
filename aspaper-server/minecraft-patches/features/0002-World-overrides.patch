@@ -5,10 +5,10 @@ Subject: [PATCH] World overrides
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 1509c96ae9247d1d5ddd0fc50210f88da10bf3de..bbc4be3c3811ee19bd791cb6626474038d35a298 100644
+index 9623b1124c43d6aca94588a4153475e647751788..912da569c851dd6d3747ac19dbfff27c416ca981 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -516,18 +516,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -514,18 +514,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              if (levelStemKey == LevelStem.NETHER) {
                  if (this.server.getAllowNether()) {
                      dimension = -1;
