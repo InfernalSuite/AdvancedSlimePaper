@@ -119,7 +119,8 @@ public final class SkeletonSlimeWorld implements SlimeWorld {
             }
         }
 
-        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
+        //Make new worlds always non-read-only. if the provided loader is null, the fullClone method will set it to true again
+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader, false);
         if (loader != null) {
             loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
         }

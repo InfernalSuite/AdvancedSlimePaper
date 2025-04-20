@@ -18,10 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SkeletonCloning {
 
-    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader) {
+    public static SkeletonSlimeWorld fullClone(String worldName, SlimeWorld world, SlimeLoader loader, boolean readOnly) {
         return new SkeletonSlimeWorld(worldName,
                 loader == null ? world.getLoader() : loader,
-                loader == null || world.isReadOnly(),
+                loader == null || readOnly,
                 cloneChunkStorage(world.getChunkStorage()),
                 new ConcurrentHashMap<>(world.getExtraData()),
                 world.getPropertyMap().clone(),
