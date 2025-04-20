@@ -48,7 +48,7 @@ tasks {
     processResources {
         filteringCharset = Charsets.UTF_8.name()
         filesMatching(listOf("paper-plugin.yml", "version.txt")) {
-            expand("gitCommitId" to (the<IndraGitExtension>().commit()?.name ?: "unknown"))
+            expand("gitCommitId" to (project.the<IndraGitExtension>().commit()?.name ?: "unknown"))
         }
     }
 }
