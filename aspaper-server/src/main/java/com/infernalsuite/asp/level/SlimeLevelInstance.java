@@ -154,7 +154,7 @@ public class SlimeLevelInstance extends ServerLevel {
             Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
             long start = System.currentTimeMillis();
 
-            SlimeWorld world = this.slimeInstance.getForSerialization();
+            SlimeWorld world = this.slimeInstance.getSerializableCopy();
             return WORLD_SAVER_SERVICE.submit(() -> {
                 try {
                     byte[] serializedWorld = SlimeSerializer.serialize(world);

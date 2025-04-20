@@ -145,63 +145,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     @Override
-    public SlimePropertyMap getPropertyMap() {
-        return this.propertyMap;
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return this.getLoader() == null || this.readOnly;
-    }
-
-    @Override
-    public SlimeWorld clone(String worldName) {
-        try {
-            return clone(worldName, null);
-        } catch (WorldAlreadyExistsException | IOException ignored) {
-            return null; // Never going to happen
-        }
-    }
-
-    @Override
-    public SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
-        if (this.getName().equals(worldName)) {
-            throw new IllegalArgumentException("The clone world cannot have the same name as the original world!");
-        }
-
-        if (worldName == null) {
-            throw new IllegalArgumentException("The world name cannot be null!");
-        }
-        if (loader != null) {
-            if (loader.worldExists(worldName)) {
-                throw new WorldAlreadyExistsException(worldName);
-            }
-        }
-
-        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
-        if (loader != null) {
-            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
-        }
-
-        return cloned;
-    }
-
-    @Override
-    public int getDataVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
-    }
-
-    @Override
-    public ConcurrentMap<String, BinaryTag> getExtraData() {
-        return this.extra;
-    }
-
-    @Override
-    public Collection<CompoundBinaryTag> getWorldMaps() {
-        return List.of();
-    }
-
-    public SlimeWorld getForSerialization() {
+    public SlimeWorld getSerializableCopy() {
         SlimeWorld world = SkeletonCloning.weakCopy(this);
 
         Long2ObjectMap<SlimeChunk> cloned = new Long2ObjectOpenHashMap<>();
@@ -263,6 +207,63 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                 world.getPropertyMap(),
                 world.getDataVersion()
         );
+    }
+
+    @Override
+    public SlimePropertyMap getPropertyMap() {
+        return this.propertyMap;
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return this.getLoader() == null || this.readOnly;
+    }
+
+    @Override
+    public SlimeWorld clone(String worldName) {
+        try {
+            return clone(worldName, null);
+        } catch (WorldAlreadyExistsException | IOException ignored) {
+            return null; // Never going to happen
+        }
+    }
+
+    @Override
+    public SlimeWorld clone(String worldName, SlimeLoader loader) throws WorldAlreadyExistsException, IOException {
+        if (this.getName().equals(worldName)) {
+            throw new IllegalArgumentException("The clone world cannot have the same name as the original world!");
+        }
+
+        if (worldName == null) {
+            throw new IllegalArgumentException("The world name cannot be null!");
+        }
+        if (loader != null) {
+            if (loader.worldExists(worldName)) {
+                throw new WorldAlreadyExistsException(worldName);
+            }
+        }
+
+        SlimeWorld cloned = SkeletonCloning.fullClone(worldName, this, loader);
+        if (loader != null) {
+            loader.saveWorld(worldName, SlimeSerializer.serialize(cloned));
+        }
+
+        return cloned;
+    }
+
+    @Override
+    public int getDataVersion() {
+        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+    }
+
+    @Override
+    public ConcurrentMap<String, BinaryTag> getExtraData() {
+        return this.extra;
+    }
+
+    @Override
+    public Collection<CompoundBinaryTag> getWorldMaps() {
+        return List.of();
     }
 
     public SlimeLevelInstance getInstance() {

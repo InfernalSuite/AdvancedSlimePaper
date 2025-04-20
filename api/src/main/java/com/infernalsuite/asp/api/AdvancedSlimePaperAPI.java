@@ -7,6 +7,7 @@ import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.infernalsuite.asp.api.exceptions.WorldTooBigException;
+import com.infernalsuite.asp.api.loaders.SlimeSerializationAdapter;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
@@ -132,6 +133,17 @@ public interface AdvancedSlimePaperAPI {
      * @throws IOException                 if the world could not be read or stored.
      */
     SlimeWorld readVanillaWorld(File worldDir, String worldName, @Nullable SlimeLoader loader) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException;
+
+    /**
+     * Returns the {@link SlimeSerializationAdapter} used to serialize and deserialize SlimeWorlds.
+     * Manual de-/serialization is considered experimental and may change in future versions.
+     * <p>
+     * <strong>Please use SlimeLoaders where possible</p>
+     *
+     * @return A adapter for serializing and deserializing SlimeWorlds
+     */
+    @ApiStatus.Experimental
+    SlimeSerializationAdapter getSerializer();
 
     /**
      * Gets the instance of the AdvancedSlimePaper API.
