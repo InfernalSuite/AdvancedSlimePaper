@@ -56,14 +56,13 @@ public interface SlimeChunk {
 
     /**
      * Returns the extra data of the chunk.
-     * Inside this {@link CompoundBinaryTag}
-     * can be stored any information to then be retrieved later, as it's
-     * saved alongside the chunk data.
+     * Any information can be stored in this {@link Map}
+     * and later retrieved, as it's saved alongside the chunk data.
      * <br>
      * <b>Beware, a compound tag under the key "ChunkBukkitValues" will be stored here.
      * It is used for storing chunk-based Bukkit PDC. Do not overwrite it.</b>
      *
-     * @return A {@link CompoundBinaryTag} containing the extra data of the chunk,
+     * @return A {@link Map} containing the extra data of the chunk as NBT tags,
      */
     Map<String, BinaryTag> getExtraData();
 

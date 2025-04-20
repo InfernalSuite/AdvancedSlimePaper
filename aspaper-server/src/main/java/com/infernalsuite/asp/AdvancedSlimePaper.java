@@ -5,10 +5,12 @@ import com.infernalsuite.asp.api.AdvancedSlimePaperAPI;
 import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
 import com.infernalsuite.asp.api.exceptions.*;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.api.loaders.SlimeSerializationAdapter;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
+import com.infernalsuite.asp.serialization.SlimeSerializationAdapterImpl;
 import com.infernalsuite.asp.serialization.anvil.AnvilImportData;
 import com.infernalsuite.asp.serialization.anvil.AnvilWorldReader;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
@@ -45,6 +47,8 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         System.setProperty("org.slf4j.simpleLogger.showShortLogName", "true");
     }
 
+    private final SlimeSerializationAdapter serializationAdapter = new SlimeSerializationAdapterImpl();
+
     public static AdvancedSlimePaper instance() {
         return (AdvancedSlimePaper) AdvancedSlimePaperAPI.instance();
     }
@@ -62,7 +66,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
 
         SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
         LOGGER.info("Applying datafixers for {}.", worldName);
-        SlimeWorld dataFixed = SlimeNMSBridge.instance().applyDataFixers(slimeWorld);
+        SlimeWorld dataFixed = SlimeNMSBridge.instance().getSlimeDataConverter().applyDataFixers(slimeWorld);
 
         // If the dataFixed and slimeWorld are same, then no datafixers were applied
         if (!readOnly && dataFixed != slimeWorld)
@@ -224,6 +228,11 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         }
 
         return world;
+    }
+
+    @Override
+    public SlimeSerializationAdapter getSerializer() {
+        return this.serializationAdapter;
     }
 
     /**

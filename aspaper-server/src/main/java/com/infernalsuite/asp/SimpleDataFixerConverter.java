@@ -2,8 +2,12 @@ package com.infernalsuite.asp;
 
 /*import ca.spottedleaf.dataconverter.converters.DataConverter;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+import ca.spottedleaf.dataconverter.minecraft.datatypes.MCDataType;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
+import ca.spottedleaf.dataconverter.types.MapType;
+import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType; 1.21.5 */
+import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -14,13 +18,19 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.kyori.adventure.nbt.ListBinaryTag;
+import net.kyori.adventure.nbt.TagStringIO;
 import net.minecraft.SharedConstants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
+class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConverter {
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
@@ -105,6 +115,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
         ); */
     }
 
+    @Override
+    public SlimeWorld applyDataFixers(SlimeWorld world) {
+        return readFromData(world);
+    }
 
     private static CompoundBinaryTag convertAndBack(CompoundBinaryTag value, Consumer<net.minecraft.nbt.CompoundTag> acceptor) {
         if (value == null) return null;
@@ -113,5 +127,72 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld> {
         acceptor.accept(converted);
 
         return Converter.convertTag(converted);
+    }
+
+    @Override
+    public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
+        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+//        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
+//
+//        int version = nmsTag.getInt("DataVersion");
+//
+//        long encodedNewVersion = DataConverter.encodeVersions(1631, Integer.MAX_VALUE);
+//        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
+//
+//        MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
+//
+//        return Converter.convertTag(nmsTag);
+    }
+
+    @Override
+    public List<CompoundBinaryTag> convertEntities(List<CompoundBinaryTag> input, int from, int to) {
+        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+//        List<CompoundBinaryTag> entities = new ArrayList<>(input.size());
+//
+//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+//
+//        for (CompoundBinaryTag upgradeEntity : input) {
+//            entities.add(
+//                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+//            );
+//        }
+//        return entities;
+    }
+
+    @Override
+    public List<CompoundBinaryTag> convertTileEntities(List<CompoundBinaryTag> input, int from, int to) {
+        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+//        List<CompoundBinaryTag> blockEntities = new ArrayList<>(input.size());
+//
+//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+//
+//        for (CompoundBinaryTag upgradeEntity : input) {
+//            blockEntities.add(
+//                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+//            );
+//        }
+//        return blockEntities;
+    }
+
+    @Override
+    public ListBinaryTag convertBlockPalette(ListBinaryTag input, int from, int to) {
+        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+//
+//        ListTag nbtList = (ListTag) Converter.convertTag(input);
+//        NBTListType listType = new NBTListType(nbtList);
+//
+//        for (int i = 0, len = listType.size(); i < len; ++i) {
+//            final MapType<String> replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
+//                    encodedCurrentVersion, encodedNewVersion);
+//            if (replace != null) {
+//                listType.setMap(i, replace);
+//            }
+//        }
+//
+//        return Converter.convertTag(listType.getTag());
     }
 }

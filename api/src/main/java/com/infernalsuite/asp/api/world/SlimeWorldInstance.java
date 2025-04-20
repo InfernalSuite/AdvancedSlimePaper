@@ -20,4 +20,6 @@ public interface SlimeWorldInstance extends SlimeWorld {
      */
     @NotNull World getBukkitWorld();
 
+    SlimeWorld getSerializableCopy();
+
 }

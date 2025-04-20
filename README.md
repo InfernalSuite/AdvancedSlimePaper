@@ -8,8 +8,8 @@ Its goal is to provide server administrators with an easy-to-use tool to load wo
 
 ## Releases
 
-ASP releases can be found [here](https://github.com/InfernalSuite/AdvancedSlimePaper/releases). More recent
-releases can be found in the [Discord](https://discord.gg/YevvsMa) under the #new-builds channel.
+ASP builds can be found [here](https://infernalsuite.com/download/asp). Older
+builds can be found in the [Discord](https://discord.gg/YevvsMa) under the #aspaper-builds channel.
 
 ## Wiki
 For API and usage info check out the docs at https://infernalsuite.com/

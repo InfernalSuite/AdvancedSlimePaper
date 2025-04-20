@@ -104,12 +104,15 @@ public class SWPlugin extends JavaPlugin {
 
         for (Map.Entry<String, WorldData> entry : config.getWorlds().entrySet()) {
             SlimeWorld world = ASP.getLoadedWorld(entry.getKey());
+            if(world == null) {
+                continue;
+            }
 
-            if (world != null && !world.isReadOnly()) {
+            if (!world.isReadOnly()) {
                 try {
                     ASP.saveWorld(world); //Save the world sync
                 } catch (RuntimeException | IOException ex) {
-                    getLogger().log(Level.SEVERE, "Failed to unload world " + world.getName(), ex);
+                    getLogger().log(Level.SEVERE, "Failed to save world " + world.getName(), ex);
                 }
             }
             Bukkit.unloadWorld(world.getName(), false); //Unload without saving as we have just saved (if not read only)
