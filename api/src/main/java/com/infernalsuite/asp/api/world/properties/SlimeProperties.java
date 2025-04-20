@@ -98,12 +98,12 @@ public class SlimeProperties {
            value.equalsIgnoreCase("aggressive") || value.equalsIgnoreCase("never")
     );
 
-
-
     @ApiStatus.Experimental
     public static final SlimePropertyInt CHUNK_SECTION_MIN = SlimePropertyInt.create("chunkSectionMin", -4);
     @ApiStatus.Experimental
     public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMax", 19);
 
-
+    public static final SlimePropertyBoolean SAVE_POI = SlimePropertyBoolean.create("savePOI", false);
+    public static final SlimePropertyBoolean SAVE_BLOCK_TICKS = SlimePropertyBoolean.create("saveBlockTicks", false);
+    public static final SlimePropertyBoolean SAVE_FLUID_TICKS = SlimePropertyBoolean.create("saveFluidTicks", false);
 }

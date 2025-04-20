@@ -73,4 +73,10 @@ public interface SlimeChunk {
      */
     @Nullable
     CompoundBinaryTag getUpgradeData();
+
+    CompoundBinaryTag getBlockTicks();
+
+    CompoundBinaryTag getFluidTicks();
+
+    CompoundBinaryTag getPoiChunk();
 }
