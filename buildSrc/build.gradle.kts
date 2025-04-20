@@ -18,7 +18,7 @@ fun convertPlugin(plugin: Provider<PluginDependency>): String {
 dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(convertPlugin(libs.plugins.blossom))
-    implementation(convertPlugin(libs.plugins.gitprops))
+    implementation(convertPlugin(libs.plugins.indragit))
     implementation(convertPlugin(libs.plugins.profiles))
     implementation(convertPlugin(libs.plugins.kotlin.jvm))
     implementation(convertPlugin(libs.plugins.lombok))
