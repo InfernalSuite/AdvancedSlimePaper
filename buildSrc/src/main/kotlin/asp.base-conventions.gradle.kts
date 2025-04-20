@@ -1,6 +1,8 @@
+import net.kyori.indra.git.IndraGitExtension
+
 plugins {
     `java-library`
-    id("com.gorylenko.gradle-git-properties")
+    id("net.kyori.indra.git")
 }
 
 group = rootProject.providers.gradleProperty("group").get()
@@ -43,16 +45,10 @@ tasks {
             .tags("apiNote:a:API Note", "implSpec:a:Implementation Requirements", "implNote:a:Implementation Note")
     }
 
-    val git = withType<com.gorylenko.GenerateGitPropertiesTask> {
-        outputs.upToDateWhen { false }
-        gitProperties.extProperty = "git"
-    }.first()
-
     processResources {
         filteringCharset = Charsets.UTF_8.name()
-        dependsOn(git)
         filesMatching(listOf("paper-plugin.yml", "version.txt")) {
-            expand("gitCommitId" to git.generatedProperties["git.commit.id"])
+            expand("gitCommitId" to (the<IndraGitExtension>().commit()?.name ?: "unknown"))
         }
     }
 }
