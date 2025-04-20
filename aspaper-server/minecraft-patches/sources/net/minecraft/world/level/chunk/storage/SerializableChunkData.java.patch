@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
 +++ b/net/minecraft/world/level/chunk/storage/SerializableChunkData.java
-@@ -350,6 +_,12 @@
+@@ -361,6 +_,12 @@
                  if (flag2) {
                      lightEngine.queueSectionData(LightLayer.SKY, sectionPos, sectionData.skyLight);
                  }

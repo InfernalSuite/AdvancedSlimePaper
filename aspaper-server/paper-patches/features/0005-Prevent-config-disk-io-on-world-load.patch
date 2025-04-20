@@ -5,10 +5,10 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
-index 7c585b71d06f438f414227c2625f27b6c323045e..ea4cd0bb12e0a04c6d738aca8dbb206f192244a3 100644
+index c935d75b83338ce41507e9be11153dd1c4052cb6..3feaba566c22b1e93b2b4edc7786723a2f9e28c6 100644
 --- a/src/main/java/org/spigotmc/SpigotConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotConfig.java
-@@ -78,7 +78,12 @@ public class SpigotConfig {
+@@ -79,7 +79,12 @@ public class SpigotConfig {
          }
      }
  
@@ -21,7 +21,7 @@ index 7c585b71d06f438f414227c2625f27b6c323045e..ea4cd0bb12e0a04c6d738aca8dbb206f
          for (Method method : clazz.getDeclaredMethods()) {
              if (Modifier.isPrivate(method.getModifiers())) {
                  if (method.getParameterTypes().length == 0 && method.getReturnType() == Void.TYPE) {
-@@ -95,7 +100,11 @@ public class SpigotConfig {
+@@ -96,7 +101,11 @@ public class SpigotConfig {
          }
  
          try {

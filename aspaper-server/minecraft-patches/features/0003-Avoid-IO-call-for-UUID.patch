@@ -5,10 +5,10 @@ Subject: [PATCH] Avoid IO call for UUID
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c156efe43a04490cdf7f0870179c0aa06902b96a..16493872aa3a4384c180b1de4dff4617ad5978da 100644
+index a32a4756ac0c0261b3f28de7e10130d03c5780ce..a13ebfbff00340c7ab500e20702120cbae9d3fb3 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -608,7 +608,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -609,7 +609,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
          super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
          this.pvpMode = server.isPvpAllowed();
          this.levelStorageAccess = levelStorageAccess;

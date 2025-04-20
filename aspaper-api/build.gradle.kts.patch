@@ -1,10 +1,9 @@
 --- a/paper-api/build.gradle.kts
 +++ b/paper-api/build.gradle.kts
-@@ -39,7 +_,7 @@
+@@ -41,6 +_,7 @@
  }
  
  dependencies {
--
 +    api(project(":api")) //ASP
      // api dependencies are listed transitively to API consumers
      api("com.google.guava:guava:33.3.1-jre")
