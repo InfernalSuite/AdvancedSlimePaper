@@ -1,53 +1,59 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     java
-    `maven-publish`
-    id("com.gradleup.shadow") version "8.3.5" apply false
-    id("io.papermc.paperweight.patcher") version "1.7.5"
-    id("org.kordamp.gradle.profiles") version "0.54.0"
+    id("io.papermc.paperweight.patcher")
 }
 
-val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
+paperweight {
+    upstreams.paper {
+        ref = providers.gradleProperty("paperRef")
 
-repositories {
-    mavenCentral()
-    maven(paperMavenPublicUrl) {
-        content { onlyForConfigurations(configurations.paperclip.name) }
+        // Setup file patches for build scripts
+        patchFile {
+            path = "paper-api/build.gradle.kts"
+            outputFile = file("aspaper-api/build.gradle.kts")
+            patchFile = file("aspaper-api/build.gradle.kts.patch")
+        }
+        patchFile {
+            path = "paper-server/build.gradle.kts"
+            outputFile = file("aspaper-server/build.gradle.kts")
+            patchFile = file("aspaper-server/build.gradle.kts.patch")
+        }
+
+        patchDir("paperApi") {
+            upstreamPath = "paper-api"
+            excludes = setOf("build.gradle.kts")
+            patchesDir = file("aspaper-api/paper-patches")
+            outputDir = file("paper-api")
+        }
     }
 }
 
-allprojects {
-    apply(plugin = "java")
+subprojects {
+    apply(plugin = "java-library")
     apply(plugin = "maven-publish")
 
-    java {
+    extensions.configure<JavaPluginExtension> {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            languageVersion = JavaLanguageVersion.of(JAVA_VERSION)
         }
     }
 
     repositories {
-        mavenLocal()
         mavenCentral()
-
-        maven("https://repo.papermc.io/repository/maven-public/")
-        maven("https://repo.codemc.io/repository/nms/")
-        maven("https://repo.rapture.pw/repository/maven-releases/")
-        maven("https://repo.glaremasters.me/repository/concuncan/")
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven(PAPER_MAVEN_PUBLIC_URL)
     }
-}
 
-dependencies {
-    remapper("net.fabricmc:tiny-remapper:0.10.3:fat")
-    decompiler("org.vineflower:vineflower:1.10.1")
-    paperclip("io.papermc:paperclip:3.0.3")
-}
-
-subprojects {
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
     tasks.withType<JavaCompile> {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(21)
+        options.release = JAVA_VERSION
+        options.isFork = true
     }
     tasks.withType<Javadoc> {
         options.encoding = Charsets.UTF_8.name()
@@ -55,35 +61,11 @@ subprojects {
     tasks.withType<ProcessResources> {
         filteringCharset = Charsets.UTF_8.name()
     }
-
-    repositories {
-        mavenCentral()
-        maven(paperMavenPublicUrl)
-    }
-}
-
-paperweight {
-    serverProject.set(project(":slimeworldmanager-server"))
-
-    remapRepo.set(paperMavenPublicUrl)
-    decompileRepo.set(paperMavenPublicUrl)
-
-    usePaperUpstream(providers.gradleProperty("paperRef")) {
-        withPaperPatcher {
-            apiPatchDir.set(layout.projectDirectory.dir("patches/api"))
-            apiOutputDir.set(layout.projectDirectory.dir("slimeworldmanager-api"))
-
-            serverPatchDir.set(layout.projectDirectory.dir("patches/server"))
-            serverOutputDir.set(layout.projectDirectory.dir("slimeworldmanager-server"))
-
-            patchTasks {
-                register("generatedApi") {
-                    isBareDirectory.set(true)
-                    upstreamDirPath.set("paper-api-generator/generated")
-                    patchDir.set(layout.projectDirectory.dir("patches/generatedApi"))
-                    outputDir.set(layout.projectDirectory.dir("paper-api-generator/generated"))
-                }
-            }
+    tasks.withType<Test> {
+        testLogging {
+            showStackTraces = true
+            exceptionFormat = TestExceptionFormat.FULL
+            events(TestLogEvent.STANDARD_OUT)
         }
     }
 }

@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Mon, 10 Mar 2025 12:09:41 +0100
+Subject: [PATCH] Delete temp folder after world is unloaded
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 090b295ccd7f61c2f1cc5131ffb0371c22e48f04..0bbc51dcf0ba7773b818994890d14fd0300608f3 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1518,6 +1518,12 @@ public final class CraftServer implements Server {
+             handle.getChunkSource().close(save);
+             io.papermc.paper.FeatureHooks.closeEntityManager(handle, save); // SPIGOT-6722: close entityManager // Paper - chunk system
+             handle.levelStorageAccess.close();
++
++            //ASP start - avoid temp storage leak during runtime
++            if(handle instanceof com.infernalsuite.asp.level.SlimeLevelInstance asp) {
++                asp.deleteTempFiles();
++            }
++            //ASP end
+         } catch (Exception ex) {
+             this.getLogger().log(Level.SEVERE, null, ex);
+         }

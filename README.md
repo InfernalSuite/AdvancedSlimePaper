@@ -14,8 +14,6 @@ builds can be found in the [Discord](https://discord.gg/YevvsMa) under the #aspa
 ## Wiki
 For API and usage info check out the docs at https://infernalsuite.com/
 
-**If you run into any Flow-NBT errors when building your project, add the additional repository: `https://repo.rapture.pw/repository/maven-releases/`**
-
 ## Javadocs
 The Javadocs can be found [here](https://docs.infernalsuite.com/).
 

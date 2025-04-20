@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Wed, 12 Mar 2025 21:14:56 +0100
+Subject: [PATCH] Prevent config disk io on world load
+
+
+diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
+index e0d4222a99f22d7130d95cf29b034a98f2f3b76e..776440ec20c7bf0acac8678773b0a5d29548c270 100644
+--- a/src/main/java/org/spigotmc/SpigotConfig.java
++++ b/src/main/java/org/spigotmc/SpigotConfig.java
+@@ -78,7 +78,12 @@ public class SpigotConfig {
+         }
+     }
+ 
++    // ASP start - Improve Slime IO
+     public static void readConfig(Class<?> clazz, Object instance) { // Paper - package-private -> public
++        readConfig(clazz, instance, true);
++    }
++    public static void readConfig(Class<?> clazz, Object instance, boolean save) {
++    // ASP end - Improve Slime IO
+         for (Method method : clazz.getDeclaredMethods()) {
+             if (Modifier.isPrivate(method.getModifiers())) {
+                 if (method.getParameterTypes().length == 0 && method.getReturnType() == Void.TYPE) {
+@@ -95,7 +100,11 @@ public class SpigotConfig {
+         }
+ 
+         try {
+-            SpigotConfig.config.save(SpigotConfig.CONFIG_FILE);
++            // ASP start - Improve Slime IO
++            if(save) {
++                SpigotConfig.config.save(SpigotConfig.CONFIG_FILE);
++            }
++            // ASP end - Improve Slime IO
+         } catch (IOException ex) {
+             Bukkit.getLogger().log(Level.SEVERE, "Could not save " + SpigotConfig.CONFIG_FILE, ex);
+         }
+diff --git a/src/main/java/org/spigotmc/SpigotWorldConfig.java b/src/main/java/org/spigotmc/SpigotWorldConfig.java
+index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..6b2241efbc248324f178a547aea9f398ed624247 100644
+--- a/src/main/java/org/spigotmc/SpigotWorldConfig.java
++++ b/src/main/java/org/spigotmc/SpigotWorldConfig.java
+@@ -10,17 +10,28 @@ public class SpigotWorldConfig {
+     private final YamlConfiguration config;
+     private boolean verbose;
+ 
++    // ASP start - Improve Slime IO
+     public SpigotWorldConfig(String worldName) {
++        this(worldName, true);
++    }
++    // ASP end - Improve Slime IO
++
++    public SpigotWorldConfig(String worldName, boolean saveOnLoad) { // ASP - Improve Slime IO
+         this.worldName = worldName;
+         this.config = SpigotConfig.config;
+-        this.init();
++        this.init(saveOnLoad); // ASP - Improve Slime IO
+     }
+ 
++    // ASP start - Improve Slime IO
+     public void init() {
++        init(true);
++    }
++    public void init(boolean saveOnLoad) {
++    // ASP end - Improve Slime IO
+         this.verbose = this.getBoolean("verbose", false); // Paper
+ 
+         this.log("-------- World Settings For [" + this.worldName + "] --------");
+-        SpigotConfig.readConfig(SpigotWorldConfig.class, this);
++        SpigotConfig.readConfig(SpigotWorldConfig.class, this, saveOnLoad); // ASP - Improve Slime IO
+     }
+ 
+     private void log(String s) {
