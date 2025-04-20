@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     compileOnly(project(":api"))
-    compileOnly(project(":aspaper-api"))
+    compileOnly(paperApi())
     implementation(libs.zstd)
 }
 
