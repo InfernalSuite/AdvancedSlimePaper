@@ -71,16 +71,16 @@ extensions.configure<ProfilesExtension>("profiles") {
                         name = "infernalsuite"
                         url = uri("https://repo.infernalsuite.com/repository/maven-snapshots/")
                         credentials {
-//                            username = project.property("ISUsername") as String?
-//                            password = project.property("ISPassword") as String?
+                            username = project.property("ISUsername") as String?
+                            password = project.property("ISPassword") as String?
                         }
                     }
                 }
             }
-//            extensions.configure<SigningExtension>("signing") {
-//                useGpgCmd()
-//                sign(extensions.getByName<PublishingExtension>("publishing").publications["maven"])
-//            }
+            extensions.configure<SigningExtension>("signing") {
+                useGpgCmd()
+                sign(extensions.getByName<PublishingExtension>("publishing").publications["maven"])
+            }
         }
     }
 }
