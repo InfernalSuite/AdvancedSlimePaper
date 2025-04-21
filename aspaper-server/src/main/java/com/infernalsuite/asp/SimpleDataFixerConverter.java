@@ -78,7 +78,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                 );
             }
 
-            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), encodedCurrentVersion, encodedNewVersion) : null;
+            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
 
             chunks.put(chunkPos, new SlimeChunkSkeleton(
                     chunk.getX(),
@@ -107,8 +107,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         );
     }
 
-    private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, long encodedCurrentVersion, long encodedNewVersion) {
-        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections);
+    private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
+        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
         MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
         return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
