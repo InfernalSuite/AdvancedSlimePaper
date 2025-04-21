@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v13;
 
 import com.github.luben.zstd.Zstd;
+import com.infernalsuite.asp.SlimeLogger;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.asp.api.exceptions.NewerFormatException;
@@ -134,6 +135,15 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
                 if(tag != null) {
                     fluidTicks = tag.getList("fluid_ticks", BinaryTagTypes.COMPOUND);
                 }
+            }
+
+            int countOfUnsupportedData = v13AdditionalWorldData.countUnsupportedFlags(additionalWorldData);
+            for (int i1 = 0; i1 < countOfUnsupportedData; i1++) {
+                byte[] randomData = new byte[chunkData.readInt()];
+                chunkData.read(randomData);
+            }
+            if(countOfUnsupportedData > 0) {
+                SlimeLogger.warn("Unsupported additional world data found in chunk " + x + ", " + z + ". This should not cause any issues, however this data will be lost on save.");
             }
 
             // Tile Entities
