@@ -2,6 +2,7 @@ package com.infernalsuite.asp.api.world;
 
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public interface SlimeChunk {
      *
      * @return A {@link CompoundBinaryTag} containing all the height maps of the chunk.
      */
+    @Nullable
     CompoundBinaryTag getHeightMaps();
 
     /**
@@ -74,9 +76,12 @@ public interface SlimeChunk {
     @Nullable
     CompoundBinaryTag getUpgradeData();
 
-    CompoundBinaryTag getBlockTicks();
+    @Nullable
+    ListBinaryTag getBlockTicks();
 
-    CompoundBinaryTag getFluidTicks();
+    @Nullable
+    ListBinaryTag getFluidTicks();
 
-    CompoundBinaryTag getPoiChunk();
+    @Nullable
+    CompoundBinaryTag getPoiChunkSections();
 }

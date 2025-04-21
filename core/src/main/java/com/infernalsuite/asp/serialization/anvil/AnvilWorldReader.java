@@ -268,7 +268,10 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                     chunk.getTileEntities(),
                     entities,
                     chunk.getExtraData(),
-                    chunk.getUpgradeData()
+                    chunk.getUpgradeData(),
+                    chunk.getPoiChunkSections(),
+                    chunk.getBlockTicks(),
+                    chunk.getFluidTicks()
             ));
         }
     }
@@ -329,7 +332,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         return Arrays.stream(sectionArray)
                 .filter(Objects::nonNull)
                 .findFirst()
-                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null))
+                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null, null, null, null)) //TODO: Convert poi, block and fluid
                 .orElse(null);
     }
 

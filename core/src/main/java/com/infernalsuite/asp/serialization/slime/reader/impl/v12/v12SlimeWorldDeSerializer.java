@@ -145,7 +145,7 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             Map<String, BinaryTag> extraData = new HashMap<>();
             if (extra != null) extra.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
-            chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null));
+            chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null, null, null, null));
         }
         return chunkMap;
     }

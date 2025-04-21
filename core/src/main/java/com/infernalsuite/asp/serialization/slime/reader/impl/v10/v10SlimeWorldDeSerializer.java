@@ -173,7 +173,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                 }
 
                 chunkMap.put(Util.chunkPosition(x, z),
-                        new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new HashMap<>(), null)
+                        new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new HashMap<>(), null, null, null, null)
                 );
             }
         }

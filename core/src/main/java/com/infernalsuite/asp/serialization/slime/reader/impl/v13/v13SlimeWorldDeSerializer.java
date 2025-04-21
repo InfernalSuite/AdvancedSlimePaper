@@ -14,10 +14,7 @@ import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.BinaryTagIO;
-import net.kyori.adventure.nbt.BinaryTagTypes;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -120,17 +117,23 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
                 poiChunk = readCompound(poiData);
             }
 
-            CompoundBinaryTag blockTicks = null;
+            ListBinaryTag blockTicks = null;
             if(v13AdditionalWorldData.BLOCK_TICKS.isSet(additionalWorldData)) {
                 byte[] blockTickData = new byte[chunkData.readInt()];
                 chunkData.read(blockTickData);
-                blockTicks = readCompound(blockTickData);
+                CompoundBinaryTag tag = readCompound(blockTickData);
+                if(tag != null) {
+                    blockTicks = tag.getList("block_ticks", BinaryTagTypes.COMPOUND);
+                }
             }
-            CompoundBinaryTag fluidTicks = null;
+            ListBinaryTag fluidTicks = null;
             if(v13AdditionalWorldData.FLUID_TICKS.isSet(additionalWorldData)) {
                 byte[] fluidTickData = new byte[chunkData.readInt()];
                 chunkData.read(fluidTickData);
-                fluidTicks = readCompound(fluidTickData);
+                CompoundBinaryTag tag = readCompound(fluidTickData);
+                if(tag != null) {
+                    fluidTicks = tag.getList("fluid_ticks", BinaryTagTypes.COMPOUND);
+                }
             }
 
             // Tile Entities
@@ -166,7 +169,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             Map<String, BinaryTag> extraData = new HashMap<>();
             if (extra != null) extra.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
-            chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null));
+            chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null, poiChunk, blockTicks, fluidTicks));
         }
         return chunkMap;
     }

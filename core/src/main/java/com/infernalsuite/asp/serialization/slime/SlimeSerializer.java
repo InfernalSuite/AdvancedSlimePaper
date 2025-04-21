@@ -133,19 +133,19 @@ public class SlimeSerializer {
             outStream.write(heightMaps);
 
             if (data.contains(v13AdditionalWorldData.POI_CHUNKS)) {
-                byte[] poiData = serializeCompoundTag(chunk.getPoiChunk());
+                byte[] poiData = serializeCompoundTag(chunk.getPoiChunkSections());
                 outStream.writeInt(poiData.length);
                 outStream.write(poiData);
             }
 
             if (data.contains(v13AdditionalWorldData.BLOCK_TICKS)) {
-                byte[] blockTicksData = serializeCompoundTag(chunk.getBlockTicks());
+                byte[] blockTicksData = serializeCompoundTag(wrap("block_ticks", chunk.getBlockTicks()));
                 outStream.writeInt(blockTicksData.length);
                 outStream.write(blockTicksData);
             }
 
             if (data.contains(v13AdditionalWorldData.FLUID_TICKS)) {
-                byte[] fluidTicksData = serializeCompoundTag(chunk.getFluidTicks());
+                byte[] fluidTicksData = serializeCompoundTag(wrap("fluid_ticks", chunk.getFluidTicks()));
                 outStream.writeInt(fluidTicksData.length);
                 outStream.write(fluidTicksData);
             }
@@ -177,6 +177,13 @@ public class SlimeSerializer {
         }
 
         return outByteStream.toByteArray();
+    }
+
+    private static CompoundBinaryTag wrap(String key, ListBinaryTag list) {
+        if(list == null || list.isEmpty()) {
+            return null;
+        }
+        return CompoundBinaryTag.builder().put(key, list).build();
     }
 
     protected static byte[] serializeCompoundTag(CompoundBinaryTag tag) throws IOException {
