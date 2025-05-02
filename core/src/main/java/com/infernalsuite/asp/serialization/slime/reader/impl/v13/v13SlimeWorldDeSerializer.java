@@ -72,10 +72,11 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
 
             int sectionCount = chunkData.readInt();
             for (int sectionId = 0; sectionId < sectionCount; sectionId++) {
+                byte sectionFlags = chunkData.readByte();
 
                 // Block Light Nibble Array
                 NibbleArray blockLightArray;
-                if (chunkData.readBoolean()) {
+                if ((sectionFlags & 1) == 1) {
                     byte[] blockLightByteArray = new byte[ARRAY_SIZE];
                     chunkData.read(blockLightByteArray);
                     blockLightArray = new NibbleArray(blockLightByteArray);
@@ -85,7 +86,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
 
                 // Sky Light Nibble Array
                 NibbleArray skyLightArray;
-                if (chunkData.readBoolean()) {
+                if (((sectionFlags >> 1) & 1) == 1) {
                     byte[] skyLightByteArray = new byte[ARRAY_SIZE];
                     chunkData.read(skyLightByteArray);
                     skyLightArray = new NibbleArray(skyLightByteArray);

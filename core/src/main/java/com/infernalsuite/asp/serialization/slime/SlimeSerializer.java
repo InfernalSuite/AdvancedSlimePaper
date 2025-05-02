@@ -101,18 +101,25 @@ public class SlimeSerializer {
 
             outStream.writeInt(sections.length);
             for (SlimeChunkSection slimeChunkSection : sections) {
-                // Block Light
-                boolean hasBlockLight = slimeChunkSection.getBlockLight() != null;
-                outStream.writeBoolean(hasBlockLight);
+                byte sectionFlags = 0;
 
+                boolean hasBlockLight = slimeChunkSection.getBlockLight() != null;
+                boolean hasSkyLight = slimeChunkSection.getSkyLight() != null;
+
+                if(hasBlockLight) {
+                    sectionFlags = (byte) (sectionFlags | 1);
+                }
+                if(hasSkyLight) {
+                    sectionFlags = (byte) (sectionFlags | (1 << 1));
+                }
+                outStream.write(sectionFlags);
+
+                // Block Light
                 if (hasBlockLight) {
                     outStream.write(slimeChunkSection.getBlockLight().getBacking());
                 }
 
                 // Sky Light
-                boolean hasSkyLight = slimeChunkSection.getSkyLight() != null;
-                outStream.writeBoolean(hasSkyLight);
-
                 if (hasSkyLight) {
                     outStream.write(slimeChunkSection.getSkyLight().getBacking());
                 }

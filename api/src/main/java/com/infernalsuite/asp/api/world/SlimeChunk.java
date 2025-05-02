@@ -85,6 +85,7 @@ public interface SlimeChunk {
      * was read or when the chunk is currently loaded.
      *
      * @return A {@link ListBinaryTag} containing all the block ticks of the chunk, if present.
+     * @see SlimeProperties#SAVE_FLUID_TICKS
      */
     @Nullable
     ListBinaryTag getBlockTicks();
@@ -96,6 +97,7 @@ public interface SlimeChunk {
      * containing the fluid ticks, if the data was present when the world was read or when the chunk is currently loaded.
      *
      * @return A {@link ListBinaryTag} containing all the fluid ticks of the chunk, if present.
+     * @see SlimeProperties#SAVE_FLUID_TICKS
      */
     @Nullable
     ListBinaryTag getFluidTicks();
@@ -107,6 +109,7 @@ public interface SlimeChunk {
      * containing the poi sections, if the data was present when the world was read or when the chunk is currently loaded.
      *
      * @return A {@link CompoundBinaryTag} containing the poi chunks of the chunk, if present.
+     * @see SlimeProperties#SAVE_POI
      */
     @Nullable
     CompoundBinaryTag getPoiChunkSections();
