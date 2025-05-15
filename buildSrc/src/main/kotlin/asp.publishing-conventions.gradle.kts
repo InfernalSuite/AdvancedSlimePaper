@@ -69,7 +69,13 @@ extensions.configure<ProfilesExtension>("profiles") {
                 repositories {
                     maven {
                         name = "infernalsuite"
-                        url = uri("https://repo.infernalsuite.com/repository/maven-snapshots/")
+
+                        url = if("${project.version}".endsWith("-SNAPSHOT")) {
+                            uri("https://repo.infernalsuite.com/repository/maven-snapshots/")
+                        } else {
+                            uri("https://repo.infernalsuite.com/repository/maven-releases/")
+                        }
+
                         credentials {
                             username = project.property("ISUsername") as String?
                             password = project.property("ISPassword") as String?

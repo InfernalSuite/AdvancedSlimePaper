@@ -1,5 +1,6 @@
 plugins {
     id("asp.base-conventions")
+    id("asp.internal-conventions")
     id("asp.publishing-conventions")
 }
 
