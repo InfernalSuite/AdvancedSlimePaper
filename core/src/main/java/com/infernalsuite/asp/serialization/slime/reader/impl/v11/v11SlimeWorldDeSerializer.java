@@ -41,7 +41,7 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         CompoundBinaryTag extraTag = readCompound(extraTagBytes);
 
         SlimePropertyMap worldPropertyMap = propertyMap;
-        CompoundBinaryTag propertiesMap = extraTag != null && extraTag.get("properties") != null
+        CompoundBinaryTag propertiesMap = extraTag.get("properties") != null
                 ? extraTag.getCompound("properties")
                 : null;
 
@@ -54,7 +54,7 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         }
 
         ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
-        if (extraTag != null) extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+        extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
         return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraData, worldPropertyMap, worldVersion);
     }
@@ -123,7 +123,7 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             chunkData.read(compressedTileEntitiesData);
             Zstd.decompress(decompressedTileEntitiesData, compressedTileEntitiesData);
 
-            CompoundBinaryTag tileEntitiesCompound = readCompoundOrEmpty(decompressedTileEntitiesData);
+            CompoundBinaryTag tileEntitiesCompound = readCompound(decompressedTileEntitiesData);
 
             ListBinaryTag tileEntitiesTag = tileEntitiesCompound.getList("tileEntities", BinaryTagTypes.COMPOUND);
             List<CompoundBinaryTag> serializedTileEntities = new ArrayList<>(tileEntitiesTag.size());
@@ -140,7 +140,7 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             chunkData.read(compressedEntitiesData);
             Zstd.decompress(decompressedEntitiesData, compressedEntitiesData);
 
-            CompoundBinaryTag entitiesCompound = readCompoundOrEmpty(decompressedEntitiesData);
+            CompoundBinaryTag entitiesCompound = readCompound(decompressedEntitiesData);
             ListBinaryTag entitiesTag = entitiesCompound.getList("entities", BinaryTagTypes.COMPOUND);
             List<CompoundBinaryTag> serializedEntities = new ArrayList<>(entitiesTag.size());
             for (BinaryTag binaryTag : entitiesTag) {
@@ -164,14 +164,8 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
     }
 
     private static CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return null;
+        if (tagBytes.length == 0) return CompoundBinaryTag.empty();
 
         return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
-    }
-
-    private static CompoundBinaryTag readCompoundOrEmpty(byte[] tagBytes) throws IOException {
-        CompoundBinaryTag tag = readCompound(tagBytes);
-        if(tag == null) return CompoundBinaryTag.empty();
-        return tag;
     }
 }
