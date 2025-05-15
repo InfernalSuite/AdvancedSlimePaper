@@ -16,6 +16,7 @@ import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -44,7 +45,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         CompoundBinaryTag extraTag = readCompound(extraTagBytes);
 
         ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
-        if (extraTag != null) extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+        extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
         SlimePropertyMap worldPropertyMap = propertyMap;
         if (extraData.containsKey("properties")) {
@@ -124,18 +125,14 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
                 byte[] blockTickData = new byte[chunkData.readInt()];
                 chunkData.read(blockTickData);
                 CompoundBinaryTag tag = readCompound(blockTickData);
-                if(tag != null) {
-                    blockTicks = tag.getList("block_ticks", BinaryTagTypes.COMPOUND);
-                }
+                blockTicks = tag.getList("block_ticks", BinaryTagTypes.COMPOUND);
             }
             ListBinaryTag fluidTicks = null;
             if(v13AdditionalWorldData.FLUID_TICKS.isSet(additionalWorldData)) {
                 byte[] fluidTickData = new byte[chunkData.readInt()];
                 chunkData.read(fluidTickData);
                 CompoundBinaryTag tag = readCompound(fluidTickData);
-                if(tag != null) {
-                    fluidTicks = tag.getList("fluid_ticks", BinaryTagTypes.COMPOUND);
-                }
+                fluidTicks = tag.getList("fluid_ticks", BinaryTagTypes.COMPOUND);
             }
 
             int countOfUnsupportedData = v13AdditionalWorldData.countUnsupportedFlags(additionalWorldData);
@@ -152,7 +149,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             byte[] tileEntitiesRaw = read(chunkData);
             List<CompoundBinaryTag> tileEntities;
             CompoundBinaryTag tileEntitiesCompound = readCompound(tileEntitiesRaw);
-            if (tileEntitiesCompound == null) {
+            if (tileEntitiesCompound.isEmpty()) {
                 tileEntities = Collections.emptyList();
             } else {
                 tileEntities = tileEntitiesCompound.getList("tileEntities", BinaryTagTypes.COMPOUND).stream()
@@ -165,7 +162,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             byte[] entitiesRaw = read(chunkData);
             List<CompoundBinaryTag> entities;
             CompoundBinaryTag entitiesCompound = readCompound(entitiesRaw);
-            if (entitiesCompound == null) {
+            if (entitiesCompound.isEmpty()) {
                 entities = Collections.emptyList();
             } else {
                 entities = entitiesCompound.getList("entities", BinaryTagTypes.COMPOUND).stream()
@@ -178,7 +175,7 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             CompoundBinaryTag extra = readCompound(rawExtra);
 
             Map<String, BinaryTag> extraData = new HashMap<>();
-            if (extra != null) extra.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+            extra.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
             chunkMap.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(x, z, chunkSections, heightMaps, tileEntities, entities, extraData, null, poiChunk, blockTicks, fluidTicks));
         }
@@ -202,8 +199,8 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         return data;
     }
 
-    private static CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return null;
+    private static @NotNull CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
+        if (tagBytes.length == 0) return CompoundBinaryTag.empty();
 
         return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
     }
