@@ -10,6 +10,9 @@
 #     allowAnimals: false
 #     loadOnStartup: true
 #     readOnly: true
+#     saveBlockTicks: false
+#     saveFluidTicks: false
+#     savePoi: false
 #   world2:
 #     source: mysql
 #     difficulty: hard
@@ -18,6 +21,9 @@
 #     allowAnimals: false
 #     loadOnStartup: false
 #     readOnly: true
+#     saveBlockTicks: false
+#     saveFluidTicks: false
+#     savePoi: false
 #   world3:
 #     source: seaweed
 #     difficulty: easy
@@ -26,6 +32,9 @@
 #     allowAnimals: true
 #     loadOnStartup: true
 #     readOnly: false
+#     saveBlockTicks: false
+#     saveFluidTicks: false
+#     savePoi: false
 #   world4:
 #     source: api
 #     difficulty: easy
@@ -33,4 +42,7 @@
 #     allowMonsters: false
 #     allowAnimals: true
 #     loadOnStartup: true
+#     saveBlockTicks: false
+#     saveFluidTicks: false
+#     savePoi: false
 worlds:

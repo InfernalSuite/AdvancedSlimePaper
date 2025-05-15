@@ -1,13 +1,13 @@
 package com.infernalsuite.asp;
 
 import ca.spottedleaf.dataconverter.converters.DataConverter;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCDataType;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeDataConverter;
+import com.infernalsuite.asp.level.SlimeChunkConverter;
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -19,13 +19,10 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.ListBinaryTag;
-import net.kyori.adventure.nbt.TagStringIO;
 import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -79,8 +76,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                         dataSection.getBlockLight(),
                         dataSection.getSkyLight()
                 );
-
             }
+
+            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
+
             chunks.put(chunkPos, new SlimeChunkSkeleton(
                     chunk.getX(),
                     chunk.getZ(),
@@ -89,7 +88,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                     blockEntities,
                     entities,
                     chunk.getExtraData(),
-                    chunk.getUpgradeData()
+                    chunk.getUpgradeData(),
+                    newPoi,
+                    chunk.getBlockTicks(),
+                    chunk.getFluidTicks()
             ));
 
         }
@@ -103,6 +105,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                 data.getPropertyMap(),
                 newVersion
         );
+    }
+
+    private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
+        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
+        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+        return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
     @Override
