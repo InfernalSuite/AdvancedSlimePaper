@@ -5,10 +5,10 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index a13ebfbff00340c7ab500e20702120cbae9d3fb3..5b7bb4bfe47a1c4fb2d3e52b03eb23c50c85627d 100644
+index 939605ce630ab66b7236962dec3ae61ed23dc222..51cfeb87385b7e40922049a197a417a3892c2fce 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -606,7 +606,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -609,7 +609,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
@@ -18,7 +18,7 @@ index a13ebfbff00340c7ab500e20702120cbae9d3fb3..5b7bb4bfe47a1c4fb2d3e52b03eb23c5
          this.levelStorageAccess = levelStorageAccess;
          this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 013ed7dbe2309f562f63e66203179a90566e8115..f2de12320d1435ec65e0feac64fb6e88ff3ef811 100644
+index e4b9a564aad3d9b673808caa18265b06592ceab8..8bb30eba86b74f155ef9580dc6c01d761e23dd5a 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -838,7 +838,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
@@ -28,5 +28,5 @@ index 013ed7dbe2309f562f63e66203179a90566e8115..f2de12320d1435ec65e0feac64fb6e88
 -        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName()); // Spigot
 +        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), !(this instanceof com.infernalsuite.asp.level.SlimeLevelInstance)); // Spigot //ASP - Improve Slime IO
          this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
-         this.generator = gen;
-         this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);
+         this.generator = generator;
+         this.world = new CraftWorld((ServerLevel) this, generator, biomeProvider, environment);
