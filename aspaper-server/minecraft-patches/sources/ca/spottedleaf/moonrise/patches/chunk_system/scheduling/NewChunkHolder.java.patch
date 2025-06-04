@@ -26,3 +26,16 @@
              // yes this is a hack to pass the compound tag through...
              final CompoundTag lastEntityUnload = this.lastEntityUnload;
              this.lastEntityUnload = null;
+@@ -1715,6 +_,12 @@
+         boolean canSaveChunk = !forceNoSaveChunk && (chunk != null && ((shutdown || chunk instanceof LevelChunk) && chunk.isUnsaved()));
+         boolean canSavePOI = !forceNoSaveChunk && (poi != null && poi.isDirty());
+         boolean canSaveEntities = entities != null;
++
++        //ASP start - prevent saving
++        if(!(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance)) {
++            canSaveEntities = false;
++        }
++        //ASP end - prevent saving
+ 
+         if (canSaveChunk) {
+             canSaveChunk = this.saveChunk(chunk, false);
