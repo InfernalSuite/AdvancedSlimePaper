@@ -34,7 +34,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
-        int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        int newVersion = SharedConstants.getCurrentVersion().dataVersion().version();
         int currentVersion = data.getDataVersion();
         // Already fixed
         if (currentVersion == newVersion) {
@@ -123,7 +123,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
     public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
         CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
 
-        int version = nmsTag.getInt("DataVersion");
+        int version = nmsTag.getInt("DataVersion").orElseThrow();
 
         long encodedNewVersion = DataConverter.encodeVersions(1631, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
@@ -172,7 +172,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         NBTListType listType = new NBTListType(nbtList);
 
         for (int i = 0, len = listType.size(); i < len; ++i) {
-            final MapType<String> replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
+            final MapType replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
                     encodedCurrentVersion, encodedNewVersion);
             if (replace != null) {
                 listType.setMap(i, replace);

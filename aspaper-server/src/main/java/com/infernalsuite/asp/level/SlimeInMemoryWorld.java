@@ -254,7 +254,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     @Override
     public int getDataVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     @Override

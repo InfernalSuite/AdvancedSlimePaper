@@ -164,7 +164,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     @Override
     public int getCurrentVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     public void registerWorld(SlimeLevelInstance server) {
