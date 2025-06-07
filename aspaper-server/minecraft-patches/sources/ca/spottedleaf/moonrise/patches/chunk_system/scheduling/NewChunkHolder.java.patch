@@ -32,7 +32,7 @@
          boolean canSaveEntities = entities != null;
 +
 +        //ASP start - prevent saving
-+        if(!(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance)) {
++        if(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
 +            canSaveEntities = false;
 +        }
 +        //ASP end - prevent saving
