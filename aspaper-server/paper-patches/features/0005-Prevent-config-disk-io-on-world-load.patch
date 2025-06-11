@@ -5,15 +5,15 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
-index e0d4222a99f22d7130d95cf29b034a98f2f3b76e..776440ec20c7bf0acac8678773b0a5d29548c270 100644
+index c935d75b83338ce41507e9be11153dd1c4052cb6..3feaba566c22b1e93b2b4edc7786723a2f9e28c6 100644
 --- a/src/main/java/org/spigotmc/SpigotConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotConfig.java
-@@ -78,7 +78,12 @@ public class SpigotConfig {
+@@ -79,7 +79,12 @@ public class SpigotConfig {
          }
      }
  
 +    // ASP start - Improve Slime IO
-     public static void readConfig(Class<?> clazz, Object instance) { // Paper - package-private -> public
+     public static void readConfig(Class<?> clazz, Object instance) {
 +        readConfig(clazz, instance, true);
 +    }
 +    public static void readConfig(Class<?> clazz, Object instance, boolean save) {
@@ -21,7 +21,7 @@ index e0d4222a99f22d7130d95cf29b034a98f2f3b76e..776440ec20c7bf0acac8678773b0a5d2
          for (Method method : clazz.getDeclaredMethods()) {
              if (Modifier.isPrivate(method.getModifiers())) {
                  if (method.getParameterTypes().length == 0 && method.getReturnType() == Void.TYPE) {
-@@ -95,7 +100,11 @@ public class SpigotConfig {
+@@ -96,7 +101,11 @@ public class SpigotConfig {
          }
  
          try {
@@ -35,7 +35,7 @@ index e0d4222a99f22d7130d95cf29b034a98f2f3b76e..776440ec20c7bf0acac8678773b0a5d2
              Bukkit.getLogger().log(Level.SEVERE, "Could not save " + SpigotConfig.CONFIG_FILE, ex);
          }
 diff --git a/src/main/java/org/spigotmc/SpigotWorldConfig.java b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-index 89e2adbc1e1a0709d03e151e3ffcdbff10a44098..6b2241efbc248324f178a547aea9f398ed624247 100644
+index 43c6240ec2855c0f668ce04de29d22a223d2612f..c6f398977149c8b35454fb79f099322c36d557d5 100644
 --- a/src/main/java/org/spigotmc/SpigotWorldConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotWorldConfig.java
 @@ -10,17 +10,28 @@ public class SpigotWorldConfig {

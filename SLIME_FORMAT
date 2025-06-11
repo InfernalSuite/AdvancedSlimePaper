@@ -1,9 +1,10 @@
 -------------------------------------
 
-“Slime” file format
+“Slime” file format (Version 13)
 2 bytes - magic = 0xB10B
-1 byte (ubyte) - version, current = 0x0C
+1 byte (ubyte) - version, current = 0x0D
 4 bytes (int) - world version
+1 byte (ubyte) - additional world flags (bitmask - see options below)
 4 bytes (int) - compressed chunks size
 4 bytes (int) - uncompressed chunks size
   <array of chunks> (size determined from bitmask)
@@ -14,34 +15,61 @@
 [depends] - extra compound tag compressed using zstd (used for PDC, and/or custom data)
 
 -------------------------------------
+Additional world flag index
+POI_CHUNKS - Enum ordinal 0 - Bitmask value 1
+FLUID_TICKS - Enum ordinal 1 - Bitmask value 2
+BLOCK_TICKS - Enum ordinal 2 - Bitmask value 4
+-------------------------------------
 
 Custom chunk format
 4 byte (int) - chunk x
 4 byte (int) - chunk z
 4 bytes (int) section count
 [for each section]
-  1 byte (boolean) - has sky light
+  1 byte (ubyte) - section flags (Bitmask value 1 = has block light, 2 = has sky light)
   [if has sky light]
       2048 bytes - sky light
-  1 byte (boolean) - has block light
-    [if has block light]
-        2048 bytes - block light
+  [if has block light]
+      2048 bytes - block light
   4 bytes (int) - block states byte size
-      <block states component>
+      <block states nbt compound>
+        same format as mc
   4 bytes (int) - biomes byte size
-      <biomes component>
+      <biomes nbt compound>
+        same format as mc
 4 bytes (int) - heightmaps size
-  <array of heightmap nbt compounds>
+  <nbt compound>
     same format as mc, uncompressed
+[if poi chunks flag is enabled]
+    4 bytes (int) - poi chunk size
+      <nbt compound>
+        "Sections" tag of the mc poi chunk compound
+        uncompressed
+[if block ticks flag is enabled]
+    4 bytes (int) - fluid ticks size
+      <nbt compound>
+        Same format as mc
+        inside an nbt list named "block_ticks"
+        uncompressed
+[if fluid ticks flag is enabled]
+    4 bytes (int) - heightmaps size
+      <nbt compound>
+        Same format as mc
+        inside an nbt list named "fluid_ticks"
+        uncompressed
+[for every flag set that does not exist yet, for backward compatibility of new future flags]
+   4 bytes (int) - size
+   <byte array with unsupported yet undocumented data>
+
 4 bytes (int) - tile entities size
-  <array of tile entity nbt compounds>
+  <nbt compound>
     Same format as mc
-    inside an nbt list named “tileEntities”, in a global compound
+    inside an nbt list named “tileEntities”
     uncompressed
 4 bytes (int) entities size
-  <array of entity nbt compounds>
-    Same format as mc EXCEPT optional “CustomId”
-    inside an nbt list named “entities”, in a global compound
+  <nbt compound>
+    Same format as mc
+    inside an nbt list named “entities”
     uncompressed
 [depends] - compound tag uncompressed (used for PDC, and/or custom data
 
@@ -60,3 +88,4 @@ Version history:
  - v10: Use minecraft version id, remove legacy version artifacts
  - v11: Move entities and tile entities into the chunk structure
  - v12: Add support for chunk-based PDC
+ - v13: Add support for additional world data

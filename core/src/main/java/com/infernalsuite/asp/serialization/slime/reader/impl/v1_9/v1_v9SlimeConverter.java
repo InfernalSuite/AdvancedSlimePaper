@@ -67,7 +67,10 @@ class v1_v9SlimeConverter implements SlimeWorldReader<v1_9SlimeWorld> {
                     slimeChunk.tileEntities,
                     slimeChunk.entities,
                     new HashMap<>(),
-                    slimeChunk.upgradeData
+                    slimeChunk.upgradeData,
+                    null,
+                    null,
+                    null
             ));
         }
 

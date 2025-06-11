@@ -13,9 +13,11 @@ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
+import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -49,7 +51,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
 
         // Entity deserialization
         CompoundBinaryTag entitiesCompound = readCompound(entities);
-        if(entitiesCompound != null) {
+        if(!entitiesCompound.isEmpty()) {
             for (BinaryTag binaryTag : entitiesCompound.getList("entities", BinaryTagTypes.COMPOUND)) {
                 CompoundBinaryTag entityCompound = (CompoundBinaryTag) binaryTag;
 
@@ -67,7 +69,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
 
         // Tile Entity deserialization
         CompoundBinaryTag tileEntitiesCompound = readCompound(tileEntities);
-        if(tileEntitiesCompound != null) {
+        if(!tileEntitiesCompound.isEmpty()) {
             for (BinaryTag binaryTag : (tileEntitiesCompound.getList("tiles", BinaryTagTypes.COMPOUND))) {
                 CompoundBinaryTag tileEntityCompound = (CompoundBinaryTag) binaryTag;
 
@@ -102,7 +104,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         }
 
         ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
-        if (extraCompound != null) extraCompound.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
+        extraCompound.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
         return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks,
                 extraData,
@@ -173,7 +175,7 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
                 }
 
                 chunkMap.put(Util.chunkPosition(x, z),
-                        new com.infernalsuite.asp.skeleton.SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new HashMap<>(), null)
+                        new SlimeChunkSkeleton(x, z, chunkSectionArray, heightMaps, new ArrayList<>(), new ArrayList<>(), new HashMap<>(), null, null, null, null)
                 );
             }
         }
@@ -201,8 +203,8 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
         return normal;
     }
 
-    private static CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return null;
+    private static @NotNull CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
+        if (tagBytes.length == 0) return CompoundBinaryTag.empty();
 
         return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
     }

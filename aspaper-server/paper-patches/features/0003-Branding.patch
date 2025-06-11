@@ -5,7 +5,7 @@ Subject: [PATCH] Branding
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
-index 532306cacd52579cdf37e4aca25887b1ed3ba6a1..eec04fcdd4b6c6f92a2db37bfe06dca2a93e300d 100644
+index d0554ed6631535815e5932930911e3fe1dee8710..ac171c6b9008eaaeb9e433fdb188bd797fd95759 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 @@ -35,7 +35,7 @@ public class PaperVersionFetcher implements VersionFetcher {
@@ -56,7 +56,7 @@ index 532306cacd52579cdf37e4aca25887b1ed3ba6a1..eec04fcdd4b6c6f92a2db37bfe06dca2
                          .hoverEvent(text("Click to open", NamedTextColor.WHITE))
                          .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
 diff --git a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
-index 790bad0494454ca12ee152e3de6da3da634d9b20..d047646990ff52b31a24bdebf000ecfbebdae99a 100644
+index 74ffdc823e66fc5ec027c4b7c462382bcbfe2be2..2610e8d1ce20331895b0a76fa50efc062001678e 100644
 --- a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
 +++ b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
 @@ -31,6 +31,7 @@ public record ServerBuildInfoImpl(
@@ -76,8 +76,8 @@ index 790bad0494454ca12ee152e3de6da3da634d9b20..d047646990ff52b31a24bdebf000ecfb
              getManifestAttribute(manifest, ATTRIBUTE_BRAND_NAME)
 -                .orElse(BRAND_PAPER_NAME),
 +                .orElse(BRAND_ADVANCED_SLIME_PAPER_NAME),
-             SharedConstants.getCurrentVersion().getId(),
-             SharedConstants.getCurrentVersion().getName(),
+             SharedConstants.getCurrentVersion().id(),
+             SharedConstants.getCurrentVersion().name(),
              getManifestAttribute(manifest, ATTRIBUTE_BUILD_NUMBER)
 @@ -61,7 +62,7 @@ public record ServerBuildInfoImpl(
  
@@ -89,7 +89,7 @@ index 790bad0494454ca12ee152e3de6da3da634d9b20..d047646990ff52b31a24bdebf000ecfb
  
      @Override
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 774556a62eb240da42e84db4502e2ed43495be17..ee1ffebaf4e9f7e2f8e0fd8406357b64d38b7399 100644
+index 774556a62eb240da42e84db4502e2ed43495be17..0c54eb1187c31a2e6efd4b0898fc600fa1bddeee 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 @@ -11,7 +11,7 @@ public final class Versioning {

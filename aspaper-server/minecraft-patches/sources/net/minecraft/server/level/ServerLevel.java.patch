@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -570,7 +_,32 @@
+@@ -565,7 +_,32 @@
      }
      // Paper end - chunk tick iteration
  
@@ -34,7 +34,7 @@
          MinecraftServer server,
          Executor dispatcher,
          LevelStorageSource.LevelStorageAccess levelStorageAccess,
-@@ -587,6 +_,7 @@
+@@ -582,6 +_,7 @@
          org.bukkit.generator.ChunkGenerator gen, // CraftBukkit
          org.bukkit.generator.BiomeProvider biomeProvider // CraftBukkit
      ) {
@@ -42,7 +42,7 @@
          // CraftBukkit start
          super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs; Async-Anti-Xray: Pass executor
          this.pvpMode = server.isPvpAllowed();
-@@ -614,6 +_,13 @@
+@@ -609,6 +_,13 @@
              chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
          }
          // CraftBukkit end
@@ -56,7 +56,7 @@
          boolean flag = server.forceSynchronousWrites();
          DataFixer fixerUpper = server.getFixerUpper();
          // Paper - rewrite chunk system
-@@ -695,6 +_,12 @@
+@@ -689,6 +_,12 @@
      public void setDragonFight(@Nullable EndDragonFight dragonFight) {
          this.dragonFight = dragonFight;
      }

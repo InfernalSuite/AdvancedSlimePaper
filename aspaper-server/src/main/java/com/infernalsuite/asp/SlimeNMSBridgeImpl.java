@@ -1,8 +1,5 @@
 package com.infernalsuite.asp;
 
-import ca.spottedleaf.dataconverter.converters.DataConverter;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
-import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.api.SlimeNMSBridge;
 import com.infernalsuite.asp.api.world.SlimeWorld;
@@ -167,7 +164,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     @Override
     public int getCurrentVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     public void registerWorld(SlimeLevelInstance server) {

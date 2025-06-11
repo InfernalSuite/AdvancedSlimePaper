@@ -5,7 +5,7 @@ Subject: [PATCH] World overrides
 
 
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index 1509c96ae9247d1d5ddd0fc50210f88da10bf3de..bbc4be3c3811ee19bd791cb6626474038d35a298 100644
+index 3349baa2ab971db435b88083688bd0f99474607e..610e58bede7e1482fc861ab6559f4f3a6e7e3633 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -516,18 +516,33 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
