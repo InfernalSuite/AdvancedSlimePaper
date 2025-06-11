@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.level;
 
+import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
 import ca.spottedleaf.moonrise.patches.starlight.light.StarLightEngine;
 import com.infernalsuite.asp.Converter;
@@ -8,30 +9,35 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.minecraft.core.BlockPos;
+import net.kyori.adventure.nbt.ListBinaryTag;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.UpgradeData;
-import net.minecraft.world.level.chunk.status.ChunkStatusTasks;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
+import net.minecraft.world.ticks.SavedTick;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -100,8 +106,27 @@ public class SlimeChunkConverter {
             }
         }
 
-        LevelChunkTicks<Block> blockLevelChunkTicks = new LevelChunkTicks<>();
-        LevelChunkTicks<Fluid> fluidLevelChunkTicks = new LevelChunkTicks<>();
+        LevelChunkTicks<Block> blockLevelChunkTicks;
+        if(chunk.getBlockTicks() != null) {
+            List<SavedTick<Block>> blockList = SavedTick.loadTickList(
+                    (ListTag) Converter.convertTag(chunk.getBlockTicks()), string -> BuiltInRegistries.BLOCK.getOptional(ResourceLocation.tryParse(string)), pos
+            );
+            blockLevelChunkTicks = new LevelChunkTicks<>(blockList);
+        } else {
+            blockLevelChunkTicks = new LevelChunkTicks<>();
+        }
+
+        LevelChunkTicks<Fluid> fluidLevelChunkTicks;
+        if(chunk.getFluidTicks() != null) {
+            List<SavedTick<Fluid>> fluidList = SavedTick.loadTickList(
+                (ListTag) Converter.convertTag(chunk.getFluidTicks()), string -> BuiltInRegistries.FLUID.getOptional(ResourceLocation.tryParse(string)), pos
+            );
+            fluidLevelChunkTicks = new LevelChunkTicks<>(fluidList);
+        } else {
+            fluidLevelChunkTicks = new LevelChunkTicks<>();
+        }
+
+
         UpgradeData upgradeData;
         if (chunk.getUpgradeData() != null) {
             upgradeData = new UpgradeData((net.minecraft.nbt.CompoundTag) Converter.convertTag(chunk.getUpgradeData()), instance);
@@ -111,7 +136,7 @@ public class SlimeChunkConverter {
 
         LevelChunk.PostLoadProcessor processor = SerializableChunkData.postLoadChunk(
                 instance,
-                chunk.getEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList(),
+                new ArrayList<>(), //Entities are loaded by moonrise
                 chunk.getTileEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList()
         );
 
@@ -150,5 +175,44 @@ public class SlimeChunkConverter {
         }
 
         return nmsChunk;
+    }
+
+    public static ListBinaryTag convertSavedFluidTicks(List<SavedTick<Fluid>> ticks) {
+        ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
+        for (SavedTick<Fluid> tick : ticks) {
+            builder.add((CompoundBinaryTag) Converter.convertTag(tick.save(fluid -> BuiltInRegistries.FLUID.getKey(fluid).toString())));
+        }
+        return builder.build();
+    }
+
+    public static ListBinaryTag convertSavedBlockTicks(List<SavedTick<Block>> ticks) {
+        ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
+        for (SavedTick<Block> tick : ticks) {
+            builder.add((CompoundBinaryTag) Converter.convertTag(tick.save(block -> BuiltInRegistries.BLOCK.getKey(block).toString())));
+        }
+        return builder.build();
+    }
+
+    public static CompoundTag createPoiChunk(SlimeChunk chunk) {
+        return createPoiChunkFromSlimeSections(chunk.getPoiChunkSections(),  SharedConstants.getCurrentVersion().getDataVersion().getVersion());
+    }
+
+    public static CompoundTag createPoiChunkFromSlimeSections(CompoundBinaryTag slimePoiSections, int dataVersion) {
+        CompoundTag tag = new CompoundTag();
+        tag.put("Sections", Converter.convertTag(slimePoiSections));
+        tag.putInt("DataVersion", dataVersion);
+        return tag;
+    }
+
+    public static CompoundBinaryTag toSlimeSections(PoiChunk poiChunk) {
+        CompoundTag save = poiChunk.save();
+        return getSlimeSectionsFromPoiCompound(save);
+    }
+
+    public static CompoundBinaryTag getSlimeSectionsFromPoiCompound(CompoundTag save) {
+        if(save == null) return null;
+
+        CompoundTag sections = save.getCompound("Sections");
+        return Converter.convertTag(sections);
     }
 }

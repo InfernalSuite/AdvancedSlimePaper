@@ -1,13 +1,13 @@
 package com.infernalsuite.asp;
 
-/*import ca.spottedleaf.dataconverter.converters.DataConverter;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCDataType;
-import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
-import ca.spottedleaf.dataconverter.types.MapType;
-import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
-import ca.spottedleaf.dataconverter.types.nbt.NBTMapType; 1.21.5 */
+//import ca.spottedleaf.dataconverter.converters.DataConverter;
+//import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+//import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
+//import ca.spottedleaf.dataconverter.types.MapType;
+//import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
+//import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeDataConverter;
+import com.infernalsuite.asp.level.SlimeChunkConverter;
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -19,13 +19,10 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.ListBinaryTag;
-import net.kyori.adventure.nbt.TagStringIO;
 import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,79 +37,89 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         if (currentVersion == newVersion) {
             return data;
         }
-
         System.out.println("""
                 You tried loading a world from a previous minecraft version with the dev build of 1.21.5
                 This is currently unsupported until paper reintroduces the dataconverter.
                 This functionality will come back in a future release.
                 
-                Also: Please don't bug the paper team to re-add dataconverter. As of 02.04.2025, paper 1.21.5 isn't even released.
-                Give them time. Thank you.
+                Dataconverters will come back in 1.21.6.
                 """);
         throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
-        //TODO(david): re-add this as soon as dataconverter is back in paper
-        /*long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE); 1.21.5
-        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
+//
+//        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
+//        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
+//
+//        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
+//        for (SlimeChunk chunk : data.getChunkStorage()) {
+//            List<CompoundBinaryTag> entities = new ArrayList<>();
+//            List<CompoundBinaryTag> blockEntities = new ArrayList<>();
+//            for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
+//                blockEntities.add(
+//                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+//                );
+//            }
+//            for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
+//                entities.add(
+//                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+//                );
+//            }
+//            long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
+//
+//            SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
+//            for (int i = 0; i < sections.length; i++) {
+//                SlimeChunkSection dataSection = chunk.getSections()[i];
+//                if (dataSection == null) continue;
+//
+//                CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+//                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+//                });
+//
+//                CompoundBinaryTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
+//                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+//                });
+//
+//                sections[i] = new SlimeChunkSectionSkeleton(
+//                        blockStateTag,
+//                        biomeTag,
+//                        dataSection.getBlockLight(),
+//                        dataSection.getSkyLight()
+//                );
+//            }
+//
+//            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
+//
+//            chunks.put(chunkPos, new SlimeChunkSkeleton(
+//                    chunk.getX(),
+//                    chunk.getZ(),
+//                    sections,
+//                    chunk.getHeightMaps(),
+//                    blockEntities,
+//                    entities,
+//                    chunk.getExtraData(),
+//                    chunk.getUpgradeData(),
+//                    newPoi,
+//                    chunk.getBlockTicks(),
+//                    chunk.getFluidTicks()
+//            ));
+//
+//        }
+//
+//        return new SkeletonSlimeWorld(
+//                data.getName(),
+//                data.getLoader(),
+//                data.isReadOnly(),
+//                chunks,
+//                data.getExtraData(),
+//                data.getPropertyMap(),
+//                newVersion
+//        );
+    }
 
-        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
-        for (SlimeChunk chunk : data.getChunkStorage()) {
-            List<CompoundBinaryTag> entities = new ArrayList<>();
-            List<CompoundBinaryTag> blockEntities = new ArrayList<>();
-            for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
-                blockEntities.add(
-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-                );
-            }
-            for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
-                entities.add(
-                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-                );
-            }
-            long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
-
-            SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
-            for (int i = 0; i < sections.length; i++) {
-                SlimeChunkSection dataSection = chunk.getSections()[i];
-                if (dataSection == null) continue;
-
-                CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
-                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
-                });
-
-                CompoundBinaryTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
-                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
-                });
-
-                sections[i] = new SlimeChunkSectionSkeleton(
-                        blockStateTag,
-                        biomeTag,
-                        dataSection.getBlockLight(),
-                        dataSection.getSkyLight()
-                );
-
-            }
-            chunks.put(chunkPos, new SlimeChunkSkeleton(
-                    chunk.getX(),
-                    chunk.getZ(),
-                    sections,
-                    chunk.getHeightMaps(),
-                    blockEntities,
-                    entities,
-                    chunk.getExtraData(),
-                    chunk.getUpgradeData()
-            ));
-
-        }
-
-        return new SkeletonSlimeWorld(
-                data.getName(),
-                data.getLoader(),
-                data.isReadOnly(),
-                chunks,
-                data.getExtraData(),
-                data.getPropertyMap(),
-                newVersion
-        ); */
+    private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
+        throw new IllegalStateException("Loading old worlds is unsupported in 1.21.5. Use 1.21.4 or 1.21.6.");
+//        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
+//        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+//        return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
     @Override
@@ -131,9 +138,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
-        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+        throw new IllegalStateException("Loading old worlds is unsupported in 1.21.5. Use 1.21.4 or 1.21.6.");
 //        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
-//
 //        int version = nmsTag.getInt("DataVersion");
 //
 //        long encodedNewVersion = DataConverter.encodeVersions(1631, Integer.MAX_VALUE);
@@ -146,9 +152,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public List<CompoundBinaryTag> convertEntities(List<CompoundBinaryTag> input, int from, int to) {
-        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+        throw new IllegalStateException("Loading old worlds is unsupported in 1.21.5. Use 1.21.4 or 1.21.6.");
 //        List<CompoundBinaryTag> entities = new ArrayList<>(input.size());
-//
 //        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
 //        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
 //
@@ -162,9 +167,8 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public List<CompoundBinaryTag> convertTileEntities(List<CompoundBinaryTag> input, int from, int to) {
-        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+        throw new IllegalStateException("Loading old worlds is unsupported in 1.21.5. Use 1.21.4 or 1.21.6.");
 //        List<CompoundBinaryTag> blockEntities = new ArrayList<>(input.size());
-//
 //        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
 //        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
 //
@@ -178,7 +182,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public ListBinaryTag convertBlockPalette(ListBinaryTag input, int from, int to) {
-        throw new IllegalStateException("Loading old worlds is temporarily unsupported.");
+        throw new IllegalStateException("Loading old worlds is unsupported in 1.21.5. Use 1.21.4 or 1.21.6.");
 //        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
 //        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
 //

@@ -8,12 +8,9 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SkeletonCloning {
@@ -76,7 +73,10 @@ public class SkeletonCloning {
                             new ArrayList<>(chunk.getTileEntities()), //No need to copy contents since adventure nbt is immutable
                             new ArrayList<>(chunk.getEntities()), //No need to copy contents since adventure nbt is immutable
                             new ConcurrentHashMap<>(chunk.getExtraData()),
-                            null
+                            null,
+                            chunk.getPoiChunkSections(),
+                            chunk.getBlockTicks(),
+                            chunk.getFluidTicks()
                     ));
         }
 

@@ -43,6 +43,13 @@ public class WorldData {
     @Setting("readOnly")
     private boolean readOnly = false;
 
+    @Setting("saveBlockTicks")
+    private boolean saveBlockTicks = false;
+    @Setting("saveFluidTicks")
+    private boolean saveFluidTicks = false;
+    @Setting("savePoi")
+    private boolean savePoi = false;
+
     public SlimePropertyMap toPropertyMap() {
         try {
             Enum.valueOf(Difficulty.class, this.difficulty.toUpperCase());
@@ -94,7 +101,9 @@ public class WorldData {
         propertyMap.setValue(ENVIRONMENT, environment);
         propertyMap.setValue(WORLD_TYPE, worldType);
         propertyMap.setValue(DEFAULT_BIOME, defaultBiome);
-
+        propertyMap.setValue(SAVE_BLOCK_TICKS, saveBlockTicks);
+        propertyMap.setValue(SAVE_FLUID_TICKS, saveFluidTicks);
+        propertyMap.setValue(SAVE_POI, savePoi);
         return propertyMap;
     }
 
