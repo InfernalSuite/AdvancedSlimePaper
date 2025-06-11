@@ -192,7 +192,7 @@ public class SlimeChunkConverter {
     }
 
     public static CompoundTag createPoiChunk(SlimeChunk chunk) {
-        return createPoiChunkFromSlimeSections(chunk.getPoiChunkSections(),  SharedConstants.getCurrentVersion().getDataVersion().getVersion());
+        return createPoiChunkFromSlimeSections(chunk.getPoiChunkSections(),  SharedConstants.getCurrentVersion().dataVersion().version());
     }
 
     public static CompoundTag createPoiChunkFromSlimeSections(CompoundBinaryTag slimePoiSections, int dataVersion) {
