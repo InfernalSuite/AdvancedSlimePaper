@@ -5,7 +5,7 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index a13ebfbff00340c7ab500e20702120cbae9d3fb3..5b7bb4bfe47a1c4fb2d3e52b03eb23c50c85627d 100644
+index 1c7cc5d5f031ff9bf7e1755b6071ab17e6e5f43e..395ce84e6734b3257c27f1c3d3ab0ff57da3cb7e 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -606,7 +606,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -18,7 +18,7 @@ index a13ebfbff00340c7ab500e20702120cbae9d3fb3..5b7bb4bfe47a1c4fb2d3e52b03eb23c5
          this.levelStorageAccess = levelStorageAccess;
          this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 013ed7dbe2309f562f63e66203179a90566e8115..f2de12320d1435ec65e0feac64fb6e88ff3ef811 100644
+index 418d3958b7510d469142178f9427c829b6387d83..c09fc4d3d16e23c5c6640c89202b1528a6d34016 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -838,7 +838,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
@@ -28,5 +28,5 @@ index 013ed7dbe2309f562f63e66203179a90566e8115..f2de12320d1435ec65e0feac64fb6e88
 -        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName()); // Spigot
 +        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), !(this instanceof com.infernalsuite.asp.level.SlimeLevelInstance)); // Spigot //ASP - Improve Slime IO
          this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
-         this.generator = gen;
-         this.world = new CraftWorld((ServerLevel) this, gen, biomeProvider, env);
+         this.generator = generator;
+         this.world = new CraftWorld((ServerLevel) this, generator, biomeProvider, environment);
