@@ -108,20 +108,6 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 throw new InvalidWorldException(environmentDir);
             }
 
-            // World maps
-//        File dataDir = new File(worldDir, "data");
-//        List<CompoundTag> maps = new ArrayList<>();
-//
-//        if (dataDir.exists()) {
-//            if (!dataDir.isDirectory()) {
-//                throw new InvalidWorldException(worldDir);
-//            }
-//
-//            for (File mapFile : dataDir.listFiles((dir, name) -> MAP_FILE_PATTERN.matcher(name).matches())) {
-//                maps.add(loadMap(mapFile));
-//            }
-//        }
-
             propertyMap.setValue(SlimeProperties.SPAWN_X, data.x);
             propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
             propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
@@ -132,22 +118,6 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
             throw new RuntimeException(e);
         }
-    }
-
-    private static CompoundBinaryTag loadMap(File mapFile) throws IOException {
-        String fileName = mapFile.getName();
-        int mapId = Integer.parseInt(fileName.substring(4, fileName.length() - 4));
-        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(new BufferedInputStream(new FileInputStream(mapFile))).getCompound("data");
-        tag.put("id", IntBinaryTag.intBinaryTag(mapId));
-        return tag;
-    }
-
-    private static CompoundBinaryTag loadMap(Path mapFile) throws IOException {
-        String fileName = mapFile.getFileName().toString();
-        int mapId = Integer.parseInt(fileName.substring(4, fileName.length() - 4));
-        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(mapFile).getCompound("data");
-        tag.put("id", IntBinaryTag.intBinaryTag(mapId));
-        return tag;
     }
 
     private static LevelData readLevelData(Path file) throws IOException, InvalidWorldException {
@@ -268,7 +238,10 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                     chunk.getTileEntities(),
                     entities,
                     chunk.getExtraData(),
-                    chunk.getUpgradeData()
+                    chunk.getUpgradeData(),
+                    chunk.getPoiChunkSections(),
+                    chunk.getBlockTicks(),
+                    chunk.getFluidTicks()
             ));
         }
     }
@@ -329,7 +302,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         return Arrays.stream(sectionArray)
                 .filter(Objects::nonNull)
                 .findFirst()
-                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null))
+                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null, null, null, null)) //TODO: Convert poi, block and fluid
                 .orElse(null);
     }
 

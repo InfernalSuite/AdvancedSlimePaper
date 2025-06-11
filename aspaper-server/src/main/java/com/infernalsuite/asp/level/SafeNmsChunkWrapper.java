@@ -4,6 +4,8 @@ import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -82,13 +84,37 @@ public class SafeNmsChunkWrapper implements SlimeChunk {
         return this.wrapper.getUpgradeData();
     }
 
+    @Override
+    public @Nullable ListBinaryTag getBlockTicks() {
+        if(shouldDefaultBackToSlimeChunk()) {
+            return this.safety.getBlockTicks();
+        }
+        return this.wrapper.getBlockTicks();
+    }
+
+    @Override
+    public @Nullable ListBinaryTag getFluidTicks() {
+        if(shouldDefaultBackToSlimeChunk()) {
+            return this.safety.getFluidTicks();
+        }
+        return this.wrapper.getFluidTicks();
+    }
+
+    @Override
+    public @Nullable CompoundBinaryTag getPoiChunkSections() {
+        if(shouldDefaultBackToSlimeChunk()) {
+            return this.safety.getPoiChunkSections();
+        }
+        return this.wrapper.getPoiChunkSections();
+    }
+
     /*
-Slime chunks can still be requested but not actually loaded, this caused
-some things to not properly save because they are not "loaded" into the chunk.
-See ChunkMap#protoChunkToFullChunk
-anything in the if statement will not be loaded and is stuck inside the runnable.
-Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
-*/
+            Slime chunks can still be requested but not actually loaded, this caused
+            some things to not properly save because they are not "loaded" into the chunk.
+            See ChunkMap#protoChunkToFullChunk
+            anything in the if statement will not be loaded and is stuck inside the runnable.
+            Inorder to possibly not corrupt the state, simply refer back to the slime saved object.
+            */
     public boolean shouldDefaultBackToSlimeChunk() {
         return this.safety != null && !this.wrapper.getChunk().loaded;
     }

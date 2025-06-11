@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.level;
 
+import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -11,10 +12,12 @@ import com.mojang.serialization.Codec;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.nbt.LongArrayBinaryTag;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -32,6 +35,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.ticks.SavedTick;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,6 +133,31 @@ public class NMSSlimeChunk implements SlimeChunk {
         }
 
         return sections;
+    }
+
+
+
+    @Override
+    public @Nullable ListBinaryTag getFluidTicks() {
+        return SlimeChunkConverter.convertSavedFluidTicks(this.chunk.getTicksForSerialization(chunk.level.getGameTime()).fluids());
+    }
+
+    @Override
+    public @Nullable CompoundBinaryTag getPoiChunkSections() {
+        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
+        if(chunkHolder == null) return null;
+
+        PoiChunk slices = chunkHolder.getPoiChunk();
+        return getPoiChunkSections(slices);
+    }
+
+    public CompoundBinaryTag getPoiChunkSections(PoiChunk poiChunk) {
+        return SlimeChunkConverter.toSlimeSections(poiChunk);
+    }
+
+    @Override
+    public @Nullable ListBinaryTag getBlockTicks() {
+        return SlimeChunkConverter.convertSavedBlockTicks(this.chunk.getTicksForSerialization(chunk.level.getGameTime()).blocks());
     }
 
     @Override

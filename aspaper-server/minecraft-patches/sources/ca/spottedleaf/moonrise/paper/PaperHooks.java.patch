@@ -1,0 +1,10 @@
+--- a/ca/spottedleaf/moonrise/paper/PaperHooks.java
++++ b/ca/spottedleaf/moonrise/paper/PaperHooks.java
+@@ -206,6 +_,7 @@
+ 
+     @Override
+     public boolean forceNoSave(final ChunkAccess chunk) {
++        if(chunk instanceof LevelChunk levelChunk && levelChunk.level instanceof com.infernalsuite.asp.level.SlimeLevelInstance) return true; //ASP - prevent normal saving
+         return chunk instanceof LevelChunk levelChunk && levelChunk.mustNotSave;
+     }
+ 

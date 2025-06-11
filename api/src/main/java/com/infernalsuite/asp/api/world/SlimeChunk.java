@@ -1,7 +1,9 @@
 package com.infernalsuite.asp.api.world;
 
+import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ public interface SlimeChunk {
      *
      * @return A {@link CompoundBinaryTag} containing all the height maps of the chunk.
      */
+    @Nullable
     CompoundBinaryTag getHeightMaps();
 
     /**
@@ -73,4 +76,41 @@ public interface SlimeChunk {
      */
     @Nullable
     CompoundBinaryTag getUpgradeData();
+
+    /**
+     * Returns all block ticks of the chunk. This data is only saved when {@link SlimeProperties#SAVE_BLOCK_TICKS} is true.
+     * <p>
+     * Even if {@link SlimeProperties#SAVE_BLOCK_TICKS} is false, this might still return
+     * a {@link ListBinaryTag} containing the block ticks, if the data was present when the world
+     * was read or when the chunk is currently loaded.
+     *
+     * @return A {@link ListBinaryTag} containing all the block ticks of the chunk, if present.
+     * @see SlimeProperties#SAVE_FLUID_TICKS
+     */
+    @Nullable
+    ListBinaryTag getBlockTicks();
+
+    /**
+     * Returns all fluid ticks of the chunk. This data is only saved when {@link SlimeProperties#SAVE_FLUID_TICKS} is true.
+     * <p>
+     * Even if {@link SlimeProperties#SAVE_FLUID_TICKS} is false, this might still return a {@link ListBinaryTag}
+     * containing the fluid ticks, if the data was present when the world was read or when the chunk is currently loaded.
+     *
+     * @return A {@link ListBinaryTag} containing all the fluid ticks of the chunk, if present.
+     * @see SlimeProperties#SAVE_FLUID_TICKS
+     */
+    @Nullable
+    ListBinaryTag getFluidTicks();
+
+    /**
+     * Returns the poi sections of the chunk. This data is only saved when {@link SlimeProperties#SAVE_POI} is true.
+     * <p>
+     * Even if {@link SlimeProperties#SAVE_POI} is false, this might still return a {@link CompoundBinaryTag}
+     * containing the poi sections, if the data was present when the world was read or when the chunk is currently loaded.
+     *
+     * @return A {@link CompoundBinaryTag} containing the poi chunks of the chunk, if present.
+     * @see SlimeProperties#SAVE_POI
+     */
+    @Nullable
+    CompoundBinaryTag getPoiChunkSections();
 }

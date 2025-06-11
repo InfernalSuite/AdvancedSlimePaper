@@ -1,7 +1,12 @@
 # This file is auto generated, any changes may be overridden!
 # See CONTRIBUTING.md on how to add access transformers.
+protected-f net.minecraft.server.level.ServerLevel chunkTaskScheduler
+protected-f net.minecraft.server.level.ServerLevel entityDataController
+protected-f net.minecraft.server.level.ServerLevel poiDataController
 public ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices entities
 public ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask chunkHolder
 public net.minecraft.server.MinecraftServer commandStorage
 public net.minecraft.world.level.chunk.storage.SerializableChunkData makeBiomeCodec(Lnet/minecraft/core/Registry;)Lcom/mojang/serialization/Codec;
 public net.minecraft.world.level.chunk.storage.SerializableChunkData postLoadChunk(Lnet/minecraft/server/level/ServerLevel;Ljava/util/List;Ljava/util/List;)Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;
+public-f ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController
+public-f ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.PoiDataController
