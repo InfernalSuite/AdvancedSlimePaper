@@ -1,21 +1,7 @@
 package com.infernalsuite.asp;
 
 import com.infernalsuite.asp.api.utils.NibbleArray;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.ByteArrayBinaryTag;
-import net.kyori.adventure.nbt.ByteBinaryTag;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.DoubleBinaryTag;
-import net.kyori.adventure.nbt.EndBinaryTag;
-import net.kyori.adventure.nbt.FloatBinaryTag;
-import net.kyori.adventure.nbt.IntArrayBinaryTag;
-import net.kyori.adventure.nbt.IntBinaryTag;
-import net.kyori.adventure.nbt.ListBinaryTag;
-import net.kyori.adventure.nbt.LongArrayBinaryTag;
-import net.kyori.adventure.nbt.LongBinaryTag;
-import net.kyori.adventure.nbt.ShortBinaryTag;
-import net.kyori.adventure.nbt.StringBinaryTag;
-import net.kyori.adventure.nbt.TagStringIO;
+import net.kyori.adventure.nbt.*;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -37,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class Converter {
@@ -106,15 +93,27 @@ public class Converter {
             case Tag.TAG_FLOAT -> (T) FloatBinaryTag.floatBinaryTag(((FloatTag) base).floatValue());
             case Tag.TAG_DOUBLE -> (T) DoubleBinaryTag.doubleBinaryTag(((DoubleTag) base).doubleValue());
             case Tag.TAG_BYTE_ARRAY -> (T) ByteArrayBinaryTag.byteArrayBinaryTag(((ByteArrayTag) base).getAsByteArray());
-            case Tag.TAG_STRING -> (T) StringBinaryTag.stringBinaryTag(((StringTag) base).asString().orElseThrow()); //TODO(david): Figure out what to do with optional?
+            case Tag.TAG_STRING -> (T) StringBinaryTag.stringBinaryTag(base.asString().orElseThrow()); //TODO(david): Figure out what to do with optional?
             case Tag.TAG_LIST -> {
                 ListTag originalList = ((ListTag) base);
                 if(originalList.isEmpty()) {
                     yield (T) ListBinaryTag.empty();
                 }
                 List<BinaryTag> list = new ArrayList<>(originalList.size());
-                for (Tag entry : originalList) list.add(convertTag(entry));
-                yield (T) ListBinaryTag.listBinaryTag(list.getFirst().type(), list);
+
+                BinaryTagType<?> tagType = null;
+                for (Tag entry : originalList) {
+                    BinaryTag converted = convertTag(entry);
+
+                    if(tagType != null && !converted.type().equals(tagType)) {
+                        tagType = BinaryTagTypes.LIST_WILDCARD;
+                    } else if(tagType == null) {
+                        tagType = converted.type();
+                    }
+
+                    list.add(converted);
+                }
+                yield (T) ListBinaryTag.listBinaryTag(tagType, list);
             }
             case Tag.TAG_COMPOUND -> {
                 CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder();
@@ -127,5 +126,4 @@ public class Converter {
             default -> throw new IllegalArgumentException("Invalid tag type " + base.getId());
         };
     }
-
 }
