@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.plugin.config;
 
+import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
@@ -49,6 +50,9 @@ public class WorldData {
     private boolean saveFluidTicks = false;
     @Setting("savePoi")
     private boolean savePoi = false;
+
+    @Setting("seaLevel")
+    private int seaLevel = SEA_LEVEL.getDefaultValue();
 
     public SlimePropertyMap toPropertyMap() {
         try {
@@ -104,6 +108,7 @@ public class WorldData {
         propertyMap.setValue(SAVE_BLOCK_TICKS, saveBlockTicks);
         propertyMap.setValue(SAVE_FLUID_TICKS, saveFluidTicks);
         propertyMap.setValue(SAVE_POI, savePoi);
+        propertyMap.setValue(SEA_LEVEL, seaLevel);
         return propertyMap;
     }
 

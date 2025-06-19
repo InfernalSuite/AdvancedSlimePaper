@@ -105,9 +105,10 @@ public class SlimeProperties {
 
     /**
      * The sea level to use for the slime world. This affects mob spawning for water specific mobs like squids or turtles.
+     * To achieve the default vanilla behaviour, change this value to 63 instead of the default of -63.
      */
     @ApiStatus.Experimental
-    public static final SlimePropertyInt SEA_LEVEL = SlimePropertyInt.create("seaLevel", 63);
+    public static final SlimePropertyInt SEA_LEVEL = SlimePropertyInt.create("seaLevel", -63);
 
     /**
      * Whether to save the POI data in the world or not. Worlds that already have POI data will still load the data
