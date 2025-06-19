@@ -3,39 +3,51 @@ package com.infernalsuite.asp.plugin.commands.sub;
 
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.world.SlimeWorld;
+import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.asp.plugin.commands.CommandManager;
+import com.infernalsuite.asp.plugin.commands.SlimeCommand;
+import com.infernalsuite.asp.plugin.commands.exception.MessageCommandException;
+import com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader;
+import com.infernalsuite.asp.plugin.config.ConfigManager;
+import com.infernalsuite.asp.plugin.config.WorldData;
+import com.infernalsuite.asp.plugin.config.WorldsConfig;
+import com.infernalsuite.asp.plugin.util.ExecutorUtil;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
-import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.Command;
-import org.incendo.cloud.annotations.CommandDescription;
-import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.annotations.*;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public class CreateWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeCommand {
+public class CreateWorldCmd extends SlimeCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateWorldCmd.class);
 
-    public CreateWorldCmd(com.infernalsuite.asp.plugin.commands.CommandManager commandManager) {
+    public CreateWorldCmd(CommandManager commandManager) {
         super(commandManager);
     }
 
     @Command("swp|aswm|swm create <world> <data-source>")
     @CommandDescription("Create an empty world")
     @Permission("swm.createworld")
-    public CompletableFuture<Void> createWorld(CommandSender sender, @Argument(value = "world") String worldName,
-                                         @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader loader) {
-
+    public CompletableFuture<Void> createWorld(
+            CommandSender sender,
+            @Argument(value = "world") String worldName,
+            @Argument(value = "data-source") NamedSlimeLoader loader,
+            @Flag(value = "biome") @Nullable NamespacedKey biome,
+            @Flag(value = "environment") @Nullable String environment
+    ) {
         if (commandManager.getWorldsInUse().contains(worldName)) {
-            throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+            throw new MessageCommandException(COMMAND_PREFIX.append(
                     Component.text("World " + worldName + " is already being used on another command! Wait some time and try again.")).color(NamedTextColor.RED)
             );
         }
@@ -43,16 +55,32 @@ public class CreateWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
         World world = Bukkit.getWorld(worldName);
 
         if (world != null) {
-            throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+            throw new MessageCommandException(COMMAND_PREFIX.append(
                     Component.text("World " + worldName + " already exists!")).color(NamedTextColor.RED)
             );
         }
 
-        com.infernalsuite.asp.plugin.config.WorldsConfig config = com.infernalsuite.asp.plugin.config.ConfigManager.getWorldConfig();
+        WorldsConfig config = ConfigManager.getWorldConfig();
 
         if (config.getWorlds().containsKey(worldName)) {
-            throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+            throw new MessageCommandException(COMMAND_PREFIX.append(
                     Component.text("There is already a world called " + worldName + " inside the worlds config file.")).color(NamedTextColor.RED)
+            );
+        }
+
+        NamespacedKey defaultBiome = Objects.requireNonNull(NamespacedKey.fromString(SlimeProperties.DEFAULT_BIOME.getDefaultValue()));
+        Biome actualBiome = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME)
+                .get(biome == null ? defaultBiome : biome);
+
+        if(actualBiome == null) {
+            throw new MessageCommandException(COMMAND_PREFIX.append(
+                    Component.text("Biome " + biome + "does not exist")).color(NamedTextColor.RED)
+            );
+        }
+
+        if(environment != null && !SlimeProperties.ENVIRONMENT.applyValidator(environment)) {
+            throw new MessageCommandException(COMMAND_PREFIX.append(
+                    Component.text("Environment " + environment + " is not a valid environment. Valid options are: normal, nether, the_end")).color(NamedTextColor.RED)
             );
         }
 
@@ -73,15 +101,19 @@ public class CreateWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                     throw new WorldAlreadyExistsException("World already exists");
                 }
 
-                com.infernalsuite.asp.plugin.config.WorldData worldData = new com.infernalsuite.asp.plugin.config.WorldData();
+                WorldData worldData = new WorldData();
                 worldData.setSpawn("0, 64, 0");
                 worldData.setDataSource(loader.name());
+                worldData.setDefaultBiome(actualBiome.key().asString());
+                if(environment != null) {
+                    worldData.setEnvironment(environment);
+                }
 
                 SlimePropertyMap propertyMap = worldData.toPropertyMap();
                 SlimeWorld slimeWorld = asp.createEmptyWorld(worldName, false, propertyMap, loader.slimeLoader());
                 asp.saveWorld(slimeWorld);
 
-                com.infernalsuite.asp.plugin.util.ExecutorUtil.runSyncAndWait(plugin, () -> {
+                ExecutorUtil.runSyncAndWait(plugin, () -> {
                     try {
                         asp.loadWorld(slimeWorld, true);
 
@@ -92,7 +124,7 @@ public class CreateWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                         // Config
                         config.getWorlds().put(worldName, worldData);
                     } catch (IllegalArgumentException ex) {
-                        throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+                        throw new MessageCommandException(COMMAND_PREFIX.append(
                                 Component.text("Failed to create world " + worldName + ": " + ex.getMessage() + ".").color(NamedTextColor.RED)
                         ));
                     }
@@ -105,12 +137,12 @@ public class CreateWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                                 .append(Component.text(" created in " + (System.currentTimeMillis() - start) + "ms!").color(NamedTextColor.GREEN))
                 ));
             } catch (WorldAlreadyExistsException ex) {
-                throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+                throw new MessageCommandException(COMMAND_PREFIX.append(
                         Component.text("Failed to create world " + worldName + ": world already exists (using data source '" + loader.name() + "').").color(NamedTextColor.RED)
                 ));
             } catch (IOException ex) {
                 LOGGER.error("Failed to create world {}:", worldName, ex);
-                throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+                throw new MessageCommandException(COMMAND_PREFIX.append(
                         Component.text("Failed to create world " + worldName + ". Take a look at the server console for more information.").color(NamedTextColor.RED)
                 ));
             } finally {
