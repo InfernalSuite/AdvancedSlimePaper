@@ -104,6 +104,12 @@ public class SlimeProperties {
     public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMax", 19);
 
     /**
+     * The sea level to use for the slime world. This affects mob spawning for water specific mobs like squids or turtles.
+     */
+    @ApiStatus.Experimental
+    public static final SlimePropertyInt SEA_LEVEL = SlimePropertyInt.create("seaLevel", 63);
+
+    /**
      * Whether to save the POI data in the world or not. Worlds that already have POI data will still load the data
      * even if this is set to false. However, the POI data will no longer be saved when the world is saved.
      * <p>
