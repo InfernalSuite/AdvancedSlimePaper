@@ -120,7 +120,7 @@ public class SlimeLevelInstance extends ServerLevel {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
         ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
-        return new SlimeLevelGenerator(defaultBiome, this.slimeInstance.getPropertyMap());
+        return new SlimeLevelGenerator(defaultBiome, this);
     }
 
     @Override
