@@ -1,0 +1,26 @@
+--- a/src/main/java/com/destroystokyo/paper/Metrics.java
++++ b/src/main/java/com/destroystokyo/paper/Metrics.java
+@@ -593,7 +_,7 @@
+             boolean logFailedRequests = config.getBoolean("logFailedRequests", false);
+             // Only start Metrics, if it's enabled in the config
+             if (config.getBoolean("enabled", true)) {
+-                Metrics metrics = new Metrics("Paper", serverUUID, logFailedRequests, Bukkit.getLogger());
++                Metrics metrics = new Metrics("Advanced Slime Paper", serverUUID, logFailedRequests, Bukkit.getLogger()); //ASP
+ 
+                 metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
+                     String minecraftVersion = Bukkit.getVersion();
+@@ -603,6 +_,14 @@
+ 
+                 metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> Bukkit.getOnlinePlayers().size()));
+                 metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() ? "online" : "offline"));
++                //ASP start - add slime plugin
++                metrics.addCustomChart(new Metrics.SimplePie("slime_plugin_installed", () -> {
++                    Plugin slimeWorldPlugin = Bukkit.getPluginManager().getPlugin("SlimeWorldPlugin");
++
++                    return slimeWorldPlugin != null ? slimeWorldPlugin.getPluginMeta().getVersion() : "not installed";
++                }));
++                //ASP end - add slime plugin
++
+                 final String paperVersion;
+                 final String implVersion = org.bukkit.craftbukkit.Main.class.getPackage().getImplementationVersion();
+                 if (implVersion != null) {
