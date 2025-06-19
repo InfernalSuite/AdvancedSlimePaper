@@ -99,7 +99,7 @@ public class SlimeLevelInstance extends ServerLevel {
                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
                         propertyMap.getValue(SlimeProperties.SPAWN_Z)),
                 propertyMap.getValue(SlimeProperties.SPAWN_YAW));
-        super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS));
+        super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
 
