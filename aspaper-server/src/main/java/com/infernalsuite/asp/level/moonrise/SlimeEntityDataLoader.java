@@ -31,7 +31,7 @@ public class SlimeEntityDataLoader extends EntityDataController {
         SlimeChunk chunk = instance.getSlimeInstance().getChunk(chunkX, chunkZ);
 
         if(chunk == null || chunk.getEntities() == null) {
-            return new ReadData(ReadData.ReadResult.NO_DATA, null, null);
+            return new ReadData(ReadData.ReadResult.NO_DATA, null, null, 0);
         }
 
         CompoundTag tag = new CompoundTag();
@@ -44,7 +44,7 @@ public class SlimeEntityDataLoader extends EntityDataController {
         }
         tag.put("Entities", listTag);
 
-        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag);
+        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag, 0);
     }
 
     @Override

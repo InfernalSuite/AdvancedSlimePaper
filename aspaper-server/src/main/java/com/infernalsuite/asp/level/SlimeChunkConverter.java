@@ -20,6 +20,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -42,6 +43,9 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class SlimeChunkConverter {
+
+    private static final Codec<List<SavedTick<Block>>> BLOCK_TICKS_CODEC = SavedTick.codec(BuiltInRegistries.BLOCK.byNameCodec()).listOf();
+    private static final Codec<List<SavedTick<Fluid>>> FLUID_TICKS_CODEC = SavedTick.codec(BuiltInRegistries.FLUID.byNameCodec()).listOf();
 
     static SlimeChunkLevel deserializeSlimeChunk(SlimeLevelInstance instance, SlimeChunk chunk) {
         int x = chunk.getX();
@@ -108,9 +112,9 @@ public class SlimeChunkConverter {
 
         LevelChunkTicks<Block> blockLevelChunkTicks;
         if(chunk.getBlockTicks() != null) {
-            List<SavedTick<Block>> blockList = SavedTick.loadTickList(
-                    (ListTag) Converter.convertTag(chunk.getBlockTicks()), string -> BuiltInRegistries.BLOCK.getOptional(ResourceLocation.tryParse(string)), pos
-            );
+            ListTag tag = (ListTag) Converter.convertTag(chunk.getBlockTicks());
+            List<SavedTick<Block>> blockList = SavedTick.filterTickListForChunk(BLOCK_TICKS_CODEC.parse(NbtOps.INSTANCE, tag).resultOrPartial().orElse(List.of()), pos);
+
             blockLevelChunkTicks = new LevelChunkTicks<>(blockList);
         } else {
             blockLevelChunkTicks = new LevelChunkTicks<>();
@@ -118,9 +122,9 @@ public class SlimeChunkConverter {
 
         LevelChunkTicks<Fluid> fluidLevelChunkTicks;
         if(chunk.getFluidTicks() != null) {
-            List<SavedTick<Fluid>> fluidList = SavedTick.loadTickList(
-                (ListTag) Converter.convertTag(chunk.getFluidTicks()), string -> BuiltInRegistries.FLUID.getOptional(ResourceLocation.tryParse(string)), pos
-            );
+            ListTag tag = (ListTag) Converter.convertTag(chunk.getFluidTicks());
+            List<SavedTick<Fluid>> fluidList = SavedTick.filterTickListForChunk(FLUID_TICKS_CODEC.parse(NbtOps.INSTANCE, tag).resultOrPartial().orElse(List.of()), pos);
+
             fluidLevelChunkTicks = new LevelChunkTicks<>(fluidList);
         } else {
             fluidLevelChunkTicks = new LevelChunkTicks<>();
@@ -178,23 +182,17 @@ public class SlimeChunkConverter {
     }
 
     public static ListBinaryTag convertSavedFluidTicks(List<SavedTick<Fluid>> ticks) {
-        ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
-        for (SavedTick<Fluid> tick : ticks) {
-            builder.add((CompoundBinaryTag) Converter.convertTag(tick.save(fluid -> BuiltInRegistries.FLUID.getKey(fluid).toString())));
-        }
-        return builder.build();
+        Tag tag = FLUID_TICKS_CODEC.encodeStart(NbtOps.INSTANCE, ticks).getOrThrow();
+        return Converter.convertTag(tag);
     }
 
     public static ListBinaryTag convertSavedBlockTicks(List<SavedTick<Block>> ticks) {
-        ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
-        for (SavedTick<Block> tick : ticks) {
-            builder.add((CompoundBinaryTag) Converter.convertTag(tick.save(block -> BuiltInRegistries.BLOCK.getKey(block).toString())));
-        }
-        return builder.build();
+        Tag tag = BLOCK_TICKS_CODEC.encodeStart(NbtOps.INSTANCE, ticks).getOrThrow();
+        return Converter.convertTag(tag);
     }
 
     public static CompoundTag createPoiChunk(SlimeChunk chunk) {
-        return createPoiChunkFromSlimeSections(chunk.getPoiChunkSections(),  SharedConstants.getCurrentVersion().getDataVersion().getVersion());
+        return createPoiChunkFromSlimeSections(chunk.getPoiChunkSections(),  SharedConstants.getCurrentVersion().dataVersion().version());
     }
 
     public static CompoundTag createPoiChunkFromSlimeSections(CompoundBinaryTag slimePoiSections, int dataVersion) {
@@ -212,7 +210,7 @@ public class SlimeChunkConverter {
     public static CompoundBinaryTag getSlimeSectionsFromPoiCompound(CompoundTag save) {
         if(save == null) return null;
 
-        CompoundTag sections = save.getCompound("Sections");
+        CompoundTag sections = save.getCompoundOrEmpty("Sections");
         return Converter.convertTag(sections);
     }
 }
