@@ -65,18 +65,12 @@ public class MysqlLoader extends UpdatableLoader {
         hikariConfig.addDataSourceProperty("maintainTimeStats", "false");
 
         source = new HikariDataSource(hikariConfig);
+        init();
+    }
 
-        try (Connection con = source.getConnection()) {
-            // Create worlds table
-            try (PreparedStatement statement = con.prepareStatement(CREATE_WORLDS_TABLE_QUERY)) {
-                statement.execute();
-            }
-
-            // Create versioning table
-            try (PreparedStatement statement = con.prepareStatement(CREATE_VERSIONING_TABLE_QUERY)) {
-                statement.execute();
-            }
-        }
+    public MysqlLoader(HikariDataSource hikariDataSource) throws SQLException {
+        source = hikariDataSource;
+        init();
     }
 
     @Override
@@ -196,6 +190,20 @@ public class MysqlLoader extends UpdatableLoader {
             }
         } catch (SQLException ex) {
             throw new IOException(ex);
+        }
+    }
+
+    private void init() throws SQLException {
+        try (Connection con = source.getConnection()) {
+            // Create worlds table
+            try (PreparedStatement statement = con.prepareStatement(CREATE_WORLDS_TABLE_QUERY)) {
+                statement.execute();
+            }
+
+            // Create versioning table
+            try (PreparedStatement statement = con.prepareStatement(CREATE_VERSIONING_TABLE_QUERY)) {
+                statement.execute();
+            }
         }
     }
 
