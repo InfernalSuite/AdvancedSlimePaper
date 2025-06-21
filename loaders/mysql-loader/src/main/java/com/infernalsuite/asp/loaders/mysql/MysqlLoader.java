@@ -4,6 +4,7 @@ import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,7 @@ public class MysqlLoader extends UpdatableLoader {
         init();
     }
 
+    @ApiStatus.Experimental
     public MysqlLoader(HikariDataSource hikariDataSource) throws SQLException {
         source = hikariDataSource;
         init();
