@@ -4,6 +4,7 @@ import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,18 +66,13 @@ public class MysqlLoader extends UpdatableLoader {
         hikariConfig.addDataSourceProperty("maintainTimeStats", "false");
 
         source = new HikariDataSource(hikariConfig);
+        init();
+    }
 
-        try (Connection con = source.getConnection()) {
-            // Create worlds table
-            try (PreparedStatement statement = con.prepareStatement(CREATE_WORLDS_TABLE_QUERY)) {
-                statement.execute();
-            }
-
-            // Create versioning table
-            try (PreparedStatement statement = con.prepareStatement(CREATE_VERSIONING_TABLE_QUERY)) {
-                statement.execute();
-            }
-        }
+    @ApiStatus.Experimental
+    public MysqlLoader(HikariDataSource hikariDataSource) throws SQLException {
+        source = hikariDataSource;
+        init();
     }
 
     @Override
@@ -196,6 +192,20 @@ public class MysqlLoader extends UpdatableLoader {
             }
         } catch (SQLException ex) {
             throw new IOException(ex);
+        }
+    }
+
+    private void init() throws SQLException {
+        try (Connection con = source.getConnection()) {
+            // Create worlds table
+            try (PreparedStatement statement = con.prepareStatement(CREATE_WORLDS_TABLE_QUERY)) {
+                statement.execute();
+            }
+
+            // Create versioning table
+            try (PreparedStatement statement = con.prepareStatement(CREATE_VERSIONING_TABLE_QUERY)) {
+                statement.execute();
+            }
         }
     }
 
