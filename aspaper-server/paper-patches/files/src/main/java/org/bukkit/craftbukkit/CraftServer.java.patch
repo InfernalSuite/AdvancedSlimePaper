@@ -1,6 +1,6 @@
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -1475,6 +_,8 @@
+@@ -1447,6 +_,8 @@
              return false;
          }
  
