@@ -1,10 +1,12 @@
 package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
+import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.pdc.AdventurePersistentDataContainer;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import com.infernalsuite.asp.skeleton.SkeletonCloning;
@@ -18,8 +20,10 @@ import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.SharedConstants;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.material.Fluid;
@@ -101,7 +105,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     // Authored by: Kenox <muranelp@gmail.com>
     // Don't use the NMS live chunk in the chunk map
-    public void unload(LevelChunk providedChunk, ChunkEntitySlices slices) {
+    public void unload(LevelChunk providedChunk, ChunkEntitySlices slices, PoiChunk poiChunk) {
         final int x = providedChunk.locX;
         final int z = providedChunk.locZ;
 
@@ -117,6 +121,25 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         }
         chunk.updatePersistentDataContainer();
 
+        ListBinaryTag blockTicks = null;
+        ListBinaryTag fluidTicks = null;
+        //Only save this data into memory when we actually want it there
+        if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS) || getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
+            ChunkAccess.PackedTicks ticksForSerialization = chunk.getChunk().getTicksForSerialization(this.instance.getGameTime());
+
+            if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS)) {
+                blockTicks = SlimeChunkConverter.convertSavedBlockTicks(ticksForSerialization.blocks());
+            }
+            if(getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
+                fluidTicks = SlimeChunkConverter.convertSavedFluidTicks(ticksForSerialization.fluids());
+            }
+        }
+        CompoundBinaryTag poiSections = null;
+        if(getPropertyMap().getValue(SlimeProperties.SAVE_POI)) {
+            poiSections = chunk.getPoiChunkSections(poiChunk);
+        }
+
+
         this.chunkStorage.put(Util.chunkPosition(x, z), new SlimeChunkSkeleton(
                 chunk.getX(),
                 chunk.getZ(),
@@ -125,7 +148,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                 chunk.getTileEntities(),
                 chunk.getEntities(slices), //As the slices are not available anymore, we can't get the entities otherwise
                 chunk.getExtraData(),
-                null
+                null,
+                poiSections,
+                blockTicks,
+                fluidTicks
         ));
     }
 
@@ -164,6 +190,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                     chunk = nmsSlimeChunk.getChunk();
                 }
 
+
+
                 if (chunk != null) {
                     if (FastChunkPruner.canBePruned(world, chunk)) {
                         continue;
@@ -174,6 +202,21 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                     CompoundBinaryTag adventureTag = Converter.convertTag(chunk.persistentDataContainer.toTagCompound());
                     clonedChunk.getExtraData().put("ChunkBukkitValues", adventureTag);
 
+                    ListBinaryTag blockTicks = null;
+                    ListBinaryTag fluidTicks = null;
+                    //Only save this data into memory when we actually want it there
+                    if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS) || getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
+                        ChunkAccess.PackedTicks ticksForSerialization = chunk.getTicksForSerialization(this.instance.getGameTime());
+
+                        if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS)) {
+                            blockTicks = SlimeChunkConverter.convertSavedBlockTicks(ticksForSerialization.blocks());
+                        }
+                        if(getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
+                            fluidTicks = SlimeChunkConverter.convertSavedFluidTicks(ticksForSerialization.fluids());
+                        }
+                    }
+
+
                     clonedChunk = new SlimeChunkSkeleton(
                             clonedChunk.getX(),
                             clonedChunk.getZ(),
@@ -182,7 +225,10 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                             clonedChunk.getTileEntities(),
                             clonedChunk.getEntities(),
                             clonedChunk.getExtraData(),
-                            clonedChunk.getUpgradeData()
+                            clonedChunk.getUpgradeData(),
+                            clonedChunk.getPoiChunkSections(),
+                            blockTicks,
+                            fluidTicks
                     );
                 }
             }
@@ -196,7 +242,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
         this.instance.getWorld().storeBukkitValues(nmsTag);
 
         // Bukkit stores the relevant tag as a tag with the key "BukkitValues" in the tag we supply to it
-        var adventureTag = Converter.convertTag(nmsTag.getCompound("BukkitValues"));
+        var adventureTag = Converter.convertTag(nmsTag.getCompoundOrEmpty("BukkitValues"));
         world.getExtraData().put("BukkitValues", adventureTag);
 
         return new SkeletonSlimeWorld(world.getName(),
@@ -254,7 +300,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
 
     @Override
     public int getDataVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     @Override

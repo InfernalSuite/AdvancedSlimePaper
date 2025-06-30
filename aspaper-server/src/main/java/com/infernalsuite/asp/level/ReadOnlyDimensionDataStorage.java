@@ -3,6 +3,7 @@ package com.infernalsuite.asp.level;
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,14 +17,13 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ReadOnlyDimensionDataStorage extends DimensionDataStorage {
 
-    public ReadOnlyDimensionDataStorage(Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
-        super(dataFolder, fixerUpper, registries);
+    public ReadOnlyDimensionDataStorage(SavedData.Context ctx, Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
+        super(ctx, dataFolder, fixerUpper, registries);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public @Nullable <T extends SavedData> T get(SavedData.@NotNull Factory<T> factory, @NotNull String name) {
-        Optional<SavedData> optional = this.cache.get(name);
+    public @Nullable <T extends SavedData> T get(SavedDataType<T> type) {
+        Optional<SavedData> optional = this.cache.get(type);
         if(optional == null) {
             return null;
         }

@@ -2,10 +2,13 @@ package com.infernalsuite.asp.level;
 
 import ca.spottedleaf.concurrentutil.util.Priority;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
+import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.infernalsuite.asp.level.moonrise.SlimeEntityDataLoader;
+import com.infernalsuite.asp.level.moonrise.SlimePoiDataLoader;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
@@ -25,6 +28,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -95,9 +99,20 @@ public class SlimeLevelInstance extends ServerLevel {
                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
                         propertyMap.getValue(SlimeProperties.SPAWN_Z)),
                 propertyMap.getValue(SlimeProperties.SPAWN_YAW));
-        super.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS));
+        super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
+
+        this.entityDataController = new SlimeEntityDataLoader(
+                new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
+                        new RegionStorageInfo(levelStorageAccess.getLevelId(), worldKey, "entities"),
+                        levelStorageAccess.getDimensionPath(worldKey).resolve("entities"),
+                        MinecraftServer.getServer().forceSynchronousWrites()
+                ),
+                this.chunkTaskScheduler,
+                this
+        );
+        this.poiDataController = new SlimePoiDataLoader(this, this.chunkTaskScheduler);
     }
 
     @Override
@@ -105,7 +120,7 @@ public class SlimeLevelInstance extends ServerLevel {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
         ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
-        return new SlimeLevelGenerator(defaultBiome);
+        return new SlimeLevelGenerator(defaultBiome, this);
     }
 
     @Override
@@ -113,8 +128,8 @@ public class SlimeLevelInstance extends ServerLevel {
         if (!savingDisabled) save();
     }
 
-    public void unload(@NotNull LevelChunk chunk, ChunkEntitySlices slices) {
-        slimeInstance.unload(chunk, slices);
+    public void unload(@NotNull LevelChunk chunk, ChunkEntitySlices slices, PoiChunk poiChunk) {
+        slimeInstance.unload(chunk, slices, poiChunk);
     }
 
     @Override

@@ -1,13 +1,14 @@
 package com.infernalsuite.asp;
 
 import ca.spottedleaf.dataconverter.converters.DataConverter;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCDataType;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+import ca.spottedleaf.dataconverter.minecraft.datatypes.MCDataType;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeDataConverter;
+import com.infernalsuite.asp.level.SlimeChunkConverter;
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
 import com.infernalsuite.asp.skeleton.SkeletonSlimeWorld;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -19,13 +20,10 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.kyori.adventure.nbt.ListBinaryTag;
-import net.kyori.adventure.nbt.TagStringIO;
 import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,7 +32,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
-        int newVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+        int newVersion = SharedConstants.getCurrentVersion().dataVersion().version();
         int currentVersion = data.getDataVersion();
         // Already fixed
         if (currentVersion == newVersion) {
@@ -79,8 +77,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                         dataSection.getBlockLight(),
                         dataSection.getSkyLight()
                 );
-
             }
+
+            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
+
             chunks.put(chunkPos, new SlimeChunkSkeleton(
                     chunk.getX(),
                     chunk.getZ(),
@@ -89,7 +89,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                     blockEntities,
                     entities,
                     chunk.getExtraData(),
-                    chunk.getUpgradeData()
+                    chunk.getUpgradeData(),
+                    newPoi,
+                    chunk.getBlockTicks(),
+                    chunk.getFluidTicks()
             ));
 
         }
@@ -103,6 +106,12 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
                 data.getPropertyMap(),
                 newVersion
         );
+    }
+
+    private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
+        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
+        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+        return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
     @Override
@@ -123,7 +132,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
     public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
         CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
 
-        int version = nmsTag.getInt("DataVersion");
+        int version = nmsTag.getInt("DataVersion").orElseThrow();
 
         long encodedNewVersion = DataConverter.encodeVersions(1631, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
@@ -165,7 +174,6 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public ListBinaryTag convertBlockPalette(ListBinaryTag input, int from, int to) {
-
         long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
 
@@ -173,7 +181,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         NBTListType listType = new NBTListType(nbtList);
 
         for (int i = 0, len = listType.size(); i < len; ++i) {
-            final MapType<String> replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
+            final MapType replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
                     encodedCurrentVersion, encodedNewVersion);
             if (replace != null) {
                 listType.setMap(i, replace);

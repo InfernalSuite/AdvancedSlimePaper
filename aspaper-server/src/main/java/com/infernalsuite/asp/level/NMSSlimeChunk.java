@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.level;
 
+import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
@@ -11,15 +12,19 @@ import com.mojang.serialization.Codec;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.nbt.LongArrayBinaryTag;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -27,12 +32,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.chunk.PalettedContainer;
-import net.minecraft.world.level.chunk.PalettedContainerRO;
+import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.ticks.SavedTick;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +135,31 @@ public class NMSSlimeChunk implements SlimeChunk {
         return sections;
     }
 
+
+
+    @Override
+    public @Nullable ListBinaryTag getFluidTicks() {
+        return SlimeChunkConverter.convertSavedFluidTicks(this.chunk.getTicksForSerialization(chunk.level.getGameTime()).fluids());
+    }
+
+    @Override
+    public @Nullable CompoundBinaryTag getPoiChunkSections() {
+        NewChunkHolder chunkHolder = NmsUtil.getChunkHolder(chunk);
+        if(chunkHolder == null) return null;
+
+        PoiChunk slices = chunkHolder.getPoiChunk();
+        return getPoiChunkSections(slices);
+    }
+
+    public CompoundBinaryTag getPoiChunkSections(PoiChunk poiChunk) {
+        return SlimeChunkConverter.toSlimeSections(poiChunk);
+    }
+
+    @Override
+    public @Nullable ListBinaryTag getBlockTicks() {
+        return SlimeChunkConverter.convertSavedBlockTicks(this.chunk.getTicksForSerialization(chunk.level.getGameTime()).blocks());
+    }
+
     @Override
     public CompoundBinaryTag getHeightMaps() {
         CompoundBinaryTag.Builder heightMapsTagBuilder = CompoundBinaryTag.builder();
@@ -168,13 +199,17 @@ public class NMSSlimeChunk implements SlimeChunk {
         if (slices == null) return new ArrayList<>();
         List<CompoundBinaryTag> entities = new ArrayList<>(slices.entities.size());
 
-        // Work by <gunther@gameslabs.net>
-        for (Entity entity : slices.entities) {
-            CompoundTag entityNbt = new CompoundTag();
-            try {
-                if (entity.save(entityNbt)) entities.add(Converter.convertTag(entityNbt));
-            } catch (final Exception e) {
-                LOGGER.error("Could not save the entity = {}, exception = {}", entity, e);
+        try(final ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(ChunkAccess.problemPath(chunk.getPos()), LOGGER))  {
+            // Work by <gunther@gameslabs.net>
+            for (Entity entity : slices.entities) {
+                try {
+                    TagValueOutput tagValueOutput = TagValueOutput.createWithContext(scopedCollector, entity.registryAccess());
+
+                    if (entity.save(tagValueOutput))
+                        entities.add(Converter.convertTag(tagValueOutput.buildResult()));
+                } catch (final Exception e) {
+                    LOGGER.error("Could not save the entity = {}, exception = {}", entity, e);
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package com.infernalsuite.asp.level;
 
+import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
@@ -14,8 +15,11 @@ import java.util.stream.Stream;
 
 public class SlimeLevelGenerator extends FlatLevelSource {
 
-    public SlimeLevelGenerator(Holder<Biome> biome) {
+    private final SlimeLevelInstance level;
+
+    public SlimeLevelGenerator(Holder<Biome> biome, SlimeLevelInstance level) {
         super(new FlatLevelGeneratorSettings(Optional.empty(), biome, List.of()), getSource(biome));
+        this.level = level;
     }
 
     private static BiomeSource getSource(Holder<Biome> biome) {
@@ -35,5 +39,10 @@ public class SlimeLevelGenerator extends FlatLevelSource {
                 return biome;
             }
         };
+    }
+
+    @Override
+    public int getSeaLevel() {
+        return level.getSlimeInstance().getPropertyMap().getValue(SlimeProperties.SEA_LEVEL);
     }
 }

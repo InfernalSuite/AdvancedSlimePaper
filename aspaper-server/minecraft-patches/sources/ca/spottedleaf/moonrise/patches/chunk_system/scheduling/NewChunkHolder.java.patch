@@ -1,31 +1,13 @@
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-@@ -116,7 +_,7 @@
-         }
- 
-         if (!transientChunk) {
--            if (entityChunk != null) {
-+            if (!(this.world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) && entityChunk != null) {
-                 final List<Entity> entities = ChunkEntitySlices.readEntities(this.world, entityChunk);
- 
-                 ((ChunkSystemServerLevel)this.world).moonrise$getEntityLookup().addEntityChunkEntities(entities, new ChunkPos(this.chunkX, this.chunkZ));
-@@ -894,7 +_,7 @@
-         final ChunkEntitySlices entityChunk = state.entityChunk();
-         final PoiChunk poiChunk = state.poiChunk();
- 
--        final boolean shouldLevelChunkNotSave = PlatformHooks.get().forceNoSave(chunk);
-+        final boolean shouldLevelChunkNotSave = PlatformHooks.get().forceNoSave(chunk) || world instanceof com.infernalsuite.asp.level.SlimeLevelInstance; //ASP - prevent saving
- 
-         // unload chunk data
-         if (chunk != null) {
-@@ -910,13 +_,24 @@
+@@ -912,13 +_,24 @@
              }
  
              if (chunk instanceof LevelChunk levelChunk) {
 +                //ASP start - unloadStage1 sets the entitySlices to null, so we can't get them otherwise unfortunately.
 +                //This needs to be above world.unload since world.unload removes block entities
 +                if(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance instance) {
-+                    instance.unload(levelChunk, entityChunk);
++                    instance.unload(levelChunk, entityChunk, poiChunk);
 +                }
 +                //ASP end
                  this.world.unload(levelChunk);
@@ -44,3 +26,16 @@
              // yes this is a hack to pass the compound tag through...
              final CompoundTag lastEntityUnload = this.lastEntityUnload;
              this.lastEntityUnload = null;
+@@ -1717,6 +_,12 @@
+         boolean canSaveChunk = !forceNoSaveChunk && (chunk != null && ((shutdown || chunk instanceof LevelChunk) && chunk.isUnsaved()));
+         boolean canSavePOI = !forceNoSaveChunk && (poi != null && poi.isDirty());
+         boolean canSaveEntities = entities != null;
++
++        //ASP start - prevent saving
++        if(world instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
++            canSaveEntities = false;
++        }
++        //ASP end - prevent saving
+ 
+         if (canSaveChunk) {
+             canSaveChunk = this.saveChunk(chunk, false);

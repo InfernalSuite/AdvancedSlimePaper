@@ -98,12 +98,39 @@ public class SlimeProperties {
            value.equalsIgnoreCase("aggressive") || value.equalsIgnoreCase("never")
     );
 
-
-
     @ApiStatus.Experimental
     public static final SlimePropertyInt CHUNK_SECTION_MIN = SlimePropertyInt.create("chunkSectionMin", -4);
     @ApiStatus.Experimental
     public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMax", 19);
 
+    /**
+     * The sea level to use for the slime world. This affects mob spawning for water specific mobs like squids or turtles.
+     * To achieve the default vanilla behaviour, change this value to 63 instead of the default of -63.
+     */
+    @ApiStatus.Experimental
+    public static final SlimePropertyInt SEA_LEVEL = SlimePropertyInt.create("seaLevel", -63);
 
+    /**
+     * Whether to save the POI data in the world or not. Worlds that already have POI data will still load the data
+     * even if this is set to false. However, the POI data will no longer be saved when the world is saved.
+     * <p>
+     * POI data is e.g. used for villager jobs, villager beds, bees, lightning rods. This data is not saved in slime by default.
+     */
+    public static final SlimePropertyBoolean SAVE_POI = SlimePropertyBoolean.create("savePOI", false);
+
+    /**
+     * Whether to save the block ticks in the world or not. Worlds that already have block tick data will still load the data
+     * even if this is set to false. However, the block tick data will no longer be saved when the world is saved.
+     * <p>
+     * Block ticks are used for scheduling e.g. redstone updates. If this data is not saved, redstone will pause when chunks or worlds get re-loaded.
+     */
+    public static final SlimePropertyBoolean SAVE_BLOCK_TICKS = SlimePropertyBoolean.create("saveBlockTicks", false);
+
+    /**
+     * Whether to save the fluid ticks in the world or not. Worlds that already have fluid tick data will still load the data
+     * even if this is set to false. However, the fluid tick data will no longer be saved when the world is saved.
+     * <p>
+     * Fluid ticks are used for scheduling liquid flow updates. If this data is not saved, fluids will freeze when chunks or worlds get re-loaded.
+     */
+    public static final SlimePropertyBoolean SAVE_FLUID_TICKS = SlimePropertyBoolean.create("saveFluidTicks", false);
 }

@@ -1,8 +1,8 @@
 --- a/paper-server/build.gradle.kts
 +++ b/paper-server/build.gradle.kts
-@@ -21,6 +_,17 @@
-     // macheOldPath = file("F:\\Projects\\PaperTooling\\mache\\versions\\1.21.4\\src\\main\\java")
-     // gitFilePatches = true
+@@ -26,6 +_,17 @@
+     minecraftVersion = providers.gradleProperty("mcVersion")
+     gitFilePatches = false
  
 +    val aspaper = forks.register("aspaper") {
 +        upstream.patchDir("paperServer") {
@@ -16,9 +16,9 @@
 +    activeFork = aspaper
 +
      spigot {
-         buildDataRef = "3edaf46ec1eed4115ce1b18d2846cded42577e42"
-         packageVersion = "v1_21_R3" // also needs to be updated in MappingEnvironment
-@@ -101,7 +_,20 @@
+         enabled = false
+         buildDataRef = "281ac0de7a76d808753ede97d11b034bc801b63d"
+@@ -107,7 +_,19 @@
      }
  }
  
@@ -33,25 +33,23 @@
 +        resources { srcDir("../paper-server/src/test/resources") }
 +    }
 +}
-+
 +val log4jPlugins = sourceSets.create("log4jPlugins") {
 +    java { srcDir("../paper-server/src/log4jPlugins/java") }
 +}
  configurations.named(log4jPlugins.compileClasspathConfigurationName) {
      extendsFrom(configurations.compileClasspath.get())
  }
-@@ -119,7 +_,9 @@
+@@ -129,7 +_,8 @@
  }
  
  dependencies {
 -    implementation(project(":paper-api"))
 +    implementation(project(":aspaper-api")) //ASP
 +    implementation(project(":core")) //ASP
-+    implementation("commons-io:commons-io:2.11.0")
      implementation("ca.spottedleaf:concurrentutil:0.0.3")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
-@@ -189,14 +_,14 @@
+@@ -205,14 +_,14 @@
          val gitBranch = git.exec(providers, "rev-parse", "--abbrev-ref", "HEAD").get().trim()
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
@@ -71,3 +69,12 @@
              "Build-Number" to (build ?: ""),
              "Build-Time" to buildTime.toString(),
              "Git-Branch" to gitBranch,
+@@ -271,7 +_,7 @@
+     jvmArgumentProviders.add(provider)
+ }
+ 
+-val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()
++val generatedDir: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-server/src/generated/java").asFile.toPath()
+ idea {
+     module {
+         generatedSourceDirs.add(generatedDir.toFile())
