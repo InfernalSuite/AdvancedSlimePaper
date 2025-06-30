@@ -16,7 +16,7 @@
 +    activeFork = aspaper
 +
      spigot {
-         enabled = true
+         enabled = false
          buildDataRef = "281ac0de7a76d808753ede97d11b034bc801b63d"
 @@ -107,7 +_,19 @@
      }
