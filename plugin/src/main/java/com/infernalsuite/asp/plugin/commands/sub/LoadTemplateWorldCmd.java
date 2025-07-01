@@ -15,6 +15,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +33,9 @@ public class LoadTemplateWorldCmd extends com.infernalsuite.asp.plugin.commands.
     @Command("swp|aswm|swm load-template <template-world> <world-name>")
     @CommandDescription("Creates a temporary world using another as a template. This world will never be stored.")
     @Permission("swm.loadworld.template")
-    public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "template-world") com.infernalsuite.asp.plugin.commands.parser.NamedWorldData templateWorldData,
+    public CompletableFuture<Void> onCommand(Source source, @Argument(value = "template-world") com.infernalsuite.asp.plugin.commands.parser.NamedWorldData templateWorldData,
                                              @Argument(value = "world-name") String worldName) {
+        CommandSender sender = source.source();
         World world = Bukkit.getWorld(worldName);
 
         if (world != null) {

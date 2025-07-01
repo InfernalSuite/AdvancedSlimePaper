@@ -12,6 +12,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class CloneWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeCo
     @Command("swp|aswm|swm clone-world <template-world> <world-name> [new-data-source]")
     @CommandDescription("Clones a world")
     @Permission("swm.cloneworld")
-    public CompletableFuture<Void> cloneWorld(CommandSender sender, @Argument(value = "template-world") com.infernalsuite.asp.plugin.commands.parser.NamedWorldData templateWorld,
+    public CompletableFuture<Void> cloneWorld(Source sender, @Argument(value = "template-world") com.infernalsuite.asp.plugin.commands.parser.NamedWorldData templateWorld,
                                               @Argument(value = "world-name") String worldName,
                                               @Argument(value = "new-data-source") @Nullable com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader slimeLoader) {
         World world = Bukkit.getWorld(worldName);
@@ -60,7 +61,7 @@ public class CloneWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeCo
         SlimeLoader dataSource = slimeLoader == null ? initLoader : slimeLoader.slimeLoader();
 
         commandManager.getWorldsInUse().add(worldName);
-        sender.sendMessage(COMMAND_PREFIX.append(
+        sender.source().sendMessage(COMMAND_PREFIX.append(
                 Component.text("Creating world ").color(NamedTextColor.GRAY)
                         .append(Component.text(worldName).color(NamedTextColor.YELLOW))
                         .append(Component.text(" using ").color(NamedTextColor.GRAY))
@@ -86,7 +87,7 @@ public class CloneWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeCo
                                 Component.text("Failed to generate world " + worldName + ": " + ex.getMessage() + ".").color(NamedTextColor.RED)
                         ));
                     }
-                    sender.sendMessage(COMMAND_PREFIX.append(
+                    sender.source().sendMessage(COMMAND_PREFIX.append(
                             Component.text("World ").color(NamedTextColor.GREEN)
                                     .append(Component.text(worldName).color(NamedTextColor.YELLOW))
                                     .append(Component.text(" loaded and generated in " + (System.currentTimeMillis() - start) + "ms!").color(NamedTextColor.GREEN))

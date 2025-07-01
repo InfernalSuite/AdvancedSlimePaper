@@ -17,6 +17,8 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.PlayerSource;
+import org.incendo.cloud.paper.util.sender.Source;
 
 public class SetSpawnCmd extends SlimeCommand {
 
@@ -28,12 +30,13 @@ public class SetSpawnCmd extends SlimeCommand {
     @Command("swp|aswm|swm setspawn")
     @CommandDescription("Set the spawnpoint of a world based on your location")
     @Permission("swm.setspawn")
-    public void setSpawn(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
+    public void setSpawn(Source sender) {
+        if (!(sender instanceof PlayerSource playerSource)) {
             throw new MessageCommandException(COMMAND_PREFIX.append(
                     Component.text("This command is for players").color(NamedTextColor.RED)
             ));
         }
+        Player player = playerSource.source();
 
         Location location = player.getLocation();
         World world = location.getWorld();
@@ -54,7 +57,7 @@ public class SetSpawnCmd extends SlimeCommand {
         config.setSpawn(spawnVerbose);
         ConfigManager.getWorldConfig().save(); //FIXME: An IO op should be done async
 
-        sender.sendMessage(COMMAND_PREFIX.append(
+        player.sendMessage(COMMAND_PREFIX.append(
                 Component.text("Set spawn for ").color(NamedTextColor.GREEN)
                         .append(Component.text(world.getName()).color(NamedTextColor.YELLOW))
                         .append(Component.text(".").color(NamedTextColor.GREEN))
