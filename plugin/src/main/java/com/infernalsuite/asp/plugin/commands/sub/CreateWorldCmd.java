@@ -21,6 +21,7 @@ import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.*;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class CreateWorldCmd extends SlimeCommand {
     @CommandDescription("Create an empty world")
     @Permission("swm.createworld")
     public CompletableFuture<Void> createWorld(
-            CommandSender sender,
+            Source sender,
             @Argument(value = "world") String worldName,
             @Argument(value = "data-source") NamedSlimeLoader loader,
             @Flag(value = "biome") @Nullable NamespacedKey biome,
@@ -85,7 +86,7 @@ public class CreateWorldCmd extends SlimeCommand {
         }
 
         commandManager.getWorldsInUse().add(worldName);
-        sender.sendMessage(COMMAND_PREFIX.append(
+        sender.source().sendMessage(COMMAND_PREFIX.append(
                 Component.text("Creating empty world ").color(NamedTextColor.GRAY)
                         .append(Component.text(worldName).color(NamedTextColor.YELLOW))
                         .append(Component.text("...")).color(NamedTextColor.GRAY)
@@ -131,7 +132,7 @@ public class CreateWorldCmd extends SlimeCommand {
                 });
                 config.save();
 
-                sender.sendMessage(COMMAND_PREFIX.append(
+                sender.source().sendMessage(COMMAND_PREFIX.append(
                         Component.text("World ").color(NamedTextColor.GREEN)
                                 .append(Component.text(worldName).color(NamedTextColor.YELLOW))
                                 .append(Component.text(" created in " + (System.currentTimeMillis() - start) + "ms!").color(NamedTextColor.GREEN))

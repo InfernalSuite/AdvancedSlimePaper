@@ -11,14 +11,15 @@ import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 
-public class NamedWorldDataParser implements ArgumentParser<CommandSender, NamedWorldData> {
+public class NamedWorldDataParser implements ArgumentParser<Source, NamedWorldData> {
 
     @Override
-    public @NonNull ArgumentParseResult<@NonNull NamedWorldData> parse(@NonNull CommandContext<@NonNull CommandSender> commandContext, @NonNull CommandInput commandInput) {
+    public @NonNull ArgumentParseResult<@NonNull NamedWorldData> parse(@NonNull CommandContext<@NonNull Source> commandContext, @NonNull CommandInput commandInput) {
         String input = commandInput.peekString();
         WorldData worldData = ConfigManager.getWorldConfig().getWorlds().get(input);
 
@@ -32,7 +33,7 @@ public class NamedWorldDataParser implements ArgumentParser<CommandSender, Named
     }
 
     @Override
-    public @NonNull SuggestionProvider<CommandSender> suggestionProvider() {
+    public @NonNull SuggestionProvider<Source> suggestionProvider() {
         return new KnownSlimeWorldSuggestionProvider();
     }
 }

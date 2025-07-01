@@ -20,6 +20,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class LoadWorldCmd extends SlimeCommand {
     @Command("swp|aswm|swm load <world>")
     @CommandDescription("Load a world")
     @Permission("swm.loadworld")
-    public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "world") NamedWorldData worldData) {
+    public CompletableFuture<Void> onCommand(Source sender, @Argument(value = "world") NamedWorldData worldData) {
         World world = Bukkit.getWorld(worldData.name());
 
         if (world != null) {
@@ -52,7 +53,7 @@ public class LoadWorldCmd extends SlimeCommand {
         }
 
         commandManager.getWorldsInUse().add(worldData.name());
-        sender.sendMessage(COMMAND_PREFIX.append(
+        sender.source().sendMessage(COMMAND_PREFIX.append(
                 Component.text("Loading world ").color(NamedTextColor.GRAY)
                         .append(Component.text(worldData.name()).color(NamedTextColor.YELLOW))
                         .append(Component.text("...")).color(NamedTextColor.GRAY)
@@ -80,7 +81,7 @@ public class LoadWorldCmd extends SlimeCommand {
                         ));
                     }
 
-                    sender.sendMessage(COMMAND_PREFIX.append(
+                    sender.source().sendMessage(COMMAND_PREFIX.append(
                             Component.text("World ").color(NamedTextColor.GREEN)
                                     .append(Component.text(worldData.name()).color(NamedTextColor.YELLOW))
                                     .append(Component.text(" loaded and generated in " + (System.currentTimeMillis() - start) + "ms!").color(NamedTextColor.GREEN)

@@ -16,6 +16,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class MigrateWorldCmd extends SlimeCommand {
     @Command("swp|aswm|swm migrate <world> <new-data-source>")
     @CommandDescription("Migrate a world from one data source to another.")
     @Permission("swm.migrate")
-    public CompletableFuture<Void> onCommand(CommandSender sender, @Argument(value = "world") NamedWorldData worldData,
+    public CompletableFuture<Void> onCommand(Source sender, @Argument(value = "world") NamedWorldData worldData,
                                              @Argument(value = "new-data-source") NamedSlimeLoader newLoader) {
         String currentSource = worldData.worldData().getDataSource();
 
@@ -67,7 +68,7 @@ public class MigrateWorldCmd extends SlimeCommand {
                 worldData.worldData().setDataSource(newLoader.name());
                 ConfigManager.getWorldConfig().save();
 
-                sender.sendMessage(COMMAND_PREFIX.append(
+                sender.source().sendMessage(COMMAND_PREFIX.append(
                         Component.text("World ").color(NamedTextColor.GRAY)
                                 .append(Component.text(worldData.name()).color(NamedTextColor.YELLOW))
                                 .append(Component.text(" migrated in ").color(NamedTextColor.GRAY))

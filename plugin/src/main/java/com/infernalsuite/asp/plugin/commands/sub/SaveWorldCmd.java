@@ -15,6 +15,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +31,10 @@ public class SaveWorldCmd extends SlimeCommand {
     @Command("swp|aswm|swm save <world>")
     @CommandDescription("Saves a world.")
     @Permission("swm.saveworld")
-    public void saveWorld(CommandSender sender, @Argument(value = "world") SlimeWorld slimeWorld) {
+    public void saveWorld(Source sender, @Argument(value = "world") SlimeWorld slimeWorld) {
         try {
             asp.saveWorld(slimeWorld);
-            sender.sendMessage(COMMAND_PREFIX.append(
+            sender.source().sendMessage(COMMAND_PREFIX.append(
                     Component.text("World " + slimeWorld.getName() + " saved.").color(NamedTextColor.GREEN)
             ));
         } catch (IOException e) {

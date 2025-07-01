@@ -12,6 +12,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public class ReloadConfigCmd extends SlimeCommand {
     @Command("swp|aswm|swm reload")
     @CommandDescription("Reloads the config files.")
     @Permission("swm.reload")
-    public CompletableFuture<Void> reloadConfig(CommandSender sender) {
+    public CompletableFuture<Void> reloadConfig(Source sender) {
         return CompletableFuture.runAsync(() -> {
             try {
                 ConfigManager.initialize();
@@ -40,7 +41,7 @@ public class ReloadConfigCmd extends SlimeCommand {
                 ));
             }
 
-            sender.sendMessage(COMMAND_PREFIX.append(
+            sender.source().sendMessage(COMMAND_PREFIX.append(
                     Component.text("Config reloaded.").color(NamedTextColor.GREEN)
             ));
         });

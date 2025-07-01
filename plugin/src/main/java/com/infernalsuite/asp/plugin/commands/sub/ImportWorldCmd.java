@@ -16,6 +16,7 @@ import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.injection.RawArgs;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,10 +40,11 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
     @CommandDescription("Convert a world to the slime format and save it.")
     @Permission("swm.importworld")
     @RawArgs
-    public CompletableFuture<Void> importWorld(CommandSender sender, String[] args,
+    public CompletableFuture<Void> importWorld(Source source, String[] args,
                                                @Argument(value = "path-to-world") String pathToWorld,
                                                @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader loader,
                                                @Argument(value = "new-world-name") String newWorldName) {
+        CommandSender sender = source.source();
         File worldDir = new File(pathToWorld);
 
         if (!worldDir.exists() || !worldDir.isDirectory()) {

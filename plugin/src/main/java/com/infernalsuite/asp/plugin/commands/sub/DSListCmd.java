@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.*;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +29,8 @@ public class DSListCmd extends com.infernalsuite.asp.plugin.commands.SlimeComman
     @Command("swp|aswm|swm dslist <data-source> [page]")
     @CommandDescription("List all worlds inside a data source.")
     @Permission("swm.dslist")
-    public CompletableFuture<Void> listWorlds(CommandSender sender, @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader namedLoader,
-                             @Default("1") @Argument(value = "page") int page) {
+    public CompletableFuture<Void> listWorlds(Source sender, @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader namedLoader,
+                                              @Default("1") @Argument(value = "page") int page) {
         SlimeLoader loader = namedLoader.slimeLoader();
 
         if (page < 1) {
@@ -69,7 +70,7 @@ public class DSListCmd extends com.infernalsuite.asp.plugin.commands.SlimeComman
             }
 
             worldList.sort(String::compareTo);
-            sender.sendMessage(COMMAND_PREFIX.append(
+            sender.source().sendMessage(COMMAND_PREFIX.append(
                     Component.text("World list ").color(NamedTextColor.YELLOW)
                             .append(Component.text("[" + page + "/" + maxPages + "]").color(NamedTextColor.YELLOW))
                             .append(Component.text(":").color(NamedTextColor.GRAY))
@@ -77,7 +78,7 @@ public class DSListCmd extends com.infernalsuite.asp.plugin.commands.SlimeComman
 
             for (int i = offset; (i - offset) < MAX_ITEMS_PER_PAGE && i < worldList.size(); i++) {
                 String world = worldList.get(i);
-                sender.sendMessage(COMMAND_PREFIX.append(
+                sender.source().sendMessage(COMMAND_PREFIX.append(
                         Component.text(" - ").color(NamedTextColor.GRAY)
                                 .append(isLoaded(loader, world)
                                         ? Component.text(world).color(NamedTextColor.GREEN)

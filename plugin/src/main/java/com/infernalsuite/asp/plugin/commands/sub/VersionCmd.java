@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
+import org.incendo.cloud.paper.util.sender.Source;
 
 public class VersionCmd extends SlimeCommand {
 
@@ -18,8 +19,8 @@ public class VersionCmd extends SlimeCommand {
 
     @Command("swp|aswm|swm version")
     @CommandDescription("Shows the plugin version.")
-    public void showVersion(CommandSender sender) {
-        sender.sendMessage(COMMAND_PREFIX.append(
+    public void showVersion(Source sender) {
+        sender.source().sendMessage(COMMAND_PREFIX.append(
                 Component.text("This server is running SWM ").color(NamedTextColor.GRAY)
                         .append(Component.text("v" + SWPlugin.getInstance().getDescription().getVersion()).color(NamedTextColor.YELLOW))
                         .append(Component.text(", which supports up to Slime Format ").color(NamedTextColor.GRAY))
