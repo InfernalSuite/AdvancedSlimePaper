@@ -34,8 +34,8 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
 
     private final ChunkLoadTask chunkLoadTask;
 
-    protected ChunkDataLoadTask(ChunkLoadTask chunkLoadTask, final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
-                                final int chunkZ, final Priority priority, final Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
+    public ChunkDataLoadTask(ChunkLoadTask chunkLoadTask, final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
+                             final int chunkZ, final Priority priority, final Consumer<GenericDataLoadTask.TaskResult<ChunkAccess, Throwable>> onRun) {
         this.chunkLoadTask = chunkLoadTask;
         this.scheduler = scheduler;
         this.world = world;
