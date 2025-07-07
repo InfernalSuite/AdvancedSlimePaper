@@ -1,4 +1,4 @@
-package com.infernalsuite.asp.level;
+package com.infernalsuite.asp.level.moonrise;
 
 import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
 import ca.spottedleaf.concurrentutil.util.Priority;

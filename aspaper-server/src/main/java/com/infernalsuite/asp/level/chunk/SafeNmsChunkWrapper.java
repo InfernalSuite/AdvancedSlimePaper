@@ -1,4 +1,4 @@
-package com.infernalsuite.asp.level;
+package com.infernalsuite.asp.level.chunk;
 
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;

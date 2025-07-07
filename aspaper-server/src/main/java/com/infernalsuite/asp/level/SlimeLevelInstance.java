@@ -7,6 +7,7 @@ import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskSchedule
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.infernalsuite.asp.level.moonrise.ChunkDataLoadTask;
 import com.infernalsuite.asp.level.moonrise.SlimeEntityDataLoader;
 import com.infernalsuite.asp.level.moonrise.SlimePoiDataLoader;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
