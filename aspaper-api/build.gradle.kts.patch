@@ -38,7 +38,7 @@
  }
 @@ -166,7 +_,7 @@
  
- tasks.withType<Javadoc> {
+ tasks.withType<Javadoc>().configureEach {
      val options = options as StandardJavadocDocletOptions
 -    options.overview = "src/main/javadoc/overview.html"
 +    options.overview = "../paper-api/src/main/javadoc/overview.html"
