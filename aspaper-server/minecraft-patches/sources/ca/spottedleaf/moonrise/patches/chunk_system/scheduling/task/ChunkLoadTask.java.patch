@@ -5,7 +5,7 @@
  
      public final NewChunkHolder chunkHolder;
 -    private final ChunkDataLoadTask loadTask;
-+    private final com.infernalsuite.asp.level.CommonLoadTask loadTask; // ASP
++    private final com.infernalsuite.asp.level.chunk.CommonLoadTask loadTask; // ASP
  
      private volatile boolean cancelled;
      private NewChunkHolder.GenericDataLoadTaskCallback entityLoadTask;
@@ -19,7 +19,7 @@
 -            ChunkLoadTask.this.tryCompleteLoad();
 -        });
 +        // ASWM start
-+        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance levelInstance) {
++        if (world instanceof com.infernalsuite.asp.level.chunk.SlimeLevelInstance levelInstance) {
 +            this.loadTask = levelInstance.getLoadTask(this, scheduler, world, chunkX, chunkZ, priority, result -> {
 +                ChunkLoadTask.this.loadResult = result; // must be before getAndDecrement
 +                ChunkLoadTask.this.tryCompleteLoad();
