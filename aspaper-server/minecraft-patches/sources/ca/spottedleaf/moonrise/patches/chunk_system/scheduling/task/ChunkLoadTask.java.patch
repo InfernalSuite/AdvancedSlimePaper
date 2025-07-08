@@ -5,7 +5,7 @@
  
      public final NewChunkHolder chunkHolder;
 -    private final ChunkDataLoadTask loadTask;
-+    private final com.infernalsuite.asp.level.chunk.CommonLoadTask loadTask; // ASP
++    private final com.infernalsuite.asp.level.moonrise.CommonLoadTask loadTask; // ASP
  
      private volatile boolean cancelled;
      private NewChunkHolder.GenericDataLoadTaskCallback entityLoadTask;
@@ -19,7 +19,7 @@
 -            ChunkLoadTask.this.tryCompleteLoad();
 -        });
 +        // ASWM start
-+        if (world instanceof com.infernalsuite.asp.level.chunk.SlimeLevelInstance levelInstance) {
++        if (world instanceof com.infernalsuite.asp.level.SlimeLevelInstance levelInstance) {
 +            this.loadTask = levelInstance.getLoadTask(this, scheduler, world, chunkX, chunkZ, priority, result -> {
 +                ChunkLoadTask.this.loadResult = result; // must be before getAndDecrement
 +                ChunkLoadTask.this.tryCompleteLoad();
@@ -40,7 +40,7 @@
      private static record ReadChunk(ProtoChunk protoChunk, SerializableChunkData chunkData) {}
  
 -    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> {
-+    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> implements com.infernalsuite.asp.level.CommonLoadTask { // ASP
++    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> implements com.infernalsuite.asp.level.moonrise.CommonLoadTask { // ASP
          private ChunkDataLoadTask(final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
                                    final int chunkZ, final Priority priority) {
              super(scheduler, world, chunkX, chunkZ, MoonriseRegionFileIO.RegionFileType.CHUNK_DATA, priority);
