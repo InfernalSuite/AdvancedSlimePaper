@@ -7,8 +7,11 @@ import com.infernalsuite.asp.loaders.file.FileLoader;
 import com.infernalsuite.asp.loaders.mongo.MongoLoader;
 import com.infernalsuite.asp.loaders.mysql.MysqlLoader;
 import com.infernalsuite.asp.loaders.redis.RedisLoader;
+import com.infernalsuite.asp.plugin.SWPlugin;
 import com.mongodb.MongoException;
 import io.lettuce.core.RedisException;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +38,12 @@ public class LoaderManager {
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.MysqlConfig mysqlConfig = config.getMysqlConfig();
         if (mysqlConfig.isEnabled()) {
             try {
-                registerLoader("mysql", new MysqlLoader(
+                registerLoader("mysql", registerLoaderService(MysqlLoader.class, new MysqlLoader(
                         mysqlConfig.getSqlUrl(),
                         mysqlConfig.getHost(), mysqlConfig.getPort(),
                         mysqlConfig.getDatabase(), mysqlConfig.isUsessl(),
                         mysqlConfig.getUsername(), mysqlConfig.getPassword()
-                ));
+                )));
             } catch (final SQLException ex) {
                 LOGGER.error("Failed to establish connection to the MySQL server:", ex);
             }
@@ -51,7 +54,7 @@ public class LoaderManager {
 
         if (mongoConfig.isEnabled()) {
             try {
-                registerLoader("mongodb", new MongoLoader(
+                registerLoader("mongodb", registerLoaderService(MongoLoader.class, new MongoLoader(
                         mongoConfig.getDatabase(),
                         mongoConfig.getCollection(),
                         mongoConfig.getUsername(),
@@ -60,7 +63,7 @@ public class LoaderManager {
                         mongoConfig.getHost(),
                         mongoConfig.getPort(),
                         mongoConfig.getUri()
-                ));
+                )));
             } catch (final MongoException ex) {
                 LOGGER.error("Failed to establish connection to the MongoDB server:", ex);
             }
@@ -69,7 +72,7 @@ public class LoaderManager {
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
         if (redisConfig.isEnabled()){
             try {
-                registerLoader("redis", new RedisLoader(redisConfig.getUri()));
+                registerLoader("redis", registerLoaderService(RedisLoader.class, new RedisLoader(redisConfig.getUri())));
             } catch (final RedisException ex) {
                 LOGGER.error("Failed to establish connection to the Redis server:", ex);
             }
@@ -77,13 +80,18 @@ public class LoaderManager {
 
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.APIConfig apiConfig = config.getApiConfig();
         if(apiConfig.isEnabled()){
-            registerLoader("api", new APILoader(
+            registerLoader("api", registerLoaderService(APILoader.class, new APILoader(
                     apiConfig.getUrl(),
                     apiConfig.getUsername(),
                     apiConfig.getToken(),
                     apiConfig.isIgnoreSslCertificate()
-            ));
+            )));
         }
+    }
+
+    private <T> T registerLoaderService(Class<T> clazz, T instance) {
+        Bukkit.getServicesManager().register(clazz, instance, SWPlugin.getInstance(), ServicePriority.Normal);
+        return instance;
     }
 
     public void registerLoader(String dataSource, SlimeLoader loader) {
