@@ -150,6 +150,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     private static void loadEntities(Path path, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(path);
+        //Is that in mca spec? Well, at least one world had empty MCA files, so lets just keep that here.
+        if(regionByteArray.length == 0) return;
+
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
         List<ChunkEntry> chunks = new ArrayList<>(1024);
