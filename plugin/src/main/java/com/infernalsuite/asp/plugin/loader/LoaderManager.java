@@ -32,7 +32,7 @@ public class LoaderManager {
 
         // File loader
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.FileConfig fileConfig = config.getFileConfig();
-        registerLoader("file", new FileLoader(new File(fileConfig.getPath())));
+        registerLoader("file", registerLoaderService(FileLoader.class, new FileLoader(new File(fileConfig.getPath()))));
 
         // Mysql loader
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.MysqlConfig mysqlConfig = config.getMysqlConfig();
