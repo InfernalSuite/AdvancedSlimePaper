@@ -5,7 +5,7 @@
  
      public final NewChunkHolder chunkHolder;
 -    private final ChunkDataLoadTask loadTask;
-+    private final com.infernalsuite.asp.level.CommonLoadTask loadTask; // ASP
++    private final com.infernalsuite.asp.level.moonrise.CommonLoadTask loadTask; // ASP
  
      private volatile boolean cancelled;
      private NewChunkHolder.GenericDataLoadTaskCallback entityLoadTask;
@@ -40,7 +40,7 @@
      private static record ReadChunk(ProtoChunk protoChunk, SerializableChunkData chunkData) {}
  
 -    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> {
-+    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> implements com.infernalsuite.asp.level.CommonLoadTask { // ASP
++    private static final class ChunkDataLoadTask extends CallbackDataLoadTask<ReadChunk, ChunkAccess> implements com.infernalsuite.asp.level.moonrise.CommonLoadTask { // ASP
          private ChunkDataLoadTask(final ChunkTaskScheduler scheduler, final ServerLevel world, final int chunkX,
                                    final int chunkZ, final Priority priority) {
              super(scheduler, world, chunkX, chunkZ, MoonriseRegionFileIO.RegionFileType.CHUNK_DATA, priority);

@@ -7,6 +7,7 @@ import com.infernalsuite.asp.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
+import com.infernalsuite.asp.level.chunk.*;
 import com.infernalsuite.asp.pdc.AdventurePersistentDataContainer;
 import com.infernalsuite.asp.serialization.slime.SlimeSerializer;
 import com.infernalsuite.asp.skeleton.SkeletonCloning;
@@ -179,56 +180,27 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             SlimeChunk clonedChunk = entry.getValue();
             // NMS "live" chunks need to be converted
             {
-                LevelChunk chunk = null;
+                NMSSlimeChunk chunk = null;
                 if (clonedChunk instanceof SafeNmsChunkWrapper safeNmsChunkWrapper) {
                     if (safeNmsChunkWrapper.shouldDefaultBackToSlimeChunk()) {
                         clonedChunk = safeNmsChunkWrapper.getSafety();
                     } else {
-                        chunk = safeNmsChunkWrapper.getWrapper().getChunk();
+                        chunk = safeNmsChunkWrapper.getWrapper();
                     }
                 } else if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
-                    chunk = nmsSlimeChunk.getChunk();
+                    chunk = nmsSlimeChunk;
                 }
 
-
-
                 if (chunk != null) {
-                    if (FastChunkPruner.canBePruned(world, chunk)) {
+                    if (FastChunkPruner.canBePruned(world, chunk.getChunk())) {
                         continue;
                     }
 
-                    // Serialize Bukkit Values (PDC)
-
-                    CompoundBinaryTag adventureTag = Converter.convertTag(chunk.persistentDataContainer.toTagCompound());
-                    clonedChunk.getExtraData().put("ChunkBukkitValues", adventureTag);
-
-                    ListBinaryTag blockTicks = null;
-                    ListBinaryTag fluidTicks = null;
-                    //Only save this data into memory when we actually want it there
-                    if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS) || getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
-                        ChunkAccess.PackedTicks ticksForSerialization = chunk.getTicksForSerialization(this.instance.getGameTime());
-
-                        if(getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS)) {
-                            blockTicks = SlimeChunkConverter.convertSavedBlockTicks(ticksForSerialization.blocks());
-                        }
-                        if(getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS)) {
-                            fluidTicks = SlimeChunkConverter.convertSavedFluidTicks(ticksForSerialization.fluids());
-                        }
-                    }
-
-
-                    clonedChunk = new SlimeChunkSkeleton(
-                            clonedChunk.getX(),
-                            clonedChunk.getZ(),
-                            clonedChunk.getSections(),
-                            clonedChunk.getHeightMaps(),
-                            clonedChunk.getTileEntities(),
-                            clonedChunk.getEntities(),
-                            clonedChunk.getExtraData(),
-                            clonedChunk.getUpgradeData(),
-                            clonedChunk.getPoiChunkSections(),
-                            blockTicks,
-                            fluidTicks
+                    clonedChunk = PartiallySerializedSlimeChunk.of(
+                            chunk,
+                            getPropertyMap().getValue(SlimeProperties.SAVE_BLOCK_TICKS),
+                            getPropertyMap().getValue(SlimeProperties.SAVE_FLUID_TICKS),
+                            getPropertyMap().getValue(SlimeProperties.SAVE_POI)
                     );
                 }
             }
