@@ -1,4 +1,4 @@
-package com.infernalsuite.asp.level;
+package com.infernalsuite.asp.level.chunk;
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
@@ -7,6 +7,8 @@ import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
+import com.infernalsuite.asp.level.SlimeLevelInstance;
+import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -20,6 +22,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -27,23 +30,38 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.chunk.PalettedContainer;
-import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
 import net.minecraft.world.ticks.SavedTick;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 public class SlimeChunkConverter {
 
-    static SlimeChunkLevel deserializeSlimeChunk(SlimeLevelInstance instance, SlimeChunk chunk) {
+    private static final CompoundBinaryTag EMPTY_BLOCK_STATE_PALETTE;
+    private static final CompoundBinaryTag EMPTY_BIOME_PALETTE;
+
+    // Optimized empty section serialization
+    static {
+        {
+            PalettedContainer<BlockState> empty = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
+            Tag tag = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+
+            EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
+        }
+        {
+            Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME);
+            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.asHolderIdMap(), biomes.get(Biomes.PLAINS).orElseThrow(), PalettedContainer.Strategy.SECTION_BIOMES, null);
+            Tag tag = SerializableChunkData.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+
+            EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
+        }
+    }
+
+    public static SlimeChunkLevel deserializeSlimeChunk(SlimeLevelInstance instance, SlimeChunk chunk) {
         int x = chunk.getX();
         int z = chunk.getZ();
 
@@ -175,6 +193,29 @@ public class SlimeChunkConverter {
         }
 
         return nmsChunk;
+    }
+
+    public static SlimeChunkSection convertChunkSection(Codec<PalettedContainerRO<Holder<Biome>>> codec, LevelChunkSection section, NibbleArray blockLightArray, NibbleArray skyLightArray) {
+        // Block Data
+        CompoundBinaryTag blockStateTag;
+        if (section.hasOnlyAir()) {
+            blockStateTag = EMPTY_BLOCK_STATE_PALETTE;
+        } else {
+            Tag data = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
+            blockStateTag = Converter.convertTag(data);
+        }
+
+
+        CompoundBinaryTag biomeTag;
+        PalettedContainer<Holder<Biome>> biomes = (PalettedContainer<Holder<Biome>>) section.getBiomes();
+        if (biomes.data.palette().getSize() == 1 && biomes.data.palette().maybeHas((h) -> h.is(Biomes.PLAINS))) {
+            biomeTag = EMPTY_BIOME_PALETTE;
+        } else {
+            Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
+            biomeTag = Converter.convertTag(biomeData);
+        }
+
+        return new SlimeChunkSectionSkeleton(blockStateTag, biomeTag, blockLightArray, skyLightArray);
     }
 
     public static ListBinaryTag convertSavedFluidTicks(List<SavedTick<Fluid>> ticks) {

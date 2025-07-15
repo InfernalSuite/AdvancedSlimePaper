@@ -1,6 +1,8 @@
-package com.infernalsuite.asp.level;
+package com.infernalsuite.asp.level.chunk;
 
 import com.infernalsuite.asp.api.world.SlimeChunk;
+import com.infernalsuite.asp.level.SlimeInMemoryWorld;
+import com.infernalsuite.asp.level.SlimeLevelInstance;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
