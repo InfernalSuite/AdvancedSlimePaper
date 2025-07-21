@@ -150,7 +150,7 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                     Component.text("WARNING: ").color(NamedTextColor.RED)
                             .append(Component.text("The Slime Format is meant to be used on tiny maps, " +
                                                    "not big survival worlds. It is recommended to trim your world " +
-                                                   "by using the Prune MCEdit tool to ensure you don't save more chunks than you want to."))
+                                                   "by removing unused chunks using the MCASelector tool to ensure you don't save more chunks than you want to."))
                             .append(Component.newline())
                             .append(Component.text("If you are sure you want to continue, type again this command.")).color(NamedTextColor.GRAY)
             ));
