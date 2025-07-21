@@ -5,7 +5,7 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 939605ce630ab66b7236962dec3ae61ed23dc222..51cfeb87385b7e40922049a197a417a3892c2fce 100644
+index c723bd085d471303f980b3d4f5874d2818346882..0086086381af9bce422d91e0149aa2b2d091b633 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -609,7 +609,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
@@ -16,9 +16,9 @@ index 939605ce630ab66b7236962dec3ae61ed23dc222..51cfeb87385b7e40922049a197a417a3
 +        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs; Async-Anti-Xray: Pass executor //ASP - Optimize world config
          this.pvpMode = server.isPvpAllowed();
          this.levelStorageAccess = levelStorageAccess;
-         this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
+         this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : bootstrap.generateId(); //ASP - avoid IO calls
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index e4b9a564aad3d9b673808caa18265b06592ceab8..8bb30eba86b74f155ef9580dc6c01d761e23dd5a 100644
+index c41df4b1fff1f65532256e835dc30fadbb4f8c8b..2c5d965d1003149ae71f62498bd63dcf890b011a 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -838,7 +838,7 @@ public abstract class Level implements LevelAccessor, UUIDLookup<Entity>, AutoCl
