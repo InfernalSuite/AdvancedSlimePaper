@@ -56,7 +56,7 @@ public class Converter {
                 case Tag.TAG_STRING -> StringTag.valueOf(((StringBinaryTag) tag).value());
                 case Tag.TAG_LIST -> {
                     ListTag list = new ListTag();
-                    for (BinaryTag entry : ((ListBinaryTag) tag)) list.add(convertTag(entry));
+                    for (BinaryTag entry : ((ListBinaryTag) tag)) list.addAndUnwrap(convertTag(entry));
                     yield list;
                 }
                 case Tag.TAG_COMPOUND -> {
