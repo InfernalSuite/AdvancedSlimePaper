@@ -41,7 +41,7 @@ public class SWPlugin extends JavaPlugin {
     @Override
     public void onLoad() {
         try {
-            com.infernalsuite.asp.plugin.config.ConfigManager.initialize();
+            ConfigManager.initialize();
         } catch (NullPointerException | IOException ex) {
             getSLF4JLogger().error("Failed to load config files", ex);
             return;

@@ -46,4 +46,5 @@ paper {
     apiVersion = "1.21"
     main = "com.infernalsuite.asp.plugin.SWPlugin"
     authors = listOf("InfernalSuite")
+    bootstrapper = "com.infernalsuite.asp.plugin.SlimePluginBootstrap"
 }
