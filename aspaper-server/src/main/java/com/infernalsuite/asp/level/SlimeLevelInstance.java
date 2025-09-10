@@ -16,6 +16,7 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -52,10 +53,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -105,11 +103,10 @@ public class SlimeLevelInstance extends ServerLevel {
                 propertyMap.getValue(SlimeProperties.SPAWN_YAW));
         super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
-        CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
-
+        ConcurrentMap<String, BinaryTag> extraData = this.slimeInstance.getExtraData();
         //Attempt to read PDC
-        if (nmsExtraData.get("BukkitValues") != null) {
-            getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
+        if (extraData.containsKey("BukkitValues")) {
+            getWorld().readBukkitValues(Converter.convertTag(extraData.get("BukkitValues")));
         }
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
