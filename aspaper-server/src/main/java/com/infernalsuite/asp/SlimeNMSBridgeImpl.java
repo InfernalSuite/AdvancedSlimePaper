@@ -198,14 +198,6 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
             throw new RuntimeException(ex); // TODO do something better with this?
         }
 
-        // level.setReady(true);
-        level.setSpawnSettings(world.getPropertyMap().getValue(SlimeProperties.ALLOW_MONSTERS));
-
-        CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
-
-        //Attempt to read PDC
-        if (nmsExtraData.get("BukkitValues") != null) level.getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
-
         return level;
     }
 

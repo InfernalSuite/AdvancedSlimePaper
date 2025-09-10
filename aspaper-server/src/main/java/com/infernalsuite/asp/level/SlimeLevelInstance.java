@@ -7,6 +7,7 @@ import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskSchedule
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.ChunkLoadTask;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.task.GenericDataLoadTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.level.moonrise.ChunkDataLoadTask;
 import com.infernalsuite.asp.level.moonrise.SlimeEntityDataLoader;
 import com.infernalsuite.asp.level.moonrise.SlimePoiDataLoader;
@@ -15,9 +16,11 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -101,6 +104,13 @@ public class SlimeLevelInstance extends ServerLevel {
                         propertyMap.getValue(SlimeProperties.SPAWN_Z)),
                 propertyMap.getValue(SlimeProperties.SPAWN_YAW));
         super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+
+        CompoundTag nmsExtraData = (CompoundTag) Converter.convertTag(CompoundBinaryTag.from(world.getExtraData()));
+
+        //Attempt to read PDC
+        if (nmsExtraData.get("BukkitValues") != null) {
+            getWorld().readBukkitValues(nmsExtraData.get("BukkitValues"));
+        }
 
         this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
 
