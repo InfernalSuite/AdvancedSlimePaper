@@ -117,6 +117,8 @@ public class SWPlugin extends JavaPlugin {
             }
             Bukkit.unloadWorld(world.getName(), false); //Unload without saving as we have just saved (if not read only)
         }
+
+        Bukkit.getServicesManager().unregisterAll(this);
     }
 
     private List<String> loadWorlds() {
