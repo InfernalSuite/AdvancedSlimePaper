@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -585,7 +_,32 @@
+@@ -585,7 +_,31 @@
      }
      // Paper end - chunk tick iteration
  
@@ -14,7 +14,6 @@
 +            net.minecraft.world.level.storage.PrimaryLevelData serverLevelData, // CraftBukkit
 +            ResourceKey<Level> dimension,
 +            LevelStem levelStem,
-+            ChunkProgressListener progressListener,
 +            boolean isDebug,
 +            long biomeZoomSeed,
 +            List<CustomSpawner> customSpawners,
@@ -25,7 +24,7 @@
 +            org.bukkit.generator.BiomeProvider biomeProvider // CraftBukkit
 +    ) {
 +        //ASP start
-+        this(null, server, dispatcher, levelStorageAccess, serverLevelData, dimension, levelStem, progressListener,
++        this(null, server, dispatcher, levelStorageAccess, serverLevelData, dimension, levelStem,
 +                isDebug, biomeZoomSeed, customSpawners, tickTime, randomSequences, env, gen, biomeProvider);
 +    }
 +
