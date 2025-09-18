@@ -1,6 +1,6 @@
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-@@ -912,13 +_,24 @@
+@@ -911,13 +_,24 @@
              }
  
              if (chunk instanceof LevelChunk levelChunk) {
@@ -26,7 +26,7 @@
              // yes this is a hack to pass the compound tag through...
              final CompoundTag lastEntityUnload = this.lastEntityUnload;
              this.lastEntityUnload = null;
-@@ -1717,6 +_,12 @@
+@@ -1705,6 +_,12 @@
          boolean canSaveChunk = !forceNoSaveChunk && (chunk != null && ((shutdown || chunk instanceof LevelChunk) && chunk.isUnsaved()));
          boolean canSavePOI = !forceNoSaveChunk && (poi != null && poi.isDirty());
          boolean canSaveEntities = entities != null;
