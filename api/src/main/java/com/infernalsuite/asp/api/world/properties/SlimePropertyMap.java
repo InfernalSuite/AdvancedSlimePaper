@@ -5,6 +5,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A Property Map object.
@@ -32,6 +33,21 @@ public class SlimePropertyMap {
             return property.readValue(property.cast(this.properties.get(property.getKey())));
         } else {
             return property.getDefaultValue();
+        }
+    }
+
+    /**
+     * Return the current value of the given property as an Optional
+     * Instead of returning the default value if the property is not set, it returns an empty Optional
+     *
+     * @param property The slime property
+     * @return An Optional containing the current value, or empty if not set
+     */
+    public <T, Z extends BinaryTag> Optional<T> getOptionalValue(final SlimeProperty<T, Z> property) {
+        if (this.properties.containsKey(property.getKey())) {
+            return Optional.of(property.readValue(property.cast(this.properties.get(property.getKey()))));
+        } else {
+            return Optional.empty();
         }
     }
 
