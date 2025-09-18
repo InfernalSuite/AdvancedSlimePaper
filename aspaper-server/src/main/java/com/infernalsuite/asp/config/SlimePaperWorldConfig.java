@@ -32,7 +32,7 @@ public class SlimePaperWorldConfig {
     ) {
         SpigotWorldConfig spigotWorldConfig = new SpigotWorldConfig("asp-slimeworld");
 
-        GameRules gameRules = new GameRules(server.worldLoader.dataConfiguration().enabledFeatures());
+        GameRules gameRules = new GameRules(server.worldLoaderContext.dataConfiguration().enabledFeatures());
 
         Configurations.ContextMap contextMap = PaperConfigurations.createWorldContextMap(
                 /*

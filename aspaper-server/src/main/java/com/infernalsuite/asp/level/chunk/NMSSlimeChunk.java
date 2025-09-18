@@ -16,6 +16,7 @@ import net.kyori.adventure.nbt.LongArrayBinaryTag;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
@@ -64,10 +65,7 @@ public class NMSSlimeChunk implements SlimeChunk {
         SlimeChunkSection[] sections = new SlimeChunkSection[this.chunk.getSectionsCount()];
         LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
 
-        Registry<Biome> biomeRegistry = chunk.biomeRegistry;
-
-        Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(),
-                PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow());
+        Registry<Biome> biomeRegistry = chunk.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
 
         for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
             LevelChunkSection section = chunk.getSections()[sectionId];
@@ -79,7 +77,8 @@ public class NMSSlimeChunk implements SlimeChunk {
             // Sky light Nibble Array
             NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
 
-            sections[sectionId] = SlimeChunkConverter.convertChunkSection(codec, section, blockLightArray, skyLightArray);
+            sections[sectionId] = SlimeChunkConverter.convertChunkSection(chunk.level.palettedContainerFactory().biomeContainerCodec(),
+                    chunk.level.palettedContainerFactory().blockStatesContainerCodec(), section, blockLightArray, skyLightArray);
         }
 
         return sections;

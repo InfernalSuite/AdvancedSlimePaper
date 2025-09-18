@@ -87,8 +87,7 @@ public class SlimeLevelInstance extends ServerLevel {
 
         super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
                 CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
-                primaryLevelData, worldKey, worldDimension,
-                MinecraftServer.getServer().progressListenerFactory.create(11), false, 0,
+                primaryLevelData, worldKey, worldDimension, false, 0,
                 Collections.emptyList(), true, null, environment, null, null);
         this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 
@@ -96,11 +95,11 @@ public class SlimeLevelInstance extends ServerLevel {
         SlimePropertyMap propertyMap = slimeBootstrap.initial().getPropertyMap();
 
         this.serverLevelData.setDifficulty(Difficulty.valueOf(propertyMap.getValue(SlimeProperties.DIFFICULTY).toUpperCase()));
-        this.serverLevelData.setSpawn(new BlockPos(
-                        propertyMap.getValue(SlimeProperties.SPAWN_X),
-                        propertyMap.getValue(SlimeProperties.SPAWN_Y),
-                        propertyMap.getValue(SlimeProperties.SPAWN_Z)),
-                propertyMap.getValue(SlimeProperties.SPAWN_YAW));
+//        this.serverLevelData.setSpawn(new BlockPos(
+//                        propertyMap.getValue(SlimeProperties.SPAWN_X),
+//                        propertyMap.getValue(SlimeProperties.SPAWN_Y),
+//                        propertyMap.getValue(SlimeProperties.SPAWN_Z)),
+//                propertyMap.getValue(SlimeProperties.SPAWN_YAW)); //TODO:
         super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
         ConcurrentMap<String, BinaryTag> extraData = this.slimeInstance.getExtraData();
@@ -109,7 +108,7 @@ public class SlimeLevelInstance extends ServerLevel {
             getWorld().readBukkitValues(Converter.convertTag(extraData.get("BukkitValues")));
         }
 
-        this.pvpMode = propertyMap.getValue(SlimeProperties.PVP);
+//        this.pvpMode = propertyMap.getValue(SlimeProperties.PVP); //TODO:
 
         this.entityDataController = new SlimeEntityDataLoader(
                 new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
@@ -155,7 +154,7 @@ public class SlimeLevelInstance extends ServerLevel {
                 Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
                 //this.getChunkSource().save(forceSave);
-                this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings());
+//                this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings()); //TODO:
                 this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
 
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
@@ -200,16 +199,17 @@ public class SlimeLevelInstance extends ServerLevel {
         return new ChunkDataLoadTask(task, scheduler, world, chunkX, chunkZ, priority, onRun);
     }
 
-    @Override
-    public void setDefaultSpawnPos(BlockPos pos, float angle) {
-        super.setDefaultSpawnPos(pos, angle);
-
-        SlimePropertyMap propertyMap = this.slimeInstance.getPropertyMap();
-        propertyMap.setValue(SlimeProperties.SPAWN_X, pos.getX());
-        propertyMap.setValue(SlimeProperties.SPAWN_Y, pos.getY());
-        propertyMap.setValue(SlimeProperties.SPAWN_Z, pos.getZ());
-        propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
-    }
+    //TODO:
+//    @Override
+//    public void setDefaultSpawnPos(BlockPos pos, float angle) {
+//        super.setDefaultSpawnPos(pos, angle);
+//
+//        SlimePropertyMap propertyMap = this.slimeInstance.getPropertyMap();
+//        propertyMap.setValue(SlimeProperties.SPAWN_X, pos.getX());
+//        propertyMap.setValue(SlimeProperties.SPAWN_Y, pos.getY());
+//        propertyMap.setValue(SlimeProperties.SPAWN_Z, pos.getZ());
+//        propertyMap.setValue(SlimeProperties.SPAWN_YAW, angle);
+//    }
 
     public void deleteTempFiles() {
         WORLD_SAVER_SERVICE.execute(() -> {

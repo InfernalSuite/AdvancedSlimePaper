@@ -11,6 +11,7 @@ import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -30,7 +31,7 @@ import java.util.Map;
  * to be serialized async. This has a performance advantage over serializing to nbt and then storing it async later.
  */
 public record PartiallySerializedSlimeChunk(
-        Registry<Biome> biomeRegistry,
+        PalettedContainerFactory containerFactory,
 
         int x, int z,
         PartiallySerializedSlimeChunkSection[] sections,
@@ -51,7 +52,6 @@ public record PartiallySerializedSlimeChunk(
     public static PartiallySerializedSlimeChunk of(NMSSlimeChunk slimeChunk, boolean saveBlockTicks, boolean saveFluidTicks, boolean savePoi) {
         LevelChunk chunk = slimeChunk.getChunk();
 
-        Registry<Biome> biomes = chunk.biomeRegistry;
         PartiallySerializedSlimeChunkSection[] sections = new PartiallySerializedSlimeChunkSection[chunk.getSectionsCount()];
         LevelLightEngine lightEngine = chunk.getLevel().getChunkSource().getLightEngine();
 
@@ -90,7 +90,7 @@ public record PartiallySerializedSlimeChunk(
         extra.put("ChunkBukkitValues", adventureTag);
 
         return new PartiallySerializedSlimeChunk(
-                biomes,
+                chunk.level.palettedContainerFactory(),
                 chunk.locX,
                 chunk.locZ,
                 sections,
@@ -117,15 +117,12 @@ public record PartiallySerializedSlimeChunk(
 
     @Override
     public SlimeChunkSection[] getSections() {
-        Codec<PalettedContainerRO<Holder<Biome>>> codec = PalettedContainer.codecRO(biomeRegistry.asHolderIdMap(), biomeRegistry.holderByNameCodec(),
-                PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow());
-
         SlimeChunkSection[] chunkSections = new SlimeChunkSection[this.sections.length];
 
         for (int i = 0; i < this.sections.length; i++) {
             PartiallySerializedSlimeChunkSection partial = this.sections[i];
 
-            chunkSections[i] = SlimeChunkConverter.convertChunkSection(codec, partial.section, partial.blockLight, partial.skyLight);
+            chunkSections[i] = SlimeChunkConverter.convertChunkSection(containerFactory.biomeContainerCodec(), containerFactory.blockStatesContainerCodec(), partial.section, partial.blockLight, partial.skyLight);
         }
 
         return chunkSections;
