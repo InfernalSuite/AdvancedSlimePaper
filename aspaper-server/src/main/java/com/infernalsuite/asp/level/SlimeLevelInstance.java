@@ -154,7 +154,6 @@ public class SlimeLevelInstance extends ServerLevel {
                 Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
                 //this.getChunkSource().save(forceSave);
-//                this.serverLevelData.setWorldBorder(this.getWorldBorder().createSettings()); //TODO:
                 this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
 
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
