@@ -16,16 +16,12 @@ import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.IntBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -61,24 +57,34 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
             SlimePropertyMap propertyMap = new SlimePropertyMap();
 
-            // TODO - Really? There has to be a better way...
-            Path environmentDir = worldDir.resolve("DIM-1");
-            propertyMap.setValue(SlimeProperties.ENVIRONMENT, "nether");
-            if (!Files.isDirectory(environmentDir)) {
-                environmentDir = worldDir.resolve("DIM1");
-                propertyMap.setValue(SlimeProperties.ENVIRONMENT, "the_end");
-                if (!Files.isDirectory(environmentDir)) {
-                    environmentDir = worldDir;
-                    propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
+            /*
+             * On vanilla worlds this approach will always decide for the overworld, which is what users want
+             * in most cases. As we don't have a way to provide which environment should be loaded, this is the only way.
+             *
+             * PaperMC worlds, however, are split into multiple folders (https://docs.papermc.io/paper/migration/#to-vanilla)
+             * and the nether or end world both only have a region folder in DIM-1 and DIM1 respectively. This means that,
+             * at least for paper worlds, there is a way to load nether and end in the import process. As ASP is a paper fork, this is fine.
+             *
+             * Vanilla users would need to delete the main region folder in order to import other dimensions.
+             */
+            Path environmentDir = worldDir;
+            propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
+            if (!doesWorldContainRegion(worldDir)) {
+                environmentDir = worldDir.resolve("DIM-1");
+                propertyMap. setValue (SlimeProperties. ENVIRONMENT, "nether");
+
+                if (!doesWorldContainRegion(environmentDir)) {
+                    environmentDir = worldDir.resolve("DIM1");
+                    propertyMap.setValue(SlimeProperties.ENVIRONMENT, "the_end");
+
+                    if(!doesWorldContainRegion(environmentDir)) {
+                        throw new InvalidWorldException(worldDir);
+                    }
                 }
             }
 
             // Chunks
             Path regionDir = environmentDir.resolve("region");
-
-            if (!Files.exists(regionDir) || !Files.isDirectory(regionDir)) {
-                throw new InvalidWorldException(environmentDir);
-            }
 
             Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
 
@@ -120,6 +126,11 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         }
     }
 
+    private boolean doesWorldContainRegion(Path worldDir) {
+        Path region = worldDir.resolve("region");
+        return Files.exists(worldDir) && Files.isDirectory(worldDir) && Files.exists(region) && Files.isDirectory(region);
+    }
+
     private static LevelData readLevelData(Path file) throws IOException, InvalidWorldException {
         CompoundBinaryTag tag;
 
@@ -139,6 +150,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     private static void loadEntities(Path path, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(path);
+        //Is that in mca spec? Well, at least one world had empty MCA files, so lets just keep that here.
+        if(regionByteArray.length == 0) return;
+
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
         List<ChunkEntry> chunks = new ArrayList<>(1024);

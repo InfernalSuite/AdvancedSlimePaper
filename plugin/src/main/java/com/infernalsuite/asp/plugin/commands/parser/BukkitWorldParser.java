@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -16,9 +17,9 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.concurrent.CompletableFuture;
 
-public class BukkitWorldParser implements ArgumentParser<CommandSender, World> {
+public class BukkitWorldParser implements ArgumentParser<Source, World> {
     @Override
-    public @NonNull ArgumentParseResult<@NonNull World> parse(@NonNull CommandContext<@NonNull CommandSender> commandContext, @NonNull CommandInput commandInput) {
+    public @NonNull ArgumentParseResult<@NonNull World> parse(@NonNull CommandContext<@NonNull Source> commandContext, @NonNull CommandInput commandInput) {
         String input = commandInput.peekString();
         World loaded = Bukkit.getWorld(input);
 
@@ -32,7 +33,7 @@ public class BukkitWorldParser implements ArgumentParser<CommandSender, World> {
     }
 
     @Override
-    public @NonNull SuggestionProvider<CommandSender> suggestionProvider() {
+    public @NonNull SuggestionProvider<Source> suggestionProvider() {
         return (context, input) -> CompletableFuture.supplyAsync(() ->
                 Bukkit.getWorlds()
                         .stream()

@@ -15,6 +15,7 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +29,8 @@ public class UnloadWorldCmd extends SlimeCommand {
     @Command("swp|aswm|swm unload <world>")
     @CommandDescription("Unload a world.")
     @Permission("swm.unloadworld")
-    public void unloadWorld(CommandSender sender, @Argument(value = "world") SlimeWorld slimeWorld) {
+    public void unloadWorld(Source source, @Argument(value = "world") SlimeWorld slimeWorld) {
+        CommandSender sender = source.source();
         var bukkitWorld = Bukkit.getWorld(slimeWorld.getName());
 
         // Teleport all players outside the world before unloading it

@@ -16,6 +16,7 @@ import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.injection.RawArgs;
+import org.incendo.cloud.paper.util.sender.Source;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +37,11 @@ public class WorldListCmd extends SlimeCommand {
     @Permission("swm.worldlist")
     @RawArgs
     //No way I'm going to use cloud args for this mess. What's even the point of this command? FIXME: Convert to cloud args
-    public void listWorlds(CommandSender sender, String[] args,
+    public void listWorlds(Source source, String[] args,
                            // These two args are needed so that cloud doesn't complain
                            @Argument(value = "slime") String rawSlime,
                            @Argument(value = "page") String rawPage) {
+        CommandSender sender = source.source();
         args = Arrays.copyOfRange(args, 2, args.length); // Remove "swm|aswm list" from the args
 
         Map<String, Boolean> loadedWorlds = Bukkit.getWorlds().stream().collect(Collectors.toMap(World::getName,

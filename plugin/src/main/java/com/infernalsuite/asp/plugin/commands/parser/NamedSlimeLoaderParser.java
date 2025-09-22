@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -16,7 +17,7 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.util.concurrent.CompletableFuture;
 
-public class NamedSlimeLoaderParser implements ArgumentParser<CommandSender, NamedSlimeLoader> {
+public class NamedSlimeLoaderParser implements ArgumentParser<Source, NamedSlimeLoader> {
 
     private final LoaderManager loaderManager;
 
@@ -25,7 +26,7 @@ public class NamedSlimeLoaderParser implements ArgumentParser<CommandSender, Nam
     }
 
     @Override
-    public @NonNull ArgumentParseResult<@NonNull NamedSlimeLoader> parse(@NonNull CommandContext<@NonNull CommandSender> commandContext, @NonNull CommandInput commandInput) {
+    public @NonNull ArgumentParseResult<@NonNull NamedSlimeLoader> parse(@NonNull CommandContext<@NonNull Source> commandContext, @NonNull CommandInput commandInput) {
         String input = commandInput.peekString();
         SlimeLoader loader = loaderManager.getLoader(input);
 
@@ -39,7 +40,7 @@ public class NamedSlimeLoaderParser implements ArgumentParser<CommandSender, Nam
     }
 
     @Override
-    public @NonNull SuggestionProvider<CommandSender> suggestionProvider() {
+    public @NonNull SuggestionProvider<Source> suggestionProvider() {
         return (commandContext, commandInput) -> CompletableFuture.supplyAsync(() ->
                 loaderManager
                         .getLoaders()

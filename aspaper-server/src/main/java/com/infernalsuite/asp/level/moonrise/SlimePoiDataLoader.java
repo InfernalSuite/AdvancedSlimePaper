@@ -2,11 +2,9 @@ package com.infernalsuite.asp.level.moonrise;
 
 import ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.PoiDataController;
 import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler;
-import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.world.SlimeChunk;
-import com.infernalsuite.asp.level.SlimeChunkConverter;
+import com.infernalsuite.asp.level.chunk.SlimeChunkConverter;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
-import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 
 public class SlimePoiDataLoader extends PoiDataController {

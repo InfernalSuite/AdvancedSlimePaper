@@ -14,6 +14,7 @@ import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.injection.RawArgs;
+import org.incendo.cloud.paper.util.sender.Source;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +38,10 @@ public class DeleteWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
     @CommandDescription("Delete a world")
     @Permission("swm.deleteworld")
     @RawArgs
-    public CompletableFuture<Void> deleteWorld(CommandSender sender, String[] args,
+    public CompletableFuture<Void> deleteWorld(Source source, String[] args,
                                                @Argument(value = "world", suggestions = "known-slime-worlds") String worldName,
                                                @Argument(value = "data-source") @Nullable com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader dataSource) {
+        CommandSender sender = source.source();
         World world = Bukkit.getWorld(worldName);
 
         if (world != null) {
