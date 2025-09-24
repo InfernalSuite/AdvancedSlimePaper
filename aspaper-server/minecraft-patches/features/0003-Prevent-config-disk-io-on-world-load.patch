@@ -5,23 +5,23 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 30fa8dc75a5259c061a451bbfe80be61866bccb2..3b791c1d72bf32e75276aebe59b8c3d833231021 100644
+index 2b6516c0689fe92161175e2c0a3e5b8eef9cdb61..b26fde3312519872a649aba8ddf007f1e08bf0e7 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -627,7 +627,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
--        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules()))); // Paper - create paper world configs
-+        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules()))); // Paper - create paper world configs  //ASP - Optimize world config
+-        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor
++        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor //ASP - Optimize world config
          this.levelStorageAccess = storageSource;
          this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
          this.levelLoadListener = new net.minecraft.server.level.progress.LoggingLevelLoadListener(false, this);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index b29fbdabc36b0f0d8ebac1248bf1fd9a7cb26e4a..aa6c95f94ec7a86d4220d563d88031ae4576fef4 100644
+index a0cc94561c77b5e20b9dcee3190fe26cdaf55036..78de27dec75998b7b5ed06905d0a2a2ee4e1d737 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
-@@ -841,7 +841,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -843,7 +843,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          this.maxSectionY = this.maxY >> 4;
          this.sectionsCount = this.maxSectionY - this.minSectionY + 1;
          // Paper end - getblock optimisations - cache world height/sections
