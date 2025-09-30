@@ -8,7 +8,7 @@
      // api dependencies are listed transitively to API consumers
      api("com.google.guava:guava:33.3.1-jre")
      api("com.google.code.gson:gson:2.11.0")
-@@ -98,7 +_,7 @@
+@@ -90,7 +_,7 @@
      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
  }
  
@@ -17,7 +17,7 @@
  idea {
      module {
          generatedSourceDirs.add(generatedDir.toFile())
-@@ -108,6 +_,18 @@
+@@ -100,6 +_,18 @@
      main {
          java {
              srcDir(generatedDir)
@@ -36,7 +36,7 @@
          }
      }
  }
-@@ -174,7 +_,7 @@
+@@ -166,7 +_,7 @@
  
  tasks.withType<Javadoc>().configureEach {
      val options = options as StandardJavadocDocletOptions
@@ -45,7 +45,7 @@
      options.use()
      options.isDocFilesSubDirs = true
      options.links(
-@@ -207,11 +_,11 @@
+@@ -201,11 +_,11 @@
      }
  
      // workaround for https://github.com/gradle/gradle/issues/4046
