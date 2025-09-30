@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.feature.foliageplacers.PineFoliagePlacer;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
 import net.minecraft.world.ticks.SavedTick;
@@ -47,16 +48,17 @@ public class SlimeChunkConverter {
 
     // Optimized empty section serialization
     static {
+        PalettedContainerFactory factory = PalettedContainerFactory.create(net.minecraft.server.MinecraftServer.getServer().registryAccess());
         {
-            PalettedContainer<BlockState> empty = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
-            Tag tag = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+            PalettedContainer<BlockState> empty = new PalettedContainer<>(Blocks.AIR.defaultBlockState(),factory.blockStatesStrategy(), null);
+            Tag tag = factory.blockStatesContainerCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
         }
         {
             Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME);
-            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.asHolderIdMap(), biomes.get(Biomes.PLAINS).orElseThrow(), PalettedContainer.Strategy.SECTION_BIOMES, null);
-            Tag tag = SerializableChunkData.makeBiomeCodec(biomes).encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
+            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.get(Biomes.PLAINS).orElseThrow(), factory.biomeStrategy(), null);
+            Tag tag = factory.biomeContainerRWCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
         }
@@ -80,8 +82,7 @@ public class SlimeChunkConverter {
 
         Registry<Biome> biomeRegistry = instance.registryAccess().lookupOrThrow(Registries.BIOME);
 
-        Codec<PalettedContainer<Holder<Biome>>> codec = PalettedContainer.codecRW(biomeRegistry.asHolderIdMap(),
-                biomeRegistry.holderByNameCodec(), PalettedContainer.Strategy.SECTION_BIOMES, biomeRegistry.get(Biomes.PLAINS).orElseThrow(), null);
+        Codec<PalettedContainer<Holder<Biome>>> codec = instance.palettedContainerFactory().biomeContainerRWCodec();
 
         for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
             SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
@@ -99,12 +100,12 @@ public class SlimeChunkConverter {
 
                 PalettedContainer<BlockState> blockPalette;
                 if (slimeSection.getBlockStatesTag() != null) {
-                    DataResult<PalettedContainer<BlockState>> dataresult = SerializableChunkData.BLOCK_STATE_CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
+                    DataResult<PalettedContainer<BlockState>> dataresult = instance.palettedContainerFactory().blockStatesContainerCodec().parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                     });
                     blockPalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    blockPalette = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES, null);
+                    blockPalette = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), instance.palettedContainerFactory().blockStatesStrategy(), null);
                 }
 
                 PalettedContainer<Holder<Biome>> biomePalette;
@@ -115,7 +116,7 @@ public class SlimeChunkConverter {
                     });
                     biomePalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    biomePalette = new PalettedContainer<>(biomeRegistry.asHolderIdMap(), biomeRegistry.get(Biomes.PLAINS).orElseThrow(), PalettedContainer.Strategy.SECTION_BIOMES, null);
+                    biomePalette = new PalettedContainer<>(biomeRegistry.get(Biomes.PLAINS).orElseThrow(), instance.palettedContainerFactory().biomeStrategy(), null);
                 }
 
                 if (sectionId < sections.length) {
@@ -196,13 +197,13 @@ public class SlimeChunkConverter {
         return nmsChunk;
     }
 
-    public static SlimeChunkSection convertChunkSection(Codec<PalettedContainerRO<Holder<Biome>>> codec, LevelChunkSection section, NibbleArray blockLightArray, NibbleArray skyLightArray) {
+    public static SlimeChunkSection convertChunkSection(Codec<PalettedContainerRO<Holder<Biome>>> biomeCodec, Codec<PalettedContainer<BlockState>> blockCodec, LevelChunkSection section, NibbleArray blockLightArray, NibbleArray skyLightArray) {
         // Block Data
         CompoundBinaryTag blockStateTag;
         if (section.hasOnlyAir()) {
             blockStateTag = EMPTY_BLOCK_STATE_PALETTE;
         } else {
-            Tag data = SerializableChunkData.BLOCK_STATE_CODEC.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
+            Tag data = blockCodec.encodeStart(NbtOps.INSTANCE, section.getStates()).getOrThrow(); // todo error handling
             blockStateTag = Converter.convertTag(data);
         }
 
@@ -212,7 +213,7 @@ public class SlimeChunkConverter {
         if (biomes.data.palette().getSize() == 1 && biomes.data.palette().maybeHas((h) -> h.is(Biomes.PLAINS))) {
             biomeTag = EMPTY_BIOME_PALETTE;
         } else {
-            Tag biomeData = codec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
+            Tag biomeData = biomeCodec.encodeStart(NbtOps.INSTANCE, section.getBiomes()).getOrThrow(); // todo error handling
             biomeTag = Converter.convertTag(biomeData);
         }
 

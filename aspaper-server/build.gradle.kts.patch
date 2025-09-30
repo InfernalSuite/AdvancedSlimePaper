@@ -16,7 +16,7 @@
 +    activeFork = aspaper
 +
      spigot {
-         enabled = true
+         enabled = false
          buildDataRef = "436eac9815c211be1a2a6ca0702615f995e81c44"
 @@ -107,7 +_,19 @@
      }
@@ -39,14 +39,14 @@
  configurations.named(log4jPlugins.compileClasspathConfigurationName) {
      extendsFrom(configurations.compileClasspath.get())
  }
-@@ -129,7 +_,8 @@
+@@ -130,7 +_,8 @@
  }
  
  dependencies {
 -    implementation(project(":paper-api"))
 +    implementation(project(":aspaper-api")) //ASP
 +    implementation(project(":core")) //ASP
-     implementation("ca.spottedleaf:concurrentutil:0.0.3")
+     implementation("ca.spottedleaf:concurrentutil:0.0.5")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
 @@ -200,14 +_,14 @@

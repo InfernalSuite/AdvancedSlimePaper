@@ -169,7 +169,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     public void registerWorld(SlimeLevelInstance server) {
         MinecraftServer mcServer = MinecraftServer.getServer();
-        mcServer.initWorld(server, server.serverLevelData, mcServer.getWorldData(), server.serverLevelData.worldGenOptions());
+        mcServer.initWorld(server, server.serverLevelData, server.serverLevelData.worldGenOptions());
 
         mcServer.addLevel(server);
     }
@@ -209,10 +209,10 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         MinecraftServer mcServer = MinecraftServer.getServer();
         DedicatedServerProperties serverProps = ((DedicatedServer) mcServer).getProperties();
         String worldName = world.getName();
-        WorldLoader.DataLoadContext context = mcServer.worldLoader;
+        WorldLoader.DataLoadContext context = mcServer.worldLoaderContext;
 
-        LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gamemode, false, serverProps.difficulty,
-                true, new GameRules(context.dataConfiguration().enabledFeatures()), mcServer.worldLoader.dataConfiguration());
+        LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gameMode.get(), false, serverProps.difficulty.get(),
+                true, new GameRules(context.dataConfiguration().enabledFeatures()), mcServer.worldLoaderContext.dataConfiguration());
 
         WorldOptions worldoptions = new WorldOptions(0, false, false);
 

@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Wed, 12 Mar 2025 21:14:56 +0100
+Subject: [PATCH] Prevent config disk io on world load
+
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index 2b6516c0689fe92161175e2c0a3e5b8eef9cdb61..b26fde3312519872a649aba8ddf007f1e08bf0e7 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -627,7 +627,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+     ) {
+         //ASP end
+         // CraftBukkit start
+-        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor
++        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor //ASP - Optimize world config
+         this.levelStorageAccess = storageSource;
+         this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
+         this.levelLoadListener = new net.minecraft.server.level.progress.LoggingLevelLoadListener(false, this);
+diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
+index a0cc94561c77b5e20b9dcee3190fe26cdaf55036..78de27dec75998b7b5ed06905d0a2a2ee4e1d737 100644
+--- a/net/minecraft/world/level/Level.java
++++ b/net/minecraft/world/level/Level.java
+@@ -843,7 +843,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+         this.maxSectionY = this.maxY >> 4;
+         this.sectionsCount = this.maxSectionY - this.minSectionY + 1;
+         // Paper end - getblock optimisations - cache world height/sections
+-        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName()); // Spigot
++        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.PrimaryLevelData) levelData).getLevelName(), !(this instanceof com.infernalsuite.asp.level.SlimeLevelInstance)); // Spigot //ASP - Improve Slime IO
+         this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
+         this.generator = generator;
+         this.world = new CraftWorld((ServerLevel) this, generator, biomeProvider, environment);

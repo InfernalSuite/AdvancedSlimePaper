@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: David Mayr <davidliebtkekse@gmail.com>
+Date: Mon, 10 Mar 2025 11:41:14 +0100
+Subject: [PATCH] Avoid IO call for UUID
+
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index d82fa8c496897a5b43af5917bc0362dc74847e9e..2b6516c0689fe92161175e2c0a3e5b8eef9cdb61 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -629,7 +629,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+         // CraftBukkit start
+         super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor
+         this.levelStorageAccess = storageSource;
+-        this.uuid = org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile());
++        this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
+         this.levelLoadListener = new net.minecraft.server.level.progress.LoggingLevelLoadListener(false, this);
+         // CraftBukkit end
+         this.tickTime = tickTime;
