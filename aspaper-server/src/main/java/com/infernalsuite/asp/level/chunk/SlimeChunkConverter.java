@@ -50,14 +50,14 @@ public class SlimeChunkConverter {
     static {
         PalettedContainerFactory factory = PalettedContainerFactory.create(net.minecraft.server.MinecraftServer.getServer().registryAccess());
         {
-            PalettedContainer<BlockState> empty = new PalettedContainer<>(Blocks.AIR.defaultBlockState(),factory.blockStatesStrategy());
+            PalettedContainer<BlockState> empty = new PalettedContainer<>(Blocks.AIR.defaultBlockState(),factory.blockStatesStrategy(), null);
             Tag tag = factory.blockStatesContainerCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
         }
         {
             Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME);
-            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.get(Biomes.PLAINS).orElseThrow(), factory.biomeStrategy());
+            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.get(Biomes.PLAINS).orElseThrow(), factory.biomeStrategy(), null);
             Tag tag = factory.biomeContainerRWCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
@@ -105,7 +105,7 @@ public class SlimeChunkConverter {
                     });
                     blockPalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    blockPalette = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), instance.palettedContainerFactory().blockStatesStrategy());
+                    blockPalette = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), instance.palettedContainerFactory().blockStatesStrategy(), null);
                 }
 
                 PalettedContainer<Holder<Biome>> biomePalette;
@@ -116,7 +116,7 @@ public class SlimeChunkConverter {
                     });
                     biomePalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    biomePalette = new PalettedContainer<>(biomeRegistry.get(Biomes.PLAINS).orElseThrow(), instance.palettedContainerFactory().biomeStrategy());
+                    biomePalette = new PalettedContainer<>(biomeRegistry.get(Biomes.PLAINS).orElseThrow(), instance.palettedContainerFactory().biomeStrategy(), null);
                 }
 
                 if (sectionId < sections.length) {
