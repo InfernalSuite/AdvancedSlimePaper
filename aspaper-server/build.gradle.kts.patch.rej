@@ -1,0 +1,20 @@
+++++ REJECTED HUNK: 1
+@@ -26,6 +26,17 @@
+     minecraftVersion = providers.gradleProperty("mcVersion")
+     gitFilePatches = false
+ 
++    val aspaper = forks.register("aspaper") {
++        upstream.patchDir("paperServer") {
++            upstreamPath = "paper-server"
++            excludes = setOf("src/minecraft", "patches", "build.gradle.kts")
++            patchesDir = rootDirectory.dir("aspaper-server/paper-patches")
++            outputDir = rootDirectory.dir("paper-server")
++        }
++    }
++
++    activeFork = aspaper
++
+     spigot {
+         enabled = false
+         buildDataRef = "436eac9815c211be1a2a6ca0702615f995e81c44"
+++++ END HUNK
