@@ -5,10 +5,10 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 2b6516c0689fe92161175e2c0a3e5b8eef9cdb61..b26fde3312519872a649aba8ddf007f1e08bf0e7 100644
+index f73755b2cabbc69eabbcf1f495f0598ab6169562..102297eb3339c9abd6b643c8bf69483f5f85698f 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -627,7 +627,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -634,7 +634,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
