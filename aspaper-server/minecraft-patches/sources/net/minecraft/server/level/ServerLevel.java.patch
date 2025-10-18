@@ -32,15 +32,15 @@
 +        @Nullable com.infernalsuite.asp.level.SlimeBootstrap bootstrap,
          MinecraftServer server,
          Executor dispatcher,
-         LevelStorageSource.LevelStorageAccess storageSource,
+         LevelStorageSource.LevelStorageAccess levelStorageAccess,
 @@ -608,6 +_,7 @@
          org.bukkit.generator.ChunkGenerator gen, // CraftBukkit
          org.bukkit.generator.BiomeProvider biomeProvider // CraftBukkit
      ) {
 +        //ASP end
          // CraftBukkit start
-         super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor
-         this.levelStorageAccess = storageSource;
+         super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor
+         this.levelStorageAccess = levelStorageAccess;
 @@ -635,6 +_,13 @@
              chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
          }

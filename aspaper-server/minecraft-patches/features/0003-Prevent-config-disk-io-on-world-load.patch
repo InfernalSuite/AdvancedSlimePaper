@@ -5,20 +5,20 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index f73755b2cabbc69eabbcf1f495f0598ab6169562..102297eb3339c9abd6b643c8bf69483f5f85698f 100644
+index c394731283ee3344a8e21d3b2d0f75470e4f6bfd..db13c732fdea20e28130a89b40bbe8662d4873da 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -634,7 +634,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
--        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor
-+        super(levelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(storageSource.levelDirectory.path(), levelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), levelData.getGameRules())), dispatcher); // Paper - create paper world configsAsync-Anti-Xray: Pass executor //ASP - Optimize world config
-         this.levelStorageAccess = storageSource;
+-        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor
++        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor  //ASP - Optimize world config
+         this.levelStorageAccess = levelStorageAccess;
          this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
          this.levelLoadListener = new net.minecraft.server.level.progress.LoggingLevelLoadListener(false, this);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index a0cc94561c77b5e20b9dcee3190fe26cdaf55036..78de27dec75998b7b5ed06905d0a2a2ee4e1d737 100644
+index cd2928dd8c38c1f508c7c5ff442cc205c28863e4..83bc1f23da5339000f4760dd0d0baeb5fc2caf5a 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -843,7 +843,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
