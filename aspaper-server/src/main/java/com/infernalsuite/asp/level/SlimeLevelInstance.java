@@ -187,7 +187,7 @@ public class SlimeLevelInstance extends ServerLevel {
     private Future<?> saveInternal() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
             SlimeWorldInstance slimeWorld = this.slimeInstance;
-            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
+            Bukkit.getLogger().debug(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
             long start = System.currentTimeMillis();
 
             SlimeWorld world = this.slimeInstance.getSerializableCopy();
@@ -196,7 +196,7 @@ public class SlimeLevelInstance extends ServerLevel {
                     byte[] serializedWorld = SlimeSerializer.serialize(world);
                     long saveStart = System.currentTimeMillis();
                     slimeWorld.getLoader().saveWorld(slimeWorld.getName(), serializedWorld);
-                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
+                    Bukkit.getLogger().debug(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
                 } catch (Exception ex) {
                     Bukkit.getLogger().log(Level.SEVERE, "There was an issue saving world " + slimeWorld.getName() + " asynchronously.", ex);
                 }
