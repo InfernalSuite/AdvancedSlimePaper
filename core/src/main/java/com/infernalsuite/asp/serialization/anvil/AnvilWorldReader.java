@@ -308,6 +308,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         for (final BinaryTag rawRag : sectionsTag) {
             final CompoundBinaryTag sectionTag = (CompoundBinaryTag) rawRag;
             int index = sectionTag.getByte("Y");
+            if(index < minSectionY || index > maxSectionY) continue;
 
             CompoundBinaryTag blockStatesTag = sectionTag.getCompound("block_states");
             CompoundBinaryTag biomesTag = sectionTag.getCompound("biomes");
