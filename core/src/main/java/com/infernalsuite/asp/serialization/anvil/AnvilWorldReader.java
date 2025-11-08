@@ -71,7 +71,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
             if (!doesWorldContainRegion(worldDir)) {
                 environmentDir = worldDir.resolve("DIM-1");
-                propertyMap. setValue (SlimeProperties. ENVIRONMENT, "nether");
+                propertyMap.setValue(SlimeProperties.ENVIRONMENT, "nether");
 
                 if (!doesWorldContainRegion(environmentDir)) {
                     environmentDir = worldDir.resolve("DIM1");
@@ -91,7 +91,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             try (var stream = Files.newDirectoryStream(regionDir, path -> path.toString().endsWith(".mca"))) {
                 for (final Path path : stream) {
                     LOGGER.info("Loading region file {}...", path.getFileName());
-                    chunks.putAll(loadChunks(path, worldVersion).stream()
+                    chunks.putAll(loadChunks(path, worldVersion, propertyMap).stream()
                             .collect(Collectors.toMap(chunk -> Util.chunkPosition(chunk.getX(), chunk.getZ()), Function.identity())));
                 }
             }
@@ -187,7 +187,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     }
 
-    private static List<SlimeChunk> loadChunks(Path path, int worldVersion) throws IOException {
+    private static List<SlimeChunk> loadChunks(Path path, int worldVersion, SlimePropertyMap propertyMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(path);
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
@@ -204,6 +204,23 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             }
         }
 
+        int worldHeight;
+        int minY;
+        switch (propertyMap.getValue(SlimeProperties.ENVIRONMENT)) {
+            case "normal" -> {
+                worldHeight = 384;
+                minY = -64;
+            }
+            case "nether", "the_end" -> {
+                worldHeight = 256;
+                minY = 0;
+            }
+            case null, default -> throw new IllegalStateException("Unsupported environment, cant obtain world height data");
+        }
+
+        int minSectionY = minY >> 4;
+        int maxSectionY = (minY + worldHeight - 1) >> 4;
+
         return chunks.stream().map((entry) -> {
 
             try {
@@ -215,7 +232,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 DataInputStream chunkStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset() + 5, chunkSize));
                 InputStream decompressorStream = compressionScheme == 1 ? new GZIPInputStream(chunkStream) : new InflaterInputStream(chunkStream);
                 CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(decompressorStream);
-                return readChunk(tag, worldVersion);
+                return readChunk(tag, worldVersion, minSectionY, maxSectionY);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -260,7 +277,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         }
     }
 
-    private static SlimeChunk readChunk(CompoundBinaryTag compound, int worldVersion) {
+    private static SlimeChunk readChunk(CompoundBinaryTag compound, int worldVersion, int minSectionY, int maxSectionY) {
         int chunkX = compound.getInt("xPos");
         int chunkZ = compound.getInt("zPos");
 
@@ -285,12 +302,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         List<CompoundBinaryTag> entities = compound.getList("entities", BinaryTagTypes.COMPOUND).stream().map(t -> (CompoundBinaryTag) t).toList();
         ListBinaryTag sectionsTag = compound.getList("sections", BinaryTagTypes.COMPOUND);
 
-        int minSectionY = compound.getInt("yPos");
-        // TODO - look into this +1 below
-        int maxSectionY = sectionsTag.stream().map(tag -> ((CompoundBinaryTag) tag).getByte("Y")).max(Byte::compareTo).orElse((byte) 0) + 1; // Add 1 to the section, as we serialize it with the 1 added.
+        SlimeChunkSection[] sectionArray = new SlimeChunkSection[maxSectionY - minSectionY + 1 /* See LevelHeightAccessor getSectionsCount */];
 
-        SlimeChunkSection[] sectionArray = new SlimeChunkSection[maxSectionY - minSectionY];
-
+        boolean hasSection = false;
         for (final BinaryTag rawRag : sectionsTag) {
             final CompoundBinaryTag sectionTag = (CompoundBinaryTag) rawRag;
             int index = sectionTag.getByte("Y");
@@ -300,24 +314,23 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
             // TODO - actually, the section is empty if the block_states palette only contains air so uh... yeah xD fix this :P
             // NB - maybe consider an import flag to respect the original biome even if its an empty section, or just strip and replace with the world default
-            if (blockStatesTag.size() == 0 && biomesTag.size() == 0) continue; // Empty section
+            if (blockStatesTag.isEmpty() && biomesTag.isEmpty()) continue; // Empty section or light only section
 
             NibbleArray blockLightArray = applyByteArrayOrNull(sectionTag, "BlockLight", NibbleArray::new);
             NibbleArray skyLightArray = applyByteArrayOrNull(sectionTag, "SkyLight", NibbleArray::new);
 
             sectionArray[index - minSectionY] = new SlimeChunkSectionSkeleton(blockStatesTag, biomesTag, blockLightArray, skyLightArray);
+            hasSection = true;
         }
 
         Map<String, BinaryTag> extraTag = new HashMap<>();
         CompoundBinaryTag chunkBukkitValues = compound.getCompound("ChunkBukkitValues");
         if (!chunkBukkitValues.isEmpty()) extraTag.put("ChunkBukkitValues", chunkBukkitValues);
 
-        // Find first non-null chunk section. If all sections are null, chunk is empty so return null
-        return Arrays.stream(sectionArray)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .map(x -> new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null, null, null, null)) //TODO: Convert poi, block and fluid
-                .orElse(null);
+        //If all sections are null, chunk is empty so return null
+        if(!hasSection) return null;
+
+        return new SlimeChunkSkeleton(chunkX, chunkZ, sectionArray, heightMaps, tileEntities, entities, extraTag, null, null, null, null); //TODO: Convert poi, block and fluid
     }
 
     private static <T> T applyByteArrayOrNull(final CompoundBinaryTag tag, final String key, final Function<byte[], T> transform) {

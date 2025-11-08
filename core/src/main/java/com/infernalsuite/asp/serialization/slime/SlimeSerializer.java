@@ -97,7 +97,7 @@ public class SlimeSerializer {
             outStream.writeInt(chunk.getZ());
 
             // Chunk sections
-            SlimeChunkSection[] sections = Arrays.stream(chunk.getSections()).filter(Objects::nonNull).toList().toArray(new SlimeChunkSection[0]);
+            SlimeChunkSection[] sections = chunk.getSections();
 
             outStream.writeInt(sections.length);
             for (SlimeChunkSection slimeChunkSection : sections) {

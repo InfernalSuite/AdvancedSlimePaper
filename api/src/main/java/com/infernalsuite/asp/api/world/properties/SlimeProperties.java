@@ -99,8 +99,11 @@ public class SlimeProperties {
     );
 
     @ApiStatus.Experimental
+    @Deprecated(forRemoval = true)
     public static final SlimePropertyInt CHUNK_SECTION_MIN = SlimePropertyInt.create("chunkSectionMin", -4);
+
     @ApiStatus.Experimental
+    @Deprecated(forRemoval = true)
     public static final SlimePropertyInt CHUNK_SECTION_MAX = SlimePropertyInt.create("chunkSectionMax", 19);
 
     /**

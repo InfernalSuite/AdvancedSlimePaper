@@ -71,10 +71,9 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             int z = chunkData.readInt();
 
             // Sections
-            int sectionAmount = slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MAX) - slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MIN) + 1;
-            SlimeChunkSection[] chunkSections = new SlimeChunkSection[sectionAmount];
-
             int sectionCount = chunkData.readInt();
+            SlimeChunkSection[] chunkSections = new SlimeChunkSection[sectionCount];
+
             for (int sectionId = 0; sectionId < sectionCount; sectionId++) {
 
                 // Block Light Nibble Array
