@@ -46,7 +46,7 @@
 -    implementation(project(":paper-api"))
 +    implementation(project(":aspaper-api")) //ASP
 +    implementation(project(":core")) //ASP
-     implementation("ca.spottedleaf:concurrentutil:0.0.5")
+     implementation("ca.spottedleaf:concurrentutil:0.0.7")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
      implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
 @@ -197,14 +_,14 @@
