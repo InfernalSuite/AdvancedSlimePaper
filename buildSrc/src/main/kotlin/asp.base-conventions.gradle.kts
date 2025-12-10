@@ -6,7 +6,7 @@ plugins {
 }
 
 group = rootProject.providers.gradleProperty("group").get()
-version = rootProject.providers.gradleProperty("apiVersion").get()
+version = rootProject.providers.gradleProperty("aspApiVersion").get()
 
 java {
     toolchain {
