@@ -61,11 +61,11 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
 
         long start = System.currentTimeMillis();
 
-        LOGGER.info("Reading world {}.", worldName);
+        LOGGER.debug("Reading world {}.", worldName);
         byte[] serializedWorld = loader.readWorld(worldName);
 
         SlimeWorld slimeWorld = SlimeWorldReaderRegistry.readWorld(loader, worldName, serializedWorld, propertyMap, readOnly);
-        LOGGER.info("Applying datafixers for {}.", worldName);
+        LOGGER.debug("Applying datafixers for {}.", worldName);
         SlimeWorld dataFixed = SlimeNMSBridge.instance().getSlimeDataConverter().applyDataFixers(slimeWorld);
 
         // If the dataFixed and slimeWorld are same, then no datafixers were applied
@@ -86,7 +86,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
             throw new IllegalArgumentException("World " + world.getName() + " is already loaded");
         }
 
-        LOGGER.info("Loading world {}...", world.getName());
+        LOGGER.debug("Loading world {}...", world.getName());
         long start = System.currentTimeMillis();
 
         SlimeWorldInstance instance = BRIDGE_INSTANCE.loadInstance(world);

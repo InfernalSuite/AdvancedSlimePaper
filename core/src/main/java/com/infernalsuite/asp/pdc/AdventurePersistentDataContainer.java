@@ -76,6 +76,11 @@ public class AdventurePersistentDataContainer implements PersistentDataContainer
     }
 
     @Override
+    public int getSize() {
+        return this.tags.size();
+    }
+
+    @Override
     public <P, C> boolean has(@NotNull NamespacedKey key, @NotNull PersistentDataType<P, C> type) {
         Preconditions.checkNotNull(key, "The key cannot be null");
         Preconditions.checkNotNull(type, "The provided type cannot be null");

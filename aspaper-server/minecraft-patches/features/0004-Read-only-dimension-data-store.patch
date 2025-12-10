@@ -5,11 +5,11 @@ Subject: [PATCH] Read only dimension data store
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 5d63bf024cbcbd2f627c64fee77553c9a512bd15..da169d319e9c09de2d5a34784af4e4c133b10f46 100644
+index 413f0673557b9e3f9177d15e9bef61bded209e34..ebc9373bb3a48ef41d54d445c1aa02fe06d83cff 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
 @@ -210,7 +210,13 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
-             LOGGER.error("Failed to create dimension data storage directory", (Throwable)var15);
+             LOGGER.error("Failed to create dimension data storage directory", (Throwable)var14);
          }
  
 -        this.dataStorage = new DimensionDataStorage(new SavedData.Context(level), path, fixerUpper, level.registryAccess());

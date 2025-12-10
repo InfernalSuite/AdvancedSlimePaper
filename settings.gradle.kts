@@ -13,7 +13,6 @@ plugins {
 
 rootProject.name = "ASPaper"
 
-include(":gradle:platform")
 include(":api")
 include(":core")
 include(":importer")

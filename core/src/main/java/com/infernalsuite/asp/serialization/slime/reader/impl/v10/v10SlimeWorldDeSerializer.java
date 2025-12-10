@@ -131,10 +131,9 @@ class v10SlimeWorldDeSerializer implements VersionedByteSlimeWorldReader<SlimeWo
             // Chunk Sections
             {
                 // See WorldUtils
-                int sectionAmount = slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MAX) - slimePropertyMap.getValue(SlimeProperties.CHUNK_SECTION_MIN) + 1;
-                SlimeChunkSection[] chunkSectionArray = new SlimeChunkSection[sectionAmount];
-
                 int sectionCount = chunkData.readInt();
+                SlimeChunkSection[] chunkSectionArray = new SlimeChunkSection[sectionCount];
+
                 for (int sectionId = 0; sectionId < sectionCount; sectionId++) {
                     // Block Light Nibble Array
                     NibbleArray blockLightArray;
