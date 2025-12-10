@@ -5,20 +5,20 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c394731283ee3344a8e21d3b2d0f75470e4f6bfd..db13c732fdea20e28130a89b40bbe8662d4873da 100644
+index 7893b71f81ae055512ec88415ebe388b7152cc5a..b43b7d06a7514da20a35a856d19eaef5670fc4af 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -634,7 +634,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -640,7 +640,7 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
      ) {
          //ASP end
          // CraftBukkit start
--        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor
-+        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.location(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor  //ASP - Optimize world config
+-        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.identifier(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor
++        super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> bootstrap != null ? com.infernalsuite.asp.config.SlimePaperWorldConfig.initializeOrGet() : server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.identifier(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor  //ASP - Optimize world config
          this.levelStorageAccess = levelStorageAccess;
          this.uuid = bootstrap == null ? org.bukkit.craftbukkit.util.WorldUUID.getOrCreate(levelStorageAccess.levelDirectory.path().toFile()) : java.util.UUID.randomUUID(); //ASP - avoid IO calls
          this.levelLoadListener = new net.minecraft.server.level.progress.LoggingLevelLoadListener(false, this);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index d225267b1b07854b76c88ce461d7817a86d023a0..de152aca205954d33cf2997043cb8c91b9587cdf 100644
+index 0df3a12f64f9c48561d64059289727b18239d6ce..25c2fe67019da8089107c2662c5813ff302485cc 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -844,7 +844,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
