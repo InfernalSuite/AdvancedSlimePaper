@@ -23,25 +23,27 @@ public class MysqlLoader extends UpdatableLoader {
     private static final int CURRENT_DB_VERSION = 1;
 
     // Database version handling queries
-    private static final String CREATE_VERSIONING_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `database_version` (`id` INT NOT NULL AUTO_INCREMENT, " +
-            "`version` INT(11), PRIMARY KEY(id));";
-    private static final String INSERT_VERSION_QUERY = "INSERT INTO `database_version` (`id`, `version`) VALUES (1, ?) ON DUPLICATE KEY UPDATE `id` = ?;";
-    private static final String GET_VERSION_QUERY = "SELECT `version` FROM `database_version` WHERE `id` = 1;";
+    private static String CREATE_VERSIONING_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `%config_versioning_table_name%` (`id` INT NOT NULL AUTO_INCREMENT, " + "`version` INT(11), PRIMARY KEY(id));";
+    private static String INSERT_VERSION_QUERY = "INSERT INTO `%config_versioning_table_name%` (`id`, `version`) VALUES (1, ?) ON DUPLICATE KEY UPDATE `id` = ?;";
+    private static String GET_VERSION_QUERY = "SELECT `version` FROM `%config_versioning_table_name%` WHERE `id` = 1;";
 
     // v1 update query
-    private static final String ALTER_LOCKED_COLUMN_QUERY = "ALTER TABLE `worlds` CHANGE COLUMN `locked` `locked` BIGINT NOT NULL DEFAULT 0;";
+    private static String ALTER_LOCKED_COLUMN_QUERY = "ALTER TABLE `%config_worlds_table_name%` CHANGE COLUMN `locked` `locked` BIGINT NOT NULL DEFAULT 0;";
 
     // World handling queries
-    private static final String CREATE_WORLDS_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `worlds` (`id` INT NOT NULL AUTO_INCREMENT, " +
-            "`name` VARCHAR(255) UNIQUE, `locked` BIGINT, `world` MEDIUMBLOB, PRIMARY KEY(id));";
-    private static final String SELECT_WORLD_QUERY = "SELECT `world` FROM `worlds` WHERE `name` = ?;";
-    private static final String UPDATE_WORLD_QUERY = "INSERT INTO `worlds` (`name`, `world`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `world` = ?;";
-    private static final String DELETE_WORLD_QUERY = "DELETE FROM `worlds` WHERE `name` = ?;";
-    private static final String LIST_WORLDS_QUERY = "SELECT `name` FROM `worlds`;";
+    private static String CREATE_WORLDS_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `%config_worlds_table_name%` (`id` INT NOT NULL AUTO_INCREMENT, " + "`name` VARCHAR(255) UNIQUE, `locked` BIGINT, `world` MEDIUMBLOB, PRIMARY KEY(id));";
+    private static String SELECT_WORLD_QUERY = "SELECT `world` FROM `%config_worlds_table_name%` WHERE `name` = ?;";
+    private static String UPDATE_WORLD_QUERY = "INSERT INTO `%config_worlds_table_name%` (`name`, `world`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `world` = ?;";
+    private static String DELETE_WORLD_QUERY = "DELETE FROM `%config_worlds_table_name%` WHERE `name` = ?;";
+    private static String LIST_WORLDS_QUERY = "SELECT `name` FROM `%config_worlds_table_name%`;";
 
     private final HikariDataSource source;
 
-    public MysqlLoader(String sqlURL, String host, int port, String database, boolean useSSL, String username, String password) throws SQLException {
+    public MysqlLoader(String sqlUrl, String host, int port, String database, boolean useSSL, String username, String password) throws SQLException {
+        this(sqlUrl, host, port, database, useSSL, username, password, "worlds", "database_version");
+    }
+
+    public MysqlLoader(String sqlURL, String host, int port, String database, boolean useSSL, String username, String password, String worldsTable, String versioningTable) throws SQLException {
         HikariConfig hikariConfig = new HikariConfig();
 
         sqlURL = sqlURL.replace("{host}", host);
@@ -66,6 +68,8 @@ public class MysqlLoader extends UpdatableLoader {
         hikariConfig.addDataSourceProperty("maintainTimeStats", "false");
 
         source = new HikariDataSource(hikariConfig);
+
+        parseTableNames(worldsTable, versioningTable);
         init();
     }
 
@@ -207,6 +211,22 @@ public class MysqlLoader extends UpdatableLoader {
                 statement.execute();
             }
         }
+    }
+
+    private void parseTableNames(String worldsTableName, String versioningTableName) {
+
+        CREATE_VERSIONING_TABLE_QUERY = CREATE_VERSIONING_TABLE_QUERY.replace("%config_versioning_table_name%", versioningTableName);
+        INSERT_VERSION_QUERY = INSERT_VERSION_QUERY.replace("%config_versioning_table_name%", versioningTableName);
+        GET_VERSION_QUERY = GET_VERSION_QUERY.replace("%config_versioning_table_name%", versioningTableName);
+
+        ALTER_LOCKED_COLUMN_QUERY = ALTER_LOCKED_COLUMN_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+
+        CREATE_WORLDS_TABLE_QUERY = CREATE_WORLDS_TABLE_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+        SELECT_WORLD_QUERY = SELECT_WORLD_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+        UPDATE_WORLD_QUERY = UPDATE_WORLD_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+        DELETE_WORLD_QUERY = DELETE_WORLD_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+        LIST_WORLDS_QUERY = LIST_WORLDS_QUERY.replace("%config_worlds_table_name%", worldsTableName);
+
     }
 
 }

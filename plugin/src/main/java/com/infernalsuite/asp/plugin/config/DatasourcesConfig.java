@@ -37,6 +37,12 @@ public class DatasourcesConfig {
         @Setting("database")
         private String database = "slimeworldmanager";
 
+        @Setting("tableName")
+        private String tableName = "worlds";
+
+        @Setting("versioningTableName")
+        private String versioningTableName = "database_version";
+
         @Setting("usessl")
         private boolean usessl = false;
 
@@ -69,6 +75,14 @@ public class DatasourcesConfig {
 
         public String getUsername() {
             return username;
+        }
+
+        public String getTableName() {
+            return tableName;
+        }
+
+        public String getVersioningTableName() {
+            return versioningTableName;
         }
 
         public void setUsername(String username) {
