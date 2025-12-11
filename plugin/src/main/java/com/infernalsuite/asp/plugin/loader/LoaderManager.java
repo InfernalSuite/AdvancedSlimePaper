@@ -39,7 +39,9 @@ public class LoaderManager {
                         mysqlConfig.getSqlUrl(),
                         mysqlConfig.getHost(), mysqlConfig.getPort(),
                         mysqlConfig.getDatabase(), mysqlConfig.isUsessl(),
-                        mysqlConfig.getUsername(), mysqlConfig.getPassword()
+                        mysqlConfig.getUsername(), mysqlConfig.getPassword(),
+                        mysqlConfig.getTableName(),
+                        mysqlConfig.getVersioningTableName()
                 ));
             } catch (final SQLException ex) {
                 LOGGER.error("Failed to establish connection to the MySQL server:", ex);
