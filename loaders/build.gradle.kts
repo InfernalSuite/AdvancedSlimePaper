@@ -11,6 +11,7 @@ dependencies {
     api(project(":loaders:mongo-loader"))
     api(project(":loaders:mysql-loader"))
     api(project(":loaders:redis-loader"))
+    api(project(":loaders:postgresql-loader"))
 
     compileOnly(paperApi())
 }

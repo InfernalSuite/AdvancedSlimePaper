@@ -10,6 +10,8 @@ public class DatasourcesConfig {
     private FileConfig fileConfig = new FileConfig();
     @Setting("mysql")
     private MysqlConfig mysqlConfig = new MysqlConfig();
+    @Setting("postgresql")
+    private PostgresqlConfig postgresqlConfig = new PostgresqlConfig();
     @Setting("mongodb")
     private MongoDBConfig mongoDbConfig = new MongoDBConfig();
     @Setting("redis")
@@ -106,6 +108,97 @@ public class DatasourcesConfig {
         public void setSqlUrl(String sqlUrl) {
             this.sqlUrl = sqlUrl;
         }
+    }
+
+    @ConfigSerializable
+    public static class PostgresqlConfig {
+
+        @Setting("enabled")
+        private boolean enabled = false;
+
+        @Setting("host")
+        private String host = "127.0.0.1";
+        @Setting("port")
+        private int port = 5432;
+
+        @Setting("username")
+        private String username = "slimeworldmanager";
+        @Setting("password")
+        private String password = "";
+
+        @Setting("database")
+        private String database = "slimeworldmanager";
+
+        @Setting("usessl")
+        private boolean usessl = false;
+
+        @Setting("sqlUrl")
+        private String sqlUrl = "jdbc:postgresql://{host}:{port}/{database}?ssl={usessl}";;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getDatabase() {
+            return database;
+        }
+
+        public void setDatabase(String database) {
+            this.database = database;
+        }
+
+        public boolean isUsessl() {
+            return usessl;
+        }
+
+        public void setUsessl(boolean usessl) {
+            this.usessl = usessl;
+        }
+
+        public String getSqlUrl() {
+            return sqlUrl;
+        }
+
+        public void setSqlUrl(String sqlUrl) {
+            this.sqlUrl = sqlUrl;
+        }
+
     }
 
     @ConfigSerializable
@@ -286,6 +379,14 @@ public class DatasourcesConfig {
 
     public void setMysqlConfig(MysqlConfig mysqlConfig) {
         this.mysqlConfig = mysqlConfig;
+    }
+
+    public PostgresqlConfig getPostgresqlConfig() {
+        return postgresqlConfig;
+    }
+
+    public void setPostgresqlConfig(PostgresqlConfig postgresqlConfig) {
+        this.postgresqlConfig = postgresqlConfig;
     }
 
     public MongoDBConfig getMongoDbConfig() {

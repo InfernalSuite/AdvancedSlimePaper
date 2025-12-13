@@ -1,0 +1,16 @@
+plugins {
+    id("asp.base-conventions")
+    id("asp.publishing-conventions")
+}
+
+dependencies {
+    compileOnly(project(":api"))
+
+    api(libs.hikari)
+    api("org.postgresql:postgresql:42.7.8")
+}
+
+publishConfiguration {
+    name = "Advanced Slime Paper PostgresSQL Loader"
+    description = "PostgresSQL loader for Advanced Slime Paper"
+}
