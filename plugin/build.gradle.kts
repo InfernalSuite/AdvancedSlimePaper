@@ -31,6 +31,7 @@ tasks {
         relocate("com.zaxxer.hikari", "com.infernalsuite.asp.libs.hikari")
         relocate("com.mongodb", "com.infernalsuite.asp.libs.mongo")
         relocate("io.lettuce", "com.infernalsuite.asp.libs.lettuce")
+        relocate("org.postgresql", "com.infernalsuite.asp.libs.postgresql")
         relocate("org.bson", "com.infernalsuite.asp.libs.bson")
     }
 
