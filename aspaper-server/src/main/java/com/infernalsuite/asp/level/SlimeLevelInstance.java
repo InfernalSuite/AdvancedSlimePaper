@@ -16,6 +16,7 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import com.mojang.logging.LogUtils;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.util.TriState;
@@ -25,7 +26,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -47,6 +48,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spigotmc.AsyncCatcher;
 
 import java.io.IOException;
@@ -66,6 +68,7 @@ public class SlimeLevelInstance extends ServerLevel {
 
 
     public static LevelStorageSource CUSTOM_LEVEL_STORAGE;
+    private static final Logger LOGGER = LogUtils.getClassLogger();
 
     static {
         try {
@@ -103,7 +106,7 @@ public class SlimeLevelInstance extends ServerLevel {
         serverLevelData.setSpawn(
                 new LevelData.RespawnData(
                         GlobalPos.of(
-                                ResourceKey.create(Registries.DIMENSION, this.dimension().location()),
+                                ResourceKey.create(Registries.DIMENSION, this.dimension().identifier()),
                                 new BlockPos(
                                         propertyMap.getValue(SlimeProperties.SPAWN_X),
                                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
@@ -140,7 +143,7 @@ public class SlimeLevelInstance extends ServerLevel {
     @Override
     public @NotNull ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
-        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
+        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, Identifier.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
         return new SlimeLevelGenerator(defaultBiome, this);
     }
@@ -178,7 +181,7 @@ public class SlimeLevelInstance extends ServerLevel {
                 }
             }
         } catch (Throwable e) {
-            Bukkit.getLogger().log(Level.SEVERE, "There was a problem saving the SlimeLevelInstance " + serverLevelData.getLevelName(), e);
+            LOGGER.error("There was a problem saving the SlimeLevelInstance {}", serverLevelData.getLevelName(), e);
             return CompletableFuture.failedFuture(e);
         }
         return CompletableFuture.completedFuture(null);
@@ -187,7 +190,7 @@ public class SlimeLevelInstance extends ServerLevel {
     private Future<?> saveInternal() {
         synchronized (saveLock) { // Don't want to save the SlimeWorld from multiple threads simultaneously
             SlimeWorldInstance slimeWorld = this.slimeInstance;
-            Bukkit.getLogger().log(Level.INFO, "Saving world " + this.slimeInstance.getName() + "...");
+            LOGGER.debug("Saving world {}...", this.slimeInstance.getName());
             long start = System.currentTimeMillis();
 
             SlimeWorld world = this.slimeInstance.getSerializableCopy();
@@ -196,9 +199,9 @@ public class SlimeLevelInstance extends ServerLevel {
                     byte[] serializedWorld = SlimeSerializer.serialize(world);
                     long saveStart = System.currentTimeMillis();
                     slimeWorld.getLoader().saveWorld(slimeWorld.getName(), serializedWorld);
-                    Bukkit.getLogger().log(Level.INFO, "World " + slimeWorld.getName() + " serialized in " + (saveStart - start) + "ms and saved in " + (System.currentTimeMillis() - saveStart) + "ms.");
+                    LOGGER.debug("World {} serialized in {}ms and saved in {}ms.", slimeWorld.getName(), saveStart - start, System.currentTimeMillis() - saveStart);
                 } catch (Exception ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "There was an issue saving world " + slimeWorld.getName() + " asynchronously.", ex);
+                    LOGGER.error("There was an issue saving world {} asynchronously.", slimeWorld.getName(), ex);
                 }
             });
 
@@ -244,7 +247,7 @@ public class SlimeLevelInstance extends ServerLevel {
                     }
                 });
             } catch (IOException e) {
-                Bukkit.getLogger().log(Level.WARNING, "Unable to delete temp level directory" , e);
+                LOGGER.warn("Unable to delete temp level directory" , e);
             }
         });
     }

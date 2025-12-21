@@ -17,8 +17,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ReadOnlyDimensionDataStorage extends DimensionDataStorage {
 
-    public ReadOnlyDimensionDataStorage(SavedData.Context ctx, Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
-        super(ctx, dataFolder, fixerUpper, registries);
+    public ReadOnlyDimensionDataStorage(Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
+        super(dataFolder, fixerUpper, registries);
     }
 
     @Override
