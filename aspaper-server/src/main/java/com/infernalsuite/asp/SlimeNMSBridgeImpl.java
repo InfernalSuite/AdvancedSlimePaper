@@ -15,12 +15,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldLoader;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerProperties;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.gamerules.GameRuleMap;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -187,7 +188,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
             default -> throw new IllegalArgumentException("Unknown dimension supplied");
         };
 
-        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
+        ResourceKey<Level> worldKey = dimensionOverride == null ? ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldName.toLowerCase(Locale.ENGLISH))) : dimensionOverride;
         LevelStem stem = MinecraftServer.getServer().registries().compositeAccess().lookupOrThrow(Registries.LEVEL_STEM).get(dimension).orElseThrow().value();
 
         SlimeLevelInstance level;
@@ -212,7 +213,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         WorldLoader.DataLoadContext context = mcServer.worldLoaderContext;
 
         LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gameMode.get(), false, serverProps.difficulty.get(),
-                true, new GameRules(context.dataConfiguration().enabledFeatures()), mcServer.worldLoaderContext.dataConfiguration());
+                true, new GameRules(context.dataConfiguration().enabledFeatures(), GameRuleMap.of()), mcServer.worldLoaderContext.dataConfiguration());
 
         WorldOptions worldoptions = new WorldOptions(0, false, false);
 

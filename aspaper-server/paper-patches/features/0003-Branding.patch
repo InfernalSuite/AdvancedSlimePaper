@@ -88,16 +88,3 @@ index 74ffdc823e66fc5ec027c4b7c462382bcbfe2be2..2610e8d1ce20331895b0a76fa50efc06
      }
  
      @Override
-diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 774556a62eb240da42e84db4502e2ed43495be17..0c54eb1187c31a2e6efd4b0898fc600fa1bddeee 100644
---- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-+++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-@@ -11,7 +11,7 @@ public final class Versioning {
-     public static String getBukkitVersion() {
-         String result = "Unknown-Version";
- 
--        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/io.papermc.paper/paper-api/pom.properties");
-+        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.asp/aspaper-api/pom.properties");
-         Properties properties = new Properties();
- 
-         if (stream != null) {

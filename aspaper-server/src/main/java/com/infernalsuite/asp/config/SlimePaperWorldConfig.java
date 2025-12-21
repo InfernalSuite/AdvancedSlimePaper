@@ -3,16 +3,16 @@ package com.infernalsuite.asp.config;
 import io.papermc.paper.configuration.Configurations;
 import io.papermc.paper.configuration.PaperConfigurations;
 import io.papermc.paper.configuration.WorldConfiguration;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.spigotmc.SpigotWorldConfig;
 
 import java.nio.file.Path;
 
 public class SlimePaperWorldConfig {
 
-    private static final ResourceLocation FAKE_WORLD_KEY = ResourceLocation.fromNamespaceAndPath("infernalsuite", "asp-slimeworld");
+    private static final Identifier FAKE_WORLD_KEY = Identifier.fromNamespaceAndPath("infernalsuite", "asp-slimeworld");
     public static WorldConfiguration cachedSlimeWorldConfig;
 
     private SlimePaperWorldConfig() {}

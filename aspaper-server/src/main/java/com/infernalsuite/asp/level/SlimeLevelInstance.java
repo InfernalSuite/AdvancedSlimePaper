@@ -26,7 +26,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -106,7 +106,7 @@ public class SlimeLevelInstance extends ServerLevel {
         serverLevelData.setSpawn(
                 new LevelData.RespawnData(
                         GlobalPos.of(
-                                ResourceKey.create(Registries.DIMENSION, this.dimension().location()),
+                                ResourceKey.create(Registries.DIMENSION, this.dimension().identifier()),
                                 new BlockPos(
                                         propertyMap.getValue(SlimeProperties.SPAWN_X),
                                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
@@ -143,7 +143,7 @@ public class SlimeLevelInstance extends ServerLevel {
     @Override
     public @NotNull ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
-        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
+        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, Identifier.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
         return new SlimeLevelGenerator(defaultBiome, this);
     }
