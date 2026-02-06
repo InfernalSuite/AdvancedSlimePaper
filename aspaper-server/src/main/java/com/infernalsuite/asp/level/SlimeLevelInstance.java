@@ -39,6 +39,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -58,6 +59,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -126,7 +128,8 @@ public class SlimeLevelInstance extends ServerLevel {
             getWorld().readBukkitValues(Converter.convertTag(extraData.get("BukkitValues")));
         }
 
-        this.pvpMode = propertyMap.getOptionalValue(SlimeProperties.PVP).map(TriState::byBoolean).orElse(TriState.NOT_SET);
+        propertyMap.getOptionalValue(SlimeProperties.PVP)
+                .ifPresent(val -> getGameRules().set(GameRules.PVP, val, this));
 
         this.entityDataController = new SlimeEntityDataLoader(
                 new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
