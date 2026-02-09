@@ -6,8 +6,6 @@ import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
-import java.security.CodeSource;
-
 /*
  * We use the boostrap to validate if the plugin is running on ASP.
  * Doing this check in SWPlugin seems to not be as easy without significant changes

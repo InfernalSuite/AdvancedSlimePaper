@@ -4,6 +4,7 @@ import com.infernalsuite.asp.api.exceptions.UnknownWorldException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SlimeLoaders are in charge of loading worlds
@@ -49,6 +50,15 @@ public interface SlimeLoader {
      * @throws IOException if the world could not be saved.
      */
     void saveWorld(String worldName, byte[] serializedWorld) throws IOException;
+
+    /**
+     * Saves multiple worlds at once. This method will also
+     * lock the worlds, in case they're not locked already.
+     *
+     * @param worlds a map containing the world names as keys and their data files as values
+     * @throws IOException if the worlds could not be saved.
+     */
+    void saveWorlds(Map<String, byte[]> worlds) throws IOException;
 
     /**
      * Deletes a world from the data source.

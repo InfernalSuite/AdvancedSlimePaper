@@ -21,6 +21,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -171,6 +172,11 @@ public class APILoader implements SlimeLoader {
 
     @Override
     public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
+        this.logger.warn("Illegal call to saveWorld: API Worlds cannot be saved. They're always read-only.");
+    }
+
+    @Override
+    public void saveWorlds(Map<String, byte[]> worlds) throws IOException {
         this.logger.warn("Illegal call to saveWorld: API Worlds cannot be saved. They're always read-only.");
     }
 

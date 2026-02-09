@@ -5,16 +5,15 @@ import com.infernalsuite.asp.api.loaders.UpdatableLoader;
 import com.infernalsuite.asp.loaders.api.APILoader;
 import com.infernalsuite.asp.loaders.file.FileLoader;
 import com.infernalsuite.asp.loaders.mongo.MongoLoader;
-import com.infernalsuite.asp.loaders.mysql.MysqlLoader;
+import com.infernalsuite.asp.loaders.sql.SqlLoader;
 import com.infernalsuite.asp.loaders.redis.RedisLoader;
-import com.mongodb.MongoException;
-import io.lettuce.core.RedisException;
+import com.infernalsuite.asp.plugin.config.DatasourcesConfig;
+import com.infernalsuite.asp.plugin.util.ThrowingSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,58 +30,65 @@ public class LoaderManager {
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.FileConfig fileConfig = config.getFileConfig();
         registerLoader("file", new FileLoader(new File(fileConfig.getPath())));
 
-        // Mysql loader
-        com.infernalsuite.asp.plugin.config.DatasourcesConfig.MysqlConfig mysqlConfig = config.getMysqlConfig();
-        if (mysqlConfig.isEnabled()) {
+        // Sql loader
+        DatasourcesConfig.SqlConfig sqlConfig = config.getSqlConfig();
+        if (sqlConfig.isEnabled()) {
+            ThrowingSupplier<SqlLoader> sqlSupplier = () -> new SqlLoader(
+                    sqlConfig.getSqlUrl(),
+                    sqlConfig.getHost(), sqlConfig.getPort(),
+                    sqlConfig.getDatabase(), sqlConfig.isUsessl(),
+                    sqlConfig.getUsername(), sqlConfig.getPassword()
+            );
+
             try {
-                registerLoader("mysql", new MysqlLoader(
-                        mysqlConfig.getSqlUrl(),
-                        mysqlConfig.getHost(), mysqlConfig.getPort(),
-                        mysqlConfig.getDatabase(), mysqlConfig.isUsessl(),
-                        mysqlConfig.getUsername(), mysqlConfig.getPassword()
-                ));
-            } catch (final SQLException ex) {
-                LOGGER.error("Failed to establish connection to the MySQL server:", ex);
+                SqlLoader sqlLoader = sqlSupplier.get();
+                tryRegisterLoader(sqlLoader.getDatabaseType(), () -> sqlLoader);
+            } catch (Exception e) {
+                LOGGER.error("Failed to establish connection to the loader:", e);
             }
         }
 
         // MongoDB loader
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.MongoDBConfig mongoConfig = config.getMongoDbConfig();
-
         if (mongoConfig.isEnabled()) {
-            try {
-                registerLoader("mongodb", new MongoLoader(
-                        mongoConfig.getDatabase(),
-                        mongoConfig.getCollection(),
-                        mongoConfig.getUsername(),
-                        mongoConfig.getPassword(),
-                        mongoConfig.getAuthSource(),
-                        mongoConfig.getHost(),
-                        mongoConfig.getPort(),
-                        mongoConfig.getUri()
-                ));
-            } catch (final MongoException ex) {
-                LOGGER.error("Failed to establish connection to the MongoDB server:", ex);
-            }
+            tryRegisterLoader("mongo", () -> new MongoLoader(
+                    mongoConfig.getDatabase(),
+                    mongoConfig.getCollection(),
+                    mongoConfig.getUsername(),
+                    mongoConfig.getPassword(),
+                    mongoConfig.getAuthSource(),
+                    mongoConfig.getHost(),
+                    mongoConfig.getPort(),
+                    mongoConfig.getUri()
+            ));
         }
 
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
-        if (redisConfig.isEnabled()){
-            try {
-                registerLoader("redis", new RedisLoader(redisConfig.getUri()));
-            } catch (final RedisException ex) {
-                LOGGER.error("Failed to establish connection to the Redis server:", ex);
-            }
+        if (redisConfig.isEnabled()) {
+            tryRegisterLoader("redis", () -> new RedisLoader(redisConfig.getUri()));
         }
 
         com.infernalsuite.asp.plugin.config.DatasourcesConfig.APIConfig apiConfig = config.getApiConfig();
-        if(apiConfig.isEnabled()){
-            registerLoader("api", new APILoader(
+        if(apiConfig.isEnabled()) {
+            tryRegisterLoader("api", () -> new APILoader(
                     apiConfig.getUrl(),
                     apiConfig.getUsername(),
                     apiConfig.getToken(),
                     apiConfig.isIgnoreSslCertificate()
             ));
+        }
+
+        if (getLoaders().isEmpty()) {
+            throw new IllegalStateException("No valid data source configuration found! Please check your config file.");
+        }
+    }
+
+    private void tryRegisterLoader(String name, ThrowingSupplier<SlimeLoader> supplier) {
+        try {
+            SlimeLoader loader = supplier.get();
+            registerLoader(name, loader);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to establish connection to the loader:", ex);
         }
     }
 
