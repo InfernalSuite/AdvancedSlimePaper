@@ -101,7 +101,7 @@ public class SqlLoader extends UpdatableLoader {
                 throw new NewerStorageException(CURRENT_DB_VERSION, version);
             }
 
-            if (version < CURRENT_DB_VERSION) {
+            if (version < CURRENT_DB_VERSION && version != -1) {
                 LOGGER.warn("Your SWM database is outdated. The update process will start in 10 seconds.");
                 LOGGER.warn("Note that this update might make your database incompatible with older SWM versions.");
                 LOGGER.warn("Make sure no other servers with older SWM versions are using this database.");
@@ -117,18 +117,15 @@ public class SqlLoader extends UpdatableLoader {
                 // Update to v1: alter locked column to store a long
                 this.updateLockedColumn(con);
 
-                // Insert/update database version table
-                int affected;
                 try (PreparedStatement statement = con.prepareStatement(UPDATE_VERSION_QUERY)) {
                     statement.setInt(1, CURRENT_DB_VERSION);
-                    affected = statement.executeUpdate();
+                    statement.executeUpdate();
                 }
-
-                if (affected == 0) {
-                    try (PreparedStatement statement = con.prepareStatement(INSERT_VERSION_QUERY)) {
-                        statement.setInt(1, CURRENT_DB_VERSION);
-                        statement.executeUpdate();
-                    }
+            } else if (version == -1) {
+                // Fresh database, just insert the version
+                try (PreparedStatement statement = con.prepareStatement(INSERT_VERSION_QUERY)) {
+                    statement.setInt(1, CURRENT_DB_VERSION);
+                    statement.executeUpdate();
                 }
             }
         } catch (SQLException ex) {
