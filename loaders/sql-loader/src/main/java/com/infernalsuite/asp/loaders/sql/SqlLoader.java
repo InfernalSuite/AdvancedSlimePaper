@@ -57,7 +57,15 @@ public class SqlLoader extends UpdatableLoader {
         hikariConfig.setUsername(username);
         hikariConfig.setPassword(password);
 
-        if (sqlURL.startsWith("jdbc:mysql") || sqlURL.startsWith("jdbc:mariadb")) {
+        String protocol = sqlURL.split(":")[1].toLowerCase(Locale.ROOT);
+        String driverClass = DRIVERS.get(protocol);
+
+        if (driverClass != null) {
+            // We have to set a driver for some databases (e.g. h2) because Hikari can't detect it from the URL for some reason
+            hikariConfig.setDriverClassName(driverClass);
+        }
+
+        if (protocol.equals("mysql") || protocol.equals("mariadb")) {
             hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
             hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -68,13 +76,6 @@ public class SqlLoader extends UpdatableLoader {
             hikariConfig.addDataSourceProperty("cacheServerConfiguration", "true");
             hikariConfig.addDataSourceProperty("elideSetAutoCommits", "true");
             hikariConfig.addDataSourceProperty("maintainTimeStats", "false");
-        }
-
-        String protocol = sqlURL.split(":")[1].toLowerCase(Locale.ROOT);
-        String driverClass = DRIVERS.get(protocol);
-
-        if (driverClass != null) {
-            hikariConfig.setDriverClassName(driverClass);
         }
 
         source = new HikariDataSource(hikariConfig);
