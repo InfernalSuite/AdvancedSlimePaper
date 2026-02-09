@@ -19,11 +19,7 @@ public class SqlLoader extends UpdatableLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlLoader.class);
     private static final Map<String, String> DRIVERS = Map.of(
-            "h2", "org.h2.Driver",
-            "sqlite", "org.xerial.sqlite.JDBC",
-            "mysql", "com.mysql.cj.jdbc.Driver",
-            "mariadb", "org.mariadb.jdbc.Driver",
-            "postgresql", "org.postgresql.Driver"
+            "h2", "org.h2.Driver"
     );
 
     private static final int CURRENT_DB_VERSION = 1;
@@ -37,13 +33,21 @@ public class SqlLoader extends UpdatableLoader {
     // World handling queries
     private static final String CREATE_WORLDS_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS worlds (name VARCHAR(255) PRIMARY KEY, locked BIGINT NOT NULL DEFAULT 0, world BLOB NOT NULL)";
     private static final String SELECT_WORLD_QUERY = "SELECT world FROM worlds WHERE name = ?";
-    private static final String INSERT_WORLD_QUERY = "INSERT INTO worlds (name, world) VALUES (?, ?)";
-    private static final String UPDATE_WORLD_QUERY = "UPDATE worlds SET world = ? WHERE name = ?";
     private static final String DELETE_WORLD_QUERY = "DELETE FROM worlds WHERE name = ?";
     private static final String LIST_WORLDS_QUERY = "SELECT name FROM worlds";
 
+    private static final String MARIA_MYSQL_UPSERT_QUERY = "INSERT INTO worlds (name, world) VALUES (?, ?) ON DUPLICATE KEY UPDATE world = VALUES(world)";
+    private static final String POSTGRESQL_SQLITE_UPSERT_QUERY = "INSERT INTO worlds (name, world) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET world = EXCLUDED.world";
+    private static final String H2_UPSERT_QUERY = "MERGE INTO worlds (name, world) KEY(name) VALUES (?, ?)";
+
+    private static final String INSERT_WORLD_QUERY = "INSERT INTO worlds (name, world) VALUES (?, ?)";
+    private static final String UPDATE_WORLD_QUERY = "UPDATE worlds SET world = ? WHERE name = ?";
+
     private final HikariDataSource source;
+
     private String databaseType;
+    // Upsert query for fully supported databases
+    private String upsertQuery;
 
     public SqlLoader(String sqlURL, String host, int port, String database, boolean useSSL, String username, String password) throws SQLException {
         HikariConfig hikariConfig = new HikariConfig();
@@ -186,33 +190,46 @@ public class SqlLoader extends UpdatableLoader {
     @Override
     public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
         try (Connection con = source.getConnection()) {
-            con.setAutoCommit(false);
-            try {
-                int updated;
-                try (PreparedStatement statement = con.prepareStatement(UPDATE_WORLD_QUERY)) {
-                    statement.setBytes(1, serializedWorld);
-                    statement.setString(2, worldName);
-                    updated = statement.executeUpdate();
+            if (upsertQuery != null) {
+                try (PreparedStatement statement = con.prepareStatement(upsertQuery)) {
+                    statement.setString(1, worldName);
+                    statement.setBytes(2, serializedWorld);
+                    statement.executeUpdate();
                 }
-
-                // Workaround upsert because there is no standard SQL syntax for it
-                if (updated == 0) {
-                    try (PreparedStatement statement = con.prepareStatement(INSERT_WORLD_QUERY)) {
-                        statement.setString(1, worldName);
-                        statement.setBytes(2, serializedWorld);
-                        statement.executeUpdate();
-                    }
-                }
-
-                con.commit();
-            } catch (SQLException e) {
-                con.rollback();
-                throw new IOException(e);
-            } finally {
-                con.setAutoCommit(true);
+            } else {
+                saveWorldsLegacy(con, worldName, serializedWorld);
             }
         } catch (SQLException ex) {
             throw new IOException(ex);
+        }
+    }
+
+    // Only for not fully supported databases.
+    private void saveWorldsLegacy(Connection connection, String worldName, byte[] serializedWorld) throws SQLException, IOException {
+        connection.setAutoCommit(false);
+        try {
+            int updated;
+            try (PreparedStatement statement = connection.prepareStatement(UPDATE_WORLD_QUERY)) {
+                statement.setBytes(1, serializedWorld);
+                statement.setString(2, worldName);
+                updated = statement.executeUpdate();
+            }
+
+            // Workaround upsert because there is no standard SQL syntax for it
+            if (updated == 0) {
+                try (PreparedStatement statement = connection.prepareStatement(INSERT_WORLD_QUERY)) {
+                    statement.setString(1, worldName);
+                    statement.setBytes(2, serializedWorld);
+                    statement.executeUpdate();
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw new IOException(e);
+        } finally {
+            connection.setAutoCommit(true);
         }
     }
 
@@ -223,37 +240,53 @@ public class SqlLoader extends UpdatableLoader {
         }
 
         try (Connection con = source.getConnection()) {
-            con.setAutoCommit(false);
-            try {
-                try (PreparedStatement update = con.prepareStatement(UPDATE_WORLD_QUERY)) {
+            if (upsertQuery != null) {
+                try (PreparedStatement statement = con.prepareStatement(upsertQuery)) {
                     for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
-                        update.setBytes(1, entry.getValue());
-                        update.setString(2, entry.getKey());
-                        update.addBatch();
+                        statement.setString(1, entry.getKey());
+                        statement.setBytes(2, entry.getValue());
+                        statement.addBatch();
                     }
-                    int[] results = update.executeBatch();
-
-                    try (PreparedStatement insert = con.prepareStatement(INSERT_WORLD_QUERY)) {
-                        int i = 0;
-                        for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
-                            if (results[i++] == 0) {
-                                insert.setString(1, entry.getKey());
-                                insert.setBytes(2, entry.getValue());
-                                insert.addBatch();
-                            }
-                        }
-                        insert.executeBatch();
-                    }
+                    statement.executeBatch();
                 }
-                con.commit();
-            } catch (SQLException e) {
-                con.rollback();
-                throw new IOException(e);
-            } finally {
-                con.setAutoCommit(true);
+            } else {
+                saveWorldsLegacy(con, worlds);
             }
         } catch (SQLException ex) {
             throw new IOException(ex);
+        }
+    }
+
+    // Only for not fully supported databases.
+    private void saveWorldsLegacy(Connection con, Map<String, byte[]> worlds) throws SQLException {
+        con.setAutoCommit(false);
+        try {
+            try (PreparedStatement update = con.prepareStatement(UPDATE_WORLD_QUERY)) {
+                for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
+                    update.setBytes(1, entry.getValue());
+                    update.setString(2, entry.getKey());
+                    update.addBatch();
+                }
+                int[] results = update.executeBatch();
+
+                try (PreparedStatement insert = con.prepareStatement(INSERT_WORLD_QUERY)) {
+                    int i = 0;
+                    for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
+                        if (results[i++] == 0) {
+                            insert.setString(1, entry.getKey());
+                            insert.setBytes(2, entry.getValue());
+                            insert.addBatch();
+                        }
+                    }
+                    insert.executeBatch();
+                }
+            }
+            con.commit();
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
         }
     }
 
@@ -280,6 +313,14 @@ public class SqlLoader extends UpdatableLoader {
              Statement statement = con.createStatement()) {
             this.databaseType = con.getMetaData().getDatabaseProductName().toLowerCase(Locale.ROOT);
 
+            // Set upsert query for fully supported databases as it's faster than the insert + update
+            this.upsertQuery = switch (databaseType) {
+                case "mysql", "mariadb" -> MARIA_MYSQL_UPSERT_QUERY;
+                case "postgresql", "sqlite" -> POSTGRESQL_SQLITE_UPSERT_QUERY;
+                case "h2" -> H2_UPSERT_QUERY;
+                default -> null;
+            };
+
             // Create worlds table
             statement.execute(CREATE_WORLDS_TABLE_QUERY);
 
@@ -289,9 +330,8 @@ public class SqlLoader extends UpdatableLoader {
     }
 
     private void updateLockedColumn(Connection con) throws SQLException {
-        String db = databaseType.toLowerCase(Locale.ROOT);
         // Migration is needed only from these databases
-        if (!db.contains("mysql") && !db.contains("mariadb")) {
+        if (!databaseType.contains("mysql") && !databaseType.contains("mariadb")) {
            return;
         }
 
