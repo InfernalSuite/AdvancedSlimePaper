@@ -27,7 +27,7 @@ include("loaders:api-loader")
 findProject(":loaders:api-loader")?.name = "api-loader"
 include("loaders:file-loader")
 findProject(":loaders:file-loader")?.name = "file-loader"
-include("loaders:mysql-loader")
-findProject(":loaders:mysql-loader")?.name = "mysql-loader"
+include("loaders:sql-loader")
+findProject(":loaders:sql-loader")?.name = "sql-loader"
 include("loaders:redis-loader")
 findProject(":loaders:redis-loader")?.name = "redis-loader"

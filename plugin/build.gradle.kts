@@ -28,9 +28,6 @@ tasks {
         
         relocate("org.bstats", "com.infernalsuite.asp.libs.bstats")
         relocate("org.spongepowered.configurate", "com.infernalsuite.asp.libs.configurate")
-        relocate("com.zaxxer.hikari", "com.infernalsuite.asp.libs.hikari")
-        relocate("com.mongodb", "com.infernalsuite.asp.libs.mongo")
-        relocate("io.lettuce", "com.infernalsuite.asp.libs.lettuce")
         relocate("org.bson", "com.infernalsuite.asp.libs.bson")
     }
 
@@ -47,4 +44,5 @@ paper {
     main = "com.infernalsuite.asp.plugin.SWPlugin"
     authors = listOf("InfernalSuite")
     bootstrapper = "com.infernalsuite.asp.plugin.SlimePluginBootstrap"
+    loader = "com.infernalsuite.asp.plugin.SlimePluginLoader"
 }

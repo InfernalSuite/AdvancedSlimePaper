@@ -6,7 +6,7 @@ plugins {
 dependencies {
     compileOnly(project(":api"))
 
-    api(libs.lettuce)
+    compileOnlyApi(libs.lettuce)
 
     compileOnly(paperApi())
 }

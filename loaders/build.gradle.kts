@@ -9,7 +9,7 @@ dependencies {
     api(project(":loaders:api-loader"))
     api(project(":loaders:file-loader"))
     api(project(":loaders:mongo-loader"))
-    api(project(":loaders:mysql-loader"))
+    api(project(":loaders:sql-loader"))
     api(project(":loaders:redis-loader"))
 
     compileOnly(paperApi())

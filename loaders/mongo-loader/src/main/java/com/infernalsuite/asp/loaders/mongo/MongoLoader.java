@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MongoLoader extends UpdatableLoader {
 
@@ -180,6 +181,35 @@ public class MongoLoader extends UpdatableLoader {
     }
 
     @Override
+    public void saveWorlds(Map<String, byte[]> worlds) throws IOException {
+        MongoDatabase mongoDatabase = client.getDatabase(database);
+        GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, collection);
+        MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
+
+        List<WriteModel<Document>> bulkOps = new ArrayList<>();
+
+        for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
+            String worldName = entry.getKey();
+            byte[] data = entry.getValue();
+
+            GridFSFile oldFile = bucket.find(Filters.eq("filename", worldName)).first();
+            if (oldFile != null) {
+                bucket.delete(oldFile.getObjectId());
+            }
+
+            bucket.uploadFromStream(worldName, new ByteArrayInputStream(data));
+
+            Bson query = Filters.eq("name", worldName);
+            Bson update = Updates.set("name", worldName);
+            bulkOps.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
+        }
+
+        if (!bulkOps.isEmpty()) {
+            mongoCollection.bulkWrite(bulkOps);
+        }
+    }
+
+    @Override
     public void deleteWorld(String worldName) throws IOException, UnknownWorldException {
         try {
             MongoDatabase mongoDatabase = client.getDatabase(database);
@@ -203,5 +233,4 @@ public class MongoLoader extends UpdatableLoader {
             throw new IOException(ex);
         }
     }
-
 }

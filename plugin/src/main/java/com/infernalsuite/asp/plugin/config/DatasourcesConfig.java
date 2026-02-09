@@ -8,8 +8,8 @@ public class DatasourcesConfig {
 
     @Setting("file")
     private FileConfig fileConfig = new FileConfig();
-    @Setting("mysql")
-    private MysqlConfig mysqlConfig = new MysqlConfig();
+    @Setting("sql")
+    private SqlConfig sqlConfig = new SqlConfig();
     @Setting("mongodb")
     private MongoDBConfig mongoDbConfig = new MongoDBConfig();
     @Setting("redis")
@@ -19,7 +19,7 @@ public class DatasourcesConfig {
     private APIConfig apiConfig = new APIConfig();
 
     @ConfigSerializable
-    public static class MysqlConfig {
+    public static class SqlConfig {
 
         @Setting("enabled")
         private boolean enabled = false;
@@ -280,12 +280,12 @@ public class DatasourcesConfig {
         this.fileConfig = fileConfig;
     }
 
-    public MysqlConfig getMysqlConfig() {
-        return mysqlConfig;
+    public SqlConfig getSqlConfig() {
+        return sqlConfig;
     }
 
-    public void setMysqlConfig(MysqlConfig mysqlConfig) {
-        this.mysqlConfig = mysqlConfig;
+    public void setSqlConfig(SqlConfig sqlConfig) {
+        this.sqlConfig = sqlConfig;
     }
 
     public MongoDBConfig getMongoDbConfig() {

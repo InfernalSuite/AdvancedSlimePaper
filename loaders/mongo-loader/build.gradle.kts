@@ -7,7 +7,7 @@ dependencies {
     compileOnly(project(":api"))
     compileOnly(paperApi())
 
-    api(libs.mongo)
+    compileOnlyApi(libs.mongo)
 }
 
 publishConfiguration {

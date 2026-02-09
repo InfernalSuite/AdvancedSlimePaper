@@ -1,6 +1,5 @@
 package com.infernalsuite.asp.plugin.config;
 
-import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import org.bukkit.Difficulty;
 import org.bukkit.World;

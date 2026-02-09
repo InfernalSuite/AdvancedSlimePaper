@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.file.NotDirectoryException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FileLoader implements SlimeLoader {
@@ -60,6 +61,16 @@ public class FileLoader implements SlimeLoader {
     public void saveWorld(String worldName, byte[] serializedWorld) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(new File(worldDir, worldName + ".slime"))) {
             fos.write(serializedWorld);
+        }
+    }
+
+    @Override
+    public void saveWorlds(Map<String, byte[]> worlds) throws IOException {
+        for (Map.Entry<String, byte[]> entry : worlds.entrySet()) {
+            File file = new File(worldDir, entry.getKey() + ".slime");
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(entry.getValue());
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import com.infernalsuite.asp.loaders.redis.util.StringByteCodec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RedisLoader implements SlimeLoader {
@@ -53,6 +54,23 @@ public class RedisLoader implements SlimeLoader {
 
         // Also add to the world list set. We can't do this in one atomic operation (mset) because it's a set add
         connection.sadd(WORLD_LIST_PREFIX, worldName.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public void saveWorlds(Map<String, byte[]> worlds) throws IOException {
+        if (worlds.isEmpty()) {
+            return;
+        }
+
+        try {
+            connection.mset(worlds);
+            byte[][] names = worlds.keySet().stream()
+                    .map(str -> str.getBytes(StandardCharsets.UTF_8))
+                    .toArray(byte[][]::new);
+
+            connection.sadd(WORLD_LIST_PREFIX, names);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
