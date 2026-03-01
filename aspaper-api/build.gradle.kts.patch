@@ -45,7 +45,7 @@
      options.use()
      options.isDocFilesSubDirs = true
      options.links(
-@@ -216,11 +_,11 @@
+@@ -217,11 +_,11 @@
      }
  
      // workaround for https://github.com/gradle/gradle/issues/4046
