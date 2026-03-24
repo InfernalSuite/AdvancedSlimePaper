@@ -1,70 +1,75 @@
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -598,7 +_,31 @@
+@@ -602,8 +_,35 @@
+         this.playerTickingChunks.remove((LevelChunk)chunkHolder.getCurrentChunk());
      }
      // Paper end - chunk tick iteration
- 
+-
 -    public ServerLevel(
 +    public com.infernalsuite.asp.level.SlimeInMemoryWorld slimeInstance; // ASP
 +
 +    public ServerLevel(
-+            MinecraftServer server,
-+            Executor dispatcher,
-+            LevelStorageSource.LevelStorageAccess levelStorageAccess,
-+            net.minecraft.world.level.storage.PrimaryLevelData serverLevelData, // CraftBukkit
-+            ResourceKey<Level> dimension,
-+            LevelStem levelStem,
-+            boolean isDebug,
-+            long biomeZoomSeed,
-+            List<CustomSpawner> customSpawners,
-+            boolean tickTime,
-+            @Nullable RandomSequences randomSequences,
-+            org.bukkit.World.Environment env, // CraftBukkit
-+            org.bukkit.generator.ChunkGenerator gen, // CraftBukkit
-+            org.bukkit.generator.BiomeProvider biomeProvider // CraftBukkit
++            final MinecraftServer server,
++            final Executor executor,
++            final LevelStorageSource.LevelStorageAccess levelStorage,
++            final WorldGenSettings worldGenSettings, // CraftBukkit
++            final ResourceKey<Level> dimension,
++            final LevelStem levelStem,
++            final boolean isDebug,
++            final long biomeZoomSeed,
++            final List<CustomSpawner> customSpawners,
++            final boolean tickTime
++            // Paper start - add parameters
++            , ResourceKey<LevelStem> typeKey,
++            org.bukkit.World.Environment env,
++            org.bukkit.generator.ChunkGenerator gen,
++            org.bukkit.generator.BiomeProvider biomeProvider,
++            SavedDataStorage savedDataStorage,
++            io.papermc.paper.world.PaperWorldLoader.LoadedWorldData loadedWorldData
++            // Paper end - add parameters
 +    ) {
 +        //ASP start
-+        this(null, server, dispatcher, levelStorageAccess, serverLevelData, dimension, levelStem,
-+                isDebug, biomeZoomSeed, customSpawners, tickTime, randomSequences, env, gen, biomeProvider);
++        this(null, server, executor, levelStorage, worldGenSettings, dimension, levelStem,
++                isDebug, biomeZoomSeed, customSpawners, tickTime, typeKey, env, gen, biomeProvider, savedDataStorage, loadedWorldData);
 +    }
 +
 +    public ServerLevel(
 +        com.infernalsuite.asp.level.@Nullable SlimeBootstrap bootstrap,
-         MinecraftServer server,
-         Executor dispatcher,
-         LevelStorageSource.LevelStorageAccess levelStorageAccess,
-@@ -614,6 +_,7 @@
-         org.bukkit.generator.ChunkGenerator gen, // CraftBukkit
-         org.bukkit.generator.BiomeProvider biomeProvider // CraftBukkit
+         final MinecraftServer server,
+         final Executor executor,
+         final LevelStorageSource.LevelStorageAccess levelStorage,
+@@ -623,6 +_,7 @@
+         io.papermc.paper.world.PaperWorldLoader.LoadedWorldData loadedWorldData
+         // Paper end - add parameters
      ) {
 +        //ASP end
          // CraftBukkit start
-         super(serverLevelData, dimension, server.registryAccess(), levelStem.type(), false, isDebug, biomeZoomSeed, server.getMaxChainedNeighborUpdates(), gen, biomeProvider, env, spigotConfig -> server.paperConfigurations.createWorldConfig(io.papermc.paper.configuration.PaperConfigurations.createWorldContextMap(levelStorageAccess.levelDirectory.path(), serverLevelData.getLevelName(), dimension.identifier(), spigotConfig, server.registryAccess(), serverLevelData.getGameRules())), dispatcher); // Paper - create paper world configs & Async-Anti-Xray: Pass executor
-         this.levelStorageAccess = levelStorageAccess;
-@@ -641,6 +_,13 @@
-             chunkGenerator = new org.bukkit.craftbukkit.generator.CustomChunkGenerator(this, chunkGenerator, gen);
-         }
-         // CraftBukkit end
+         final io.papermc.paper.world.saveddata.PaperLevelOverrides levelData = loadedWorldData.levelOverrides();
+         savedDataStorage.set(io.papermc.paper.world.saveddata.PaperLevelOverrides.TYPE, levelData);
+@@ -644,7 +_,13 @@
+         this.server = server;
+         this.customSpawners = customSpawners;
+         this.serverLevelData = levelData;
 +        // ASP START
+         ChunkGenerator generator = levelStem.generator();
 +        ChunkGenerator result = this.getGenerator(bootstrap);
 +        if (result != null) {
-+            chunkGenerator = result;
++            generator = result;
 +        }
 +        // ASP END
-+
-         boolean flag = server.forceSynchronousWrites();
-         DataFixer fixerUpper = server.getFixerUpper();
-         // Paper - rewrite chunk system
-@@ -723,6 +_,12 @@
-     public void setDragonFight(@Nullable EndDragonFight dragonFight) {
-         this.dragonFight = dragonFight;
+         // CraftBukkit start
+         if (loadedWorldData.pdc() != null) {
+             this.getWorld().readBukkitValues(loadedWorldData.pdc().persistentData().toTagCompound());
+@@ -732,6 +_,12 @@
+         // Paper end - rewrite chunk system
+         this.getCraftServer().addWorld(this.getWorld()); // CraftBukkit
      }
 +
 +    // ASP START
-+    public ChunkGenerator getGenerator(com.infernalsuite.asp.level.SlimeBootstrap bootstrap) {
++    public @Nullable ChunkGenerator getGenerator(com.infernalsuite.asp.level.@Nullable SlimeBootstrap bootstrap) {
 +        return null;
 +    }
 +    // ASP END
  
-     public void setWeatherParameters(int clearTime, int weatherTime, boolean isRaining, boolean isThundering) {
-         this.serverLevelData.setClearWeatherTime(clearTime);
+     // Paper start
+     @Override

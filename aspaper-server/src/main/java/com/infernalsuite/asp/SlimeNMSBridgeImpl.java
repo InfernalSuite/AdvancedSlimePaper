@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldLoader;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerProperties;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.gamerules.GameRuleMap;
 import net.minecraft.world.level.Level;
@@ -27,8 +28,8 @@ import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.storage.CommandStorage;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.PrimaryLevelData;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -79,7 +80,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         // See MinecraftServer loading logic
         // Some stuff is needed when loading overworld world
         SlimeLevelInstance instance = ((SlimeInMemoryWorld) this.loadInstance(defaultWorld, Level.OVERWORLD)).getInstance();
-        DimensionDataStorage worldpersistentdata = instance.getDataStorage();
+        SavedDataStorage worldpersistentdata = instance.getDataStorage();
         instance.getCraftServer().scoreboardManager = new org.bukkit.craftbukkit.scoreboard.CraftScoreboardManager(instance.getServer(), instance.getScoreboard());
         instance.getServer().commandStorage = new CommandStorage(worldpersistentdata);
 
@@ -170,7 +171,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     public void registerWorld(SlimeLevelInstance server) {
         MinecraftServer mcServer = MinecraftServer.getServer();
-        mcServer.initWorld(server, server.serverLevelData, server.serverLevelData.worldGenOptions());
+        mcServer.initWorld(server);
 
         mcServer.addLevel(server);
     }
@@ -210,14 +211,12 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
         MinecraftServer mcServer = MinecraftServer.getServer();
         DedicatedServerProperties serverProps = ((DedicatedServer) mcServer).getProperties();
         String worldName = world.getName();
-        WorldLoader.DataLoadContext context = mcServer.worldLoaderContext;
 
-        LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gameMode.get(), false, serverProps.difficulty.get(),
-                true, new GameRules(context.dataConfiguration().enabledFeatures(), GameRuleMap.of()), mcServer.worldLoaderContext.dataConfiguration());
+        LevelSettings worldsettings = new LevelSettings(worldName, serverProps.gameMode.get(), new LevelSettings.DifficultySettings(
+                serverProps.difficulty.get(), serverProps.hardcore, false
+        ), true, mcServer.worldLoaderContext.dataConfiguration());
 
-        WorldOptions worldoptions = new WorldOptions(0, false, false);
-
-        PrimaryLevelData data = new PrimaryLevelData(worldsettings, worldoptions, PrimaryLevelData.SpecialWorldProperty.FLAT, Lifecycle.stable());
+        PrimaryLevelData data = new PrimaryLevelData(worldsettings, PrimaryLevelData.SpecialWorldProperty.FLAT, Lifecycle.stable());
         data.checkName(worldName);
         data.setModdedInfo(mcServer.getServerModName(), mcServer.getModdedStatus().shouldReportAsModified());
         data.setInitialized(true);

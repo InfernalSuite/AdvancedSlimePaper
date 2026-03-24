@@ -17,6 +17,9 @@ import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.mojang.logging.LogUtils;
+import io.papermc.paper.world.PaperWorldLoader;
+import io.papermc.paper.world.saveddata.PaperLevelOverrides;
+import io.papermc.paper.world.saveddata.PaperWorldPDC;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.util.TriState;
@@ -25,6 +28,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -40,7 +44,10 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
+import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.DirectoryValidator;
@@ -69,14 +76,15 @@ import java.util.logging.Level;
 public class SlimeLevelInstance extends ServerLevel {
 
 
-    public static LevelStorageSource CUSTOM_LEVEL_STORAGE;
+    public static LevelStorageSource.LevelStorageAccess CUSTOM_LEVEL_STORAGE_ACCESS;
     private static final Logger LOGGER = LogUtils.getClassLogger();
 
     static {
         try {
             Path path = Files.createTempDirectory("swm-" + UUID.randomUUID().toString().substring(0, 5)).toAbsolutePath();
             DirectoryValidator directoryvalidator = LevelStorageSource.parseValidator(path.resolve("allowed_symlinks.txt"));
-            CUSTOM_LEVEL_STORAGE = new LevelStorageSource(path, path, directoryvalidator, DataFixers.getDataFixer());
+            CUSTOM_LEVEL_STORAGE_ACCESS = new LevelStorageSource(path, path, directoryvalidator, DataFixers.getDataFixer())
+                    .createAccess("slime");
 
             FileUtils.forceDeleteOnExit(path.toFile());
 
@@ -91,14 +99,49 @@ public class SlimeLevelInstance extends ServerLevel {
     private final Object saveLock = new Object();
 
     public SlimeLevelInstance(SlimeBootstrap slimeBootstrap, PrimaryLevelData primaryLevelData,
-                              ResourceKey<net.minecraft.world.level.Level> worldKey,
-                              ResourceKey<LevelStem> dimensionKey, LevelStem worldDimension,
+                              ResourceKey<net.minecraft.world.level.Level> dimensionKey,
+                              ResourceKey<LevelStem> levelStemKey, LevelStem levelStem,
                               org.bukkit.World.Environment environment) throws IOException {
+        WorldGenSettings settings = WorldGenSettings.of(
+                new WorldOptions(WorldOptions.randomSeed(), false, false),
+                MinecraftServer.getServer().registryAccess()
+        );
+        ConcurrentMap<String, BinaryTag> initialExtraData = slimeBootstrap.initial().getExtraData();
+        PaperWorldPDC pdc = null;
+        if(initialExtraData.containsKey("BukkitValues")) {
+            pdc = PaperWorldPDC.CODEC.parse(NbtOps.INSTANCE, Converter.convertTag(initialExtraData.get("BukkitValues")))
+                    .getOrThrow();
+        }
 
-        super(slimeBootstrap, MinecraftServer.getServer(), MinecraftServer.getServer().executor,
-                CUSTOM_LEVEL_STORAGE.createAccess(slimeBootstrap.initial().getName() + UUID.randomUUID(), dimensionKey),
-                primaryLevelData, worldKey, worldDimension, false, 0,
-                Collections.emptyList(), true, null, environment, null, null);
+        final PaperWorldLoader.LoadedWorldData data = new PaperWorldLoader.LoadedWorldData(
+                slimeBootstrap.initial().getName(),
+                UUID.randomUUID(),
+                pdc,
+                PaperLevelOverrides.createFromLiveLevelData(primaryLevelData)
+        );
+        data.levelOverrides().attach(primaryLevelData, dimensionKey);
+
+        super(
+                slimeBootstrap,
+                MinecraftServer.getServer(),
+                MinecraftServer.getServer().executor,
+                CUSTOM_LEVEL_STORAGE_ACCESS,
+                settings,
+                dimensionKey,
+                levelStem,
+
+                false,
+                0L,
+                Collections.emptyList(),
+                true,
+                levelStemKey,
+
+                environment,
+                null,
+                null,
+                new ReadOnlyDimensionDataStorage(CUSTOM_LEVEL_STORAGE_ACCESS.getDimensionPath(dimensionKey), MinecraftServer.getServer().getFixerUpper(), MinecraftServer.getServer().registryAccess()),
+                data
+        );
         this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 
 
@@ -122,19 +165,14 @@ public class SlimeLevelInstance extends ServerLevel {
 
         super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
-        ConcurrentMap<String, BinaryTag> extraData = this.slimeInstance.getExtraData();
-        //Attempt to read PDC
-        if (extraData.containsKey("BukkitValues")) {
-            getWorld().readBukkitValues(Converter.convertTag(extraData.get("BukkitValues")));
-        }
 
         propertyMap.getOptionalValue(SlimeProperties.PVP)
                 .ifPresent(val -> getGameRules().set(GameRules.PVP, val, this));
 
         this.entityDataController = new SlimeEntityDataLoader(
                 new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
-                        new RegionStorageInfo(levelStorageAccess.getLevelId(), worldKey, "entities"),
-                        levelStorageAccess.getDimensionPath(worldKey).resolve("entities"),
+                        new RegionStorageInfo(CUSTOM_LEVEL_STORAGE_ACCESS.getLevelId(), dimensionKey, "entities"),
+                        CUSTOM_LEVEL_STORAGE_ACCESS.getDimensionPath(dimensionKey).resolve("entities"),
                         MinecraftServer.getServer().forceSynchronousWrites()
                 ),
                 this.chunkTaskScheduler,
@@ -175,8 +213,6 @@ public class SlimeLevelInstance extends ServerLevel {
                 Bukkit.getPluginManager().callEvent(new WorldSaveEvent(getWorld()));
 
                 //this.getChunkSource().save(forceSave);
-                this.serverLevelData.setCustomBossEvents(MinecraftServer.getServer().getCustomBossEvents().save(MinecraftServer.getServer().registryAccess()));
-
                 if (MinecraftServer.getServer().isStopped()) { // Make sure the world gets saved before stopping the server by running it from the main thread
                     saveInternal().get(); // Async wait for it to finish
                 } else {
@@ -221,7 +257,7 @@ public class SlimeLevelInstance extends ServerLevel {
 
     public void deleteTempFiles() {
         WORLD_SAVER_SERVICE.execute(() -> {
-            Path path = this.levelStorageAccess.levelDirectory.path();
+            Path path = CUSTOM_LEVEL_STORAGE_ACCESS.getDimensionPath(this.dimension());
             try {
                 // We do this manually and not use the deleteLevel function as it would cause a level deleted message
                 // to appear in the log which might be confusing for our users
@@ -240,7 +276,7 @@ public class SlimeLevelInstance extends ServerLevel {
                         if (exception != null) {
                             throw exception;
                         } else {
-                            if (dir.equals(levelStorageAccess.levelDirectory.path())) {
+                            if (dir.equals(CUSTOM_LEVEL_STORAGE_ACCESS.getDimensionPath(dimension()))) {
                                 Files.deleteIfExists(path);
                             }
 
