@@ -5,6 +5,7 @@ plugins {
 group = "com.infernalsuite"
 
 repositories {
+    maven("https://repo.papermc.io/repository/maven-public/")
     mavenLocal()
     mavenCentral()
     gradlePluginPortal()

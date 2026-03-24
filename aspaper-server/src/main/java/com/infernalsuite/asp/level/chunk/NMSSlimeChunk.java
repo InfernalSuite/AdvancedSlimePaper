@@ -52,12 +52,12 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     @Override
     public int getX() {
-        return chunk.getPos().x;
+        return chunk.getPos().x();
     }
 
     @Override
     public int getZ() {
-        return chunk.getPos().z;
+        return chunk.getPos().z();
     }
 
     @Override

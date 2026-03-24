@@ -5,21 +5,27 @@ Subject: [PATCH] Disable dragon battle
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 24d3b1161cf45a915b37f510645500c5a45350eb..cd7aca9f76aef0824d94c73373a8f4536d05c4e8 100644
+index c5415bcc157219d452e15e80d569df5df3043ba5..785e7784c8f6e2c29c7f363dd700e2bbd0fe15f4 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -715,7 +715,13 @@ public class ServerLevel extends Level implements ServerEntityGetter, WorldGenLe
+@@ -2,6 +2,7 @@ package net.minecraft.server.level;
+ 
+ import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.collect.Lists;
++import com.infernalsuite.asp.api.world.properties.SlimeProperty;
+ import com.mojang.datafixers.DataFixer;
+ import com.mojang.datafixers.util.Pair;
+ import com.mojang.logging.LogUtils;
+@@ -741,7 +742,11 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
          );
-         this.structureManager = new StructureManager(this, this.serverLevelData.worldGenOptions(), this.structureCheck); // CraftBukkit
-         if (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END) || env == org.bukkit.World.Environment.THE_END) { // CraftBukkit - Allow to create EnderDragonBattle in default and custom END
--            this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
-+            // ASP START
-+            if (bootstrap == null || bootstrap.initial().getPropertyMap().getValue(com.infernalsuite.asp.api.world.properties.SlimeProperties.DRAGON_BATTLE)) {
-+                this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), this.serverLevelData.endDragonFightData()); // CraftBukkit
+         this.structureManager = new StructureManager(this, options, this.structureCheck);
+         if (this.dimensionType().hasEnderDragonFight()) {
+-            this.dragonFight = this.getDataStorage().computeIfAbsent(EnderDragonFight.TYPE);
++            if(bootstrap == null || bootstrap.initial().getPropertyMap().getValue(com.infernalsuite.asp.api.world.properties.SlimeProperties.DRAGON_BATTLE)) { // ASP - only create dragon fight if property is enabled)
++                this.dragonFight = this.getDataStorage().computeIfAbsent(EnderDragonFight.TYPE);
 +            } else {
-+                this.dragonFight = new EndDragonFight(this, this.serverLevelData.worldGenOptions().seed(), new EndDragonFight.Data(false, true, true, false,Optional.empty(),Optional.empty(),Optional.empty())); // ASP - disable dragon
++                this.dragonFight = new EnderDragonFight(false, true, true, Optional.empty(), 0,Optional.empty(),Optional.empty(), List.of(), List.of());
 +            }
-+            // ASP END
-         } else {
-             this.dragonFight = null;
+             this.dragonFight.init(this, seed, BlockPos.ZERO);
          }
+ 

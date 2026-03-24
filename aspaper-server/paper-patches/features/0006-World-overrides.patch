@@ -1,41 +1,36 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: David <davidliebtkekse@gmail.com>
-Date: Thu, 18 Sep 2025 20:28:39 +0200
+Date: Sat, 4 Apr 2026 11:55:18 +0200
 Subject: [PATCH] World overrides
 
 
 diff --git a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
-index f5e9dd5880681cf4c9b442fbd2e0e9aad1cfb804..6de0f58a8c1a08393276ecaba5b8e7e9640bdbf6 100644
+index cd3e7cc8cf083915de46e03d9b2aaea3003f48fb..7d4623ecf63c0b307a0101ae1dbbb2c85125853e 100644
 --- a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
 +++ b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
-@@ -3,6 +3,7 @@ package io.papermc.paper.world;
- import com.google.common.io.Files;
- import com.mojang.logging.LogUtils;
- import com.mojang.serialization.Dynamic;
-+import net.minecraft.core.Registry;
- import net.minecraft.core.registries.Registries;
- import net.minecraft.nbt.NbtException;
- import net.minecraft.nbt.ReportedNbtException;
-@@ -108,7 +109,21 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
- 
-     // Loosely modeled on code in net.minecraft.server.Main
-     public void loadInitialWorlds() {
--        for (final LevelStem stem : this.server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM)) {
+@@ -131,11 +131,24 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
+         final var levelStemRegistry = this.server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
+         final boolean hasWorldData = this.server.storageSource.hasWorldData();
+         final LevelStem overworldStem = requireNonNull(levelStemRegistry.getValue(LevelStem.OVERWORLD), "Overworld stem missing");
+-        this.loadInitialWorld(overworldStem, hasWorldData);
++
 +        //ASP start - overwrite vanilla worlds if needed
-+        Registry<LevelStem> registry = this.server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
-+        for (final LevelStem stem : registry) {
-+            ResourceKey<LevelStem> levelStemKey = registry.getResourceKey(stem).get();
-+            if(levelStemKey == LevelStem.NETHER && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
-+                continue;
-+            }
++        if(!com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
++            this.loadInitialWorld(overworldStem, hasWorldData);
++        }
++
+         for (final LevelStem stem : levelStemRegistry) {
+             if (stem == overworldStem) {
+                 continue;
+             }
++
++            ResourceKey<LevelStem> levelStemKey = levelStemRegistry.getResourceKey(stem).get();
 +            if(levelStemKey == LevelStem.END && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
 +                continue;
 +            }
 +            if(levelStemKey == LevelStem.OVERWORLD && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
 +                continue;
 +            }
-+            //ASP end - overwrite vanilla worlds if needed
-+
-             final WorldLoadingInfo info = this.getWorldInfo(this.levelId, stem);
-             this.migrateWorldFolder(info);
-             if (!info.enabled()) {
+             this.loadInitialWorld(stem, hasWorldData);
+         }
+ 
