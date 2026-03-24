@@ -26,7 +26,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -39,6 +39,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
@@ -58,6 +59,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -106,7 +108,7 @@ public class SlimeLevelInstance extends ServerLevel {
         serverLevelData.setSpawn(
                 new LevelData.RespawnData(
                         GlobalPos.of(
-                                ResourceKey.create(Registries.DIMENSION, this.dimension().location()),
+                                ResourceKey.create(Registries.DIMENSION, this.dimension().identifier()),
                                 new BlockPos(
                                         propertyMap.getValue(SlimeProperties.SPAWN_X),
                                         propertyMap.getValue(SlimeProperties.SPAWN_Y),
@@ -126,7 +128,8 @@ public class SlimeLevelInstance extends ServerLevel {
             getWorld().readBukkitValues(Converter.convertTag(extraData.get("BukkitValues")));
         }
 
-        this.pvpMode = propertyMap.getOptionalValue(SlimeProperties.PVP).map(TriState::byBoolean).orElse(TriState.NOT_SET);
+        propertyMap.getOptionalValue(SlimeProperties.PVP)
+                .ifPresent(val -> getGameRules().set(GameRules.PVP, val, this));
 
         this.entityDataController = new SlimeEntityDataLoader(
                 new ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController.EntityRegionFileStorage(
@@ -143,7 +146,7 @@ public class SlimeLevelInstance extends ServerLevel {
     @Override
     public @NotNull ChunkGenerator getGenerator(SlimeBootstrap slimeBootstrap) {
         String biomeStr = slimeBootstrap.initial().getPropertyMap().getValue(SlimeProperties.DEFAULT_BIOME);
-        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeStr));
+        ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, Identifier.parse(biomeStr));
         Holder<Biome> defaultBiome = MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME).get(biomeKey).orElseThrow();
         return new SlimeLevelGenerator(defaultBiome, this);
     }

@@ -5,19 +5,19 @@ Subject: [PATCH] Read only dimension data store
 
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 413f0673557b9e3f9177d15e9bef61bded209e34..ebc9373bb3a48ef41d54d445c1aa02fe06d83cff 100644
+index af67b07722bb0125acd081dab767d7e7b360623b..fc4f631f7d55ce67f348e3b6090095e6ef8445e8 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -210,7 +210,13 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
+@@ -208,7 +208,13 @@ public class ServerChunkCache extends ChunkSource implements ca.spottedleaf.moon
              LOGGER.error("Failed to create dimension data storage directory", (Throwable)var14);
          }
  
--        this.dataStorage = new DimensionDataStorage(new SavedData.Context(level), path, fixerUpper, level.registryAccess());
+-        this.dataStorage = new DimensionDataStorage(path, fixerUpper, level.registryAccess());
 +        //ASP start - No dimension data storage
 +        if(level instanceof com.infernalsuite.asp.level.SlimeLevelInstance) {
-+            this.dataStorage = new com.infernalsuite.asp.level.ReadOnlyDimensionDataStorage(new SavedData.Context(level), path, fixerUpper, level.registryAccess());
++            this.dataStorage = new com.infernalsuite.asp.level.ReadOnlyDimensionDataStorage(path, fixerUpper, level.registryAccess());
 +        } else {
-+            this.dataStorage = new DimensionDataStorage(new SavedData.Context(level), path, fixerUpper, level.registryAccess());
++            this.dataStorage = new DimensionDataStorage(path, fixerUpper, level.registryAccess());
 +        }
 +        //ASP end - No dimension data storage
          this.ticketStorage = this.dataStorage.computeIfAbsent(TicketStorage.TYPE);

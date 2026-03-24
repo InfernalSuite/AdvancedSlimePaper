@@ -5,56 +5,111 @@ Subject: [PATCH] Branding
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
-index d0554ed6631535815e5932930911e3fe1dee8710..ac171c6b9008eaaeb9e433fdb188bd797fd95759 100644
+index 602d3ce2cd16405f35453ce12a207b70312a4a8a..6102be342a05a413b6e170166642fdd6a94ddebb 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
-@@ -35,7 +35,7 @@ public class PaperVersionFetcher implements VersionFetcher {
-     private static final Logger LOGGER = LogUtils.getClassLogger();
+@@ -40,8 +40,8 @@ public class PaperVersionFetcher implements VersionFetcher {
+     private static final ComponentLogger COMPONENT_LOGGER = ComponentLogger.logger(LogManager.getRootLogger().getName());
      private static final int DISTANCE_ERROR = -1;
      private static final int DISTANCE_UNKNOWN = -2;
 -    private static final String DOWNLOAD_PAGE = "https://papermc.io/downloads/paper";
-+    private static final String DOWNLOAD_PAGE = "https://discord.gg/YevvsMa";
- 
-     @Override
-     public long getCacheTime() {
-@@ -49,7 +49,7 @@ public class PaperVersionFetcher implements VersionFetcher {
-         if (build.buildNumber().isEmpty() && build.gitCommit().isEmpty()) {
-             updateMessage = text("You are running a development version without access to version information", color(0xFF5300));
+-    private static final String REPOSITORY = "PaperMC/Paper";
++    private static final String DOWNLOAD_PAGE = "https://infernalsuite.com/download/asp";
++    private static final String REPOSITORY = "InfernalSuite/AdvancedSlimePaper";
+     private static final ServerBuildInfo BUILD_INFO = ServerBuildInfo.buildInfo();
+     private static final String USER_AGENT = BUILD_INFO.brandName() + "/" + BUILD_INFO.asString(VERSION_SIMPLE) + " (https://papermc.io)";
+     private static final Gson GSON = new Gson();
+@@ -72,15 +72,15 @@ public class PaperVersionFetcher implements VersionFetcher {
+             COMPONENT_LOGGER.warn(text("*** You are running a development version without access to version information ***"));
          } else {
--            updateMessage = getUpdateStatusMessage("PaperMC/Paper", build);
-+            updateMessage = getUpdateStatusMessage("InfernalSuite/AdvancedSlimePaper", build);
-         }
-         final @Nullable Component history = this.getHistory();
+             final Optional<MinecraftVersionFetcher> apiResult = fetchMinecraftVersionList();
+-            if (buildNumber.isPresent()) {
++            /*if (buildNumber.isPresent()) {
+                 distance = fetchDistanceFromSiteApi(buildNumber.getAsInt());
+-            } else {
+-                final Optional<String> gitBranch = BUILD_INFO.gitBranch();
+-                final Optional<String> gitCommit = BUILD_INFO.gitCommit();
+-                if (gitBranch.isPresent() && gitCommit.isPresent()) {
+-                    distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
+-                }
++            } else { */ //ASP End
++            final Optional<String> gitBranch = BUILD_INFO.gitBranch();
++            final Optional<String> gitCommit = BUILD_INFO.gitCommit();
++            if (gitBranch.isPresent() && gitCommit.isPresent()) {
++                distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
+             }
++            //} //ASP
  
-@@ -59,16 +59,16 @@ public class PaperVersionFetcher implements VersionFetcher {
-     private static Component getUpdateStatusMessage(final String repo, final ServerBuildInfo build) {
+             switch (distance) {
+                 case DISTANCE_ERROR -> COMPONENT_LOGGER.error(text("*** Error obtaining version information! Cannot fetch version info ***"));
+@@ -109,27 +109,27 @@ public class PaperVersionFetcher implements VersionFetcher {
+     private static Component getUpdateStatusMessage() {
          int distance = DISTANCE_ERROR;
  
--        final OptionalInt buildNumber = build.buildNumber();
-+        /*final OptionalInt buildNumber = build.buildNumber(); //ASP start
+-        final OptionalInt buildNumber = PaperVersionFetcher.BUILD_INFO.buildNumber();
++        /*final OptionalInt buildNumber = PaperVersionFetcher.BUILD_INFO.buildNumber(); //ASP start
          if (buildNumber.isPresent()) {
-             distance = fetchDistanceFromSiteApi(build, buildNumber.getAsInt());
+             distance = fetchDistanceFromSiteApi(buildNumber.getAsInt());
 -        } else {
-+        } else { */ //ASP End
-             final Optional<String> gitBranch = build.gitBranch();
-             final Optional<String> gitCommit = build.gitCommit();
-             if (gitBranch.isPresent() && gitCommit.isPresent()) {
-                 distance = fetchDistanceFromGitHub(repo, gitBranch.get(), gitCommit.get());
-             }
--        }
+-            final Optional<String> gitBranch = PaperVersionFetcher.BUILD_INFO.gitBranch();
+-            final Optional<String> gitCommit = PaperVersionFetcher.BUILD_INFO.gitCommit();
+-            if (gitBranch.isPresent() && gitCommit.isPresent()) {
+-                distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
+-            }
++        } else {  */ //ASP End
++        final Optional<String> gitBranch = PaperVersionFetcher.BUILD_INFO.gitBranch();
++        final Optional<String> gitCommit = PaperVersionFetcher.BUILD_INFO.gitCommit();
++        if (gitBranch.isPresent() && gitCommit.isPresent()) {
++            distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
+         }
 +        //} //ASP
  
          return switch (distance) {
              case DISTANCE_ERROR -> text("Error obtaining version information", NamedTextColor.YELLOW);
-@@ -76,7 +76,7 @@ public class PaperVersionFetcher implements VersionFetcher {
+             case 0 -> text("You are running the latest version", NamedTextColor.GREEN);
              case DISTANCE_UNKNOWN -> text("Unknown version", NamedTextColor.YELLOW);
              default -> text("You are " + distance + " version(s) behind", NamedTextColor.YELLOW)
-                 .append(Component.newline())
+-                .append(Component.newline())
 -                .append(text("Download the new version at: ")
-+                .append(text("Download the new version from our Discord: ")
-                     .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
-                         .hoverEvent(text("Click to open", NamedTextColor.WHITE))
-                         .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
+-                    .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
+-                        .hoverEvent(text("Click to open", NamedTextColor.WHITE))
+-                        .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
++                    .append(Component.newline())
++                    .append(text("Download the new version at: ")
++                            .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
++                                    .hoverEvent(text("Click to open", NamedTextColor.WHITE))
++                                    .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
+         };
+     }
+ 
+@@ -150,10 +150,10 @@ public class PaperVersionFetcher implements VersionFetcher {
+                 final JsonObject json = GSON.fromJson(reader, JsonObject.class);
+                 final JsonObject versions = json.getAsJsonObject("versions");
+                 final List<String> versionList = versions.keySet().stream()
+-                    .map(versions::getAsJsonArray)
+-                    .flatMap(array -> StreamSupport.stream(array.spliterator(), false))
+-                    .map(JsonElement::getAsString)
+-                    .toList();
++                        .map(versions::getAsJsonArray)
++                        .flatMap(array -> StreamSupport.stream(array.spliterator(), false))
++                        .map(JsonElement::getAsString)
++                        .toList();
+ 
+                 for (final String latestVersion : versionList) {
+                     if (latestVersion.equals(currentVersion)) {
+@@ -203,9 +203,9 @@ public class PaperVersionFetcher implements VersionFetcher {
+             try (final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                 final JsonArray builds = GSON.fromJson(reader, JsonArray.class);
+                 final int latest = StreamSupport.stream(builds.spliterator(), false)
+-                    .mapToInt(build -> build.getAsJsonObject().get("id").getAsInt())
+-                    .max()
+-                    .orElseThrow();
++                        .mapToInt(build -> build.getAsJsonObject().get("id").getAsInt())
++                        .max()
++                        .orElseThrow();
+                 return Math.max(latest - jenkinsBuild, 0);
+             } catch (final JsonSyntaxException ex) {
+                 LOGGER.error("Error parsing json from Paper's downloads API", ex);
 diff --git a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java b/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
 index 74ffdc823e66fc5ec027c4b7c462382bcbfe2be2..2610e8d1ce20331895b0a76fa50efc062001678e 100644
 --- a/src/main/java/io/papermc/paper/ServerBuildInfoImpl.java
@@ -88,16 +143,3 @@ index 74ffdc823e66fc5ec027c4b7c462382bcbfe2be2..2610e8d1ce20331895b0a76fa50efc06
      }
  
      @Override
-diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 774556a62eb240da42e84db4502e2ed43495be17..0c54eb1187c31a2e6efd4b0898fc600fa1bddeee 100644
---- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-+++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-@@ -11,7 +11,7 @@ public final class Versioning {
-     public static String getBukkitVersion() {
-         String result = "Unknown-Version";
- 
--        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/io.papermc.paper/paper-api/pom.properties");
-+        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.infernalsuite.asp/aspaper-api/pom.properties");
-         Properties properties = new Properties();
- 
-         if (stream != null) {

@@ -75,6 +75,12 @@ public class MysqlLoader extends UpdatableLoader {
         init();
     }
 
+    public void close() {
+        if (source != null && !source.isClosed()) {
+            source.close();
+        }
+    }
+
     @Override
     public void update() throws IOException, NewerStorageException {
         try (Connection con = source.getConnection()) {
