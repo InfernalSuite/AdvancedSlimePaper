@@ -22,6 +22,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -146,7 +147,7 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
 
         LimitedInputStream limitedInputStream = new LimitedInputStream(stream, compressedLength);
         ZstdInputStream inputStream = new ZstdInputStream(limitedInputStream);
-        return new DataInputStream(inputStream);
+        return new DataInputStream(new BufferedInputStream(inputStream));
     }
 
     private static @NotNull CompoundBinaryTag readLimitedCompound(DataInputStream stream) throws IOException {
