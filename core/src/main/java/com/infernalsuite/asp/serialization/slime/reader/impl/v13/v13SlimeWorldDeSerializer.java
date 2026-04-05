@@ -175,12 +175,6 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         return new DataInputStream(inputStream);
     }
 
-    private static @NotNull CompoundBinaryTag readCompound(byte[] tagBytes) throws IOException {
-        if (tagBytes.length == 0) return CompoundBinaryTag.empty();
-
-        return BinaryTagIO.unlimitedReader().read(new ByteArrayInputStream(tagBytes));
-    }
-
     private static @NotNull CompoundBinaryTag readLimitedCompound(DataInputStream stream) throws IOException {
         int length = stream.readInt();
         if(length == 0) return CompoundBinaryTag.empty();
