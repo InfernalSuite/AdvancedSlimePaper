@@ -39,4 +39,9 @@ public class LimitedInputStream extends InputStream {
         } catch (IOException ignored) {
         }
     }
+
+    @Override
+    public void close() throws IOException {
+        drainRemaining();
+    }
 }

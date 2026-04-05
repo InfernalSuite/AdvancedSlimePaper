@@ -59,6 +59,8 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         ConcurrentMap<String, BinaryTag> extraData = new ConcurrentHashMap<>();
         extraTag.forEach(entry -> extraData.put(entry.getKey(), entry.getValue()));
 
+        chunkBytes.close();
+        dataStream.close();
         return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraData, worldPropertyMap, worldVersion);
     }
 
@@ -166,17 +168,18 @@ public class v11SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         if(decompressedLength == 0) return CompoundBinaryTag.empty();
 
         LimitedInputStream limitedInputStream = new LimitedInputStream(stream, compressedLength);
-        ZstdInputStream zstd = new ZstdInputStream(limitedInputStream);
+        try(ZstdInputStream zstd = new ZstdInputStream(limitedInputStream)) {
 
-        //Avoid a buffered input stream by casting to DataInput. Buffered Input Streams make the memory
-        //usage explode (e.g. with buffered streams here 1,3gb; with a data input directly: 300mb)
-        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read((DataInput) new DataInputStream(zstd));
+            //Avoid a buffered input stream by casting to DataInput. Buffered Input Streams make the memory
+            //usage explode (e.g. with buffered streams here 1,3gb; with a data input directly: 300mb)
+            CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read((DataInput) new DataInputStream(zstd));
 
-        //binary tag reading does not guarantee that the buffer is fully read. If we don't do this,
-        //we might error out later
-        byte[] buffer = new byte[512];
-        while (zstd.read(buffer) != -1) {}
+            //binary tag reading does not guarantee that the buffer is fully read. If we don't do this,
+            //we might error out later
+            byte[] buffer = new byte[512];
+            while (zstd.read(buffer) != -1) {}
 
-        return tag;
+            return tag;
+        }
     }
 }
