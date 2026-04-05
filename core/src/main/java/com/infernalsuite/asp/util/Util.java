@@ -1,4 +1,4 @@
-package com.infernalsuite.asp;
+package com.infernalsuite.asp.util;
 
 public final class Util {
 

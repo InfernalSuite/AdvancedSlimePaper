@@ -1,7 +1,7 @@
 package com.infernalsuite.asp.serialization.slime.reader.impl.v10;
 
 import com.github.luben.zstd.Zstd;
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.serialization.slime.reader.VersionedByteSlimeWorldReader;
@@ -9,7 +9,6 @@ import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
-import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;

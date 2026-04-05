@@ -2,7 +2,7 @@ package com.infernalsuite.asp.serialization.slime.reader.impl.v1_9;
 
 import com.github.luben.zstd.Zstd;
 import com.infernalsuite.asp.SlimeLogger;
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.CorruptedWorldException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.utils.NibbleArray;
