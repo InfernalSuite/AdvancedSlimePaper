@@ -186,7 +186,13 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
         if(length == 0) return CompoundBinaryTag.empty();
 
         LimitedInputStream limitedInputStream = new LimitedInputStream(stream, length);
-        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(limitedInputStream);
+
+        //Avoid a buffered input stream by casting to DataInput. Buffered Input Streams make the memory
+        //usage explode (e.g. with buffered streams here 1,3gb; with a data input directly: 300mb)
+        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read((DataInput) new DataInputStream(limitedInputStream));
+
+        //binary tag reading does not guarantee that the buffer is fully read. If we don't do this,
+        //we might error out later
         limitedInputStream.drainRemaining();
         return tag;
     }
@@ -199,9 +205,13 @@ public class v13SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
 
         LimitedInputStream limitedInputStream = new LimitedInputStream(stream, compressedLength);
         ZstdInputStream zstd = new ZstdInputStream(limitedInputStream);
-        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(zstd);
 
-        //binary tag reading does not guarantee that the buffer is fully read
+        //Avoid a buffered input stream by casting to DataInput. Buffered Input Streams make the memory
+        //usage explode (e.g. with buffered streams here 1,3gb; with a data input directly: 300mb)
+        CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read((DataInput) new DataInputStream(zstd));
+
+        //binary tag reading does not guarantee that the buffer is fully read. If we don't do this,
+        //we might error out later
         byte[] buffer = new byte[512];
         while (zstd.read(buffer) != -1) {}
 
