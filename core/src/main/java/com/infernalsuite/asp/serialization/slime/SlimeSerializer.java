@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -175,7 +176,7 @@ public class SlimeSerializer {
 
             // Extra Tag
             if (chunk.getExtraData() == null) {
-                LOGGER.warn("Chunk at " + chunk.getX() + ", " + chunk.getZ() + " from world " + world.getName() + " has no extra data! When deserialized, this chunk will have an empty extra data tag!");
+                LOGGER.warn("Chunk at {}, {} from world {} has no extra data! When deserialized, this chunk will have an empty extra data tag!", chunk.getX(), chunk.getZ(), world.getName());
             }
             byte[] extra = serializeCompoundTag(CompoundBinaryTag.from(chunk.getExtraData()));
 
@@ -197,7 +198,9 @@ public class SlimeSerializer {
         if (tag == null || tag.isEmpty()) return new byte[0];
 
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
-        BinaryTagIO.writer().write(tag, outByteStream);
+
+        //Avoid a buffered output stream by casting to DataOutput. Buffered Output Streams make the memory usage explode
+        BinaryTagIO.writer().write(tag, (DataOutput) new DataOutputStream(outByteStream));
 
         return outByteStream.toByteArray();
     }
