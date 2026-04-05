@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.skeleton;
 
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.world.SlimeChunk;

@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.serialization.anvil;
 
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.InvalidWorldException;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;

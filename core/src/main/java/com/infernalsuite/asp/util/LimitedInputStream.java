@@ -1,4 +1,4 @@
-package com.infernalsuite.asp.serialization.slime.reader;
+package com.infernalsuite.asp.util;
 
 import java.io.IOException;
 import java.io.InputStream;

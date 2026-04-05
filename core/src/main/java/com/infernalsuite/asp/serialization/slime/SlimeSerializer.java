@@ -1,6 +1,6 @@
 package com.infernalsuite.asp.serialization.slime;
 
-import com.github.luben.zstd.Zstd;
+import com.github.luben.zstd.ZstdOutputStream;
 import com.infernalsuite.asp.api.utils.SlimeFormat;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
@@ -8,6 +8,8 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.asp.serialization.slime.reader.impl.v13.v13AdditionalWorldData;
+import com.infernalsuite.asp.util.CountingOutputStream;
+import com.infernalsuite.asp.util.ThrowingConsumer;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.BinaryTagTypes;
@@ -16,10 +18,7 @@ import net.kyori.adventure.nbt.ListBinaryTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class SlimeSerializer {
@@ -61,20 +60,13 @@ public class SlimeSerializer {
             outStream.writeByte(v13AdditionalWorldData.fromSet(additionalWorldData));
 
             // Chunks
-            byte[] chunkData = serializeChunks(world, world.getChunkStorage(), additionalWorldData);
-            byte[] compressedChunkData = Zstd.compress(chunkData);
 
-            outStream.writeInt(compressedChunkData.length);
-            outStream.writeInt(chunkData.length);
-            outStream.write(compressedChunkData);
-            
-            // Extra Tag
-            byte[] extra = serializeCompoundTag(CompoundBinaryTag.builder().put(extraData).build());
-            byte[] compressedExtra = Zstd.compress(extra);
+            writeCompressed(outStream, value -> serializeChunks(value, world, world.getChunkStorage(), additionalWorldData));
 
-            outStream.writeInt(compressedExtra.length);
-            outStream.writeInt(extra.length);
-            outStream.write(compressedExtra);
+            writeCompressed(outStream, value -> {
+                //Avoid a buffered output stream by casting to DataOutput. Buffered Output Streams make the memory usage explode
+                BinaryTagIO.writer().write(CompoundBinaryTag.builder().put(extraData).build(), (DataOutput) new DataOutputStream(value));
+            });
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -83,9 +75,7 @@ public class SlimeSerializer {
         return outByteStream.toByteArray();
     }
 
-    static byte[] serializeChunks(SlimeWorld world, Collection<SlimeChunk> chunks, EnumSet<v13AdditionalWorldData> data) throws IOException {
-        ByteArrayOutputStream outByteStream = new ByteArrayOutputStream(16384);
-        DataOutputStream outStream = new DataOutputStream(outByteStream);
+    static void serializeChunks(DataOutputStream outStream, SlimeWorld world, Collection<SlimeChunk> chunks, EnumSet<v13AdditionalWorldData> data) throws IOException {
 
         // Prune chunks
         List<SlimeChunk> chunksToSave = chunks.stream()
@@ -183,8 +173,26 @@ public class SlimeSerializer {
             outStream.writeInt(extra.length);
             outStream.write(extra);
         }
+    }
 
-        return outByteStream.toByteArray();
+    private static void writeCompressed(DataOutputStream out, ThrowingConsumer<DataOutputStream> writer) throws Exception {
+        ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
+        ZstdOutputStream zstd = new ZstdOutputStream(compressedOut);
+        DataOutputStream dataOut = new DataOutputStream(zstd);
+
+        CountingOutputStream counting = new CountingOutputStream(dataOut);
+
+        // write uncompressed data into zstd stream
+        writer.accept(new DataOutputStream(counting));
+
+        dataOut.flush();
+        zstd.close();
+
+        byte[] compressed = compressedOut.toByteArray();
+
+        out.writeInt(compressed.length);
+        out.writeInt((int) counting.getCount());
+        out.write(compressed);
     }
 
     private static CompoundBinaryTag wrap(String key, ListBinaryTag list) {
@@ -198,7 +206,6 @@ public class SlimeSerializer {
         if (tag == null || tag.isEmpty()) return new byte[0];
 
         ByteArrayOutputStream outByteStream = new ByteArrayOutputStream();
-
         //Avoid a buffered output stream by casting to DataOutput. Buffered Output Streams make the memory usage explode
         BinaryTagIO.writer().write(tag, (DataOutput) new DataOutputStream(outByteStream));
 
