@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: David <davidliebtkekse@gmail.com>
-Date: Sat, 4 Apr 2026 11:55:18 +0200
+Date: Thu, 18 Sep 2025 20:28:39 +0200
 Subject: [PATCH] World overrides
 
 
 diff --git a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
-index cd3e7cc8cf083915de46e03d9b2aaea3003f48fb..7d4623ecf63c0b307a0101ae1dbbb2c85125853e 100644
+index cd3e7cc8cf083915de46e03d9b2aaea3003f48fb..64fcc1333b9e72ff02176daaf85290935cb21082 100644
 --- a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
 +++ b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
 @@ -131,11 +131,24 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
@@ -13,24 +13,24 @@ index cd3e7cc8cf083915de46e03d9b2aaea3003f48fb..7d4623ecf63c0b307a0101ae1dbbb2c8
          final boolean hasWorldData = this.server.storageSource.hasWorldData();
          final LevelStem overworldStem = requireNonNull(levelStemRegistry.getValue(LevelStem.OVERWORLD), "Overworld stem missing");
 -        this.loadInitialWorld(overworldStem, hasWorldData);
-+
 +        //ASP start - overwrite vanilla worlds if needed
 +        if(!com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
 +            this.loadInitialWorld(overworldStem, hasWorldData);
 +        }
-+
++        //ASP end - overwrite vanilla worlds if needed
          for (final LevelStem stem : levelStemRegistry) {
              if (stem == overworldStem) {
                  continue;
              }
-+
++            //ASP start - overwrite vanilla worlds if needed
 +            ResourceKey<LevelStem> levelStemKey = levelStemRegistry.getResourceKey(stem).get();
++            if(levelStemKey == LevelStem.NETHER && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadNetherOverride()) {
++                continue;
++            }
 +            if(levelStemKey == LevelStem.END && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadEndOverride()) {
 +                continue;
 +            }
-+            if(levelStemKey == LevelStem.OVERWORLD && com.infernalsuite.asp.SlimeNMSBridgeImpl.instance().loadOverworldOverride()) {
-+                continue;
-+            }
++            //ASP end - overwrite vanilla worlds if needed
              this.loadInitialWorld(stem, hasWorldData);
          }
  
