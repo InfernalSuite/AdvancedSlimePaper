@@ -6,10 +6,10 @@
  dependencies {
 +    api(project(":api")) //ASP
      // api dependencies are listed transitively to API consumers
-     api("com.google.guava:guava:33.3.1-jre")
-     api("com.google.code.gson:gson:2.11.0")
+     api("com.google.guava:guava:33.5.0-jre")
+     api("com.google.code.gson:gson:2.13.2")
 @@ -91,7 +_,7 @@
-     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
  }
  
 -val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()

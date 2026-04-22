@@ -5,7 +5,7 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
-index c935d75b83338ce41507e9be11153dd1c4052cb6..3feaba566c22b1e93b2b4edc7786723a2f9e28c6 100644
+index 025ec3f3e84a3367b4d709c8c3ecd98f6dfecab4..182de15ca133fc42bf703ee9d116302bf5207c0d 100644
 --- a/src/main/java/org/spigotmc/SpigotConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotConfig.java
 @@ -79,7 +79,12 @@ public class SpigotConfig {
@@ -35,37 +35,41 @@ index c935d75b83338ce41507e9be11153dd1c4052cb6..3feaba566c22b1e93b2b4edc7786723a
              Bukkit.getLogger().log(Level.SEVERE, "Could not save " + SpigotConfig.CONFIG_FILE, ex);
          }
 diff --git a/src/main/java/org/spigotmc/SpigotWorldConfig.java b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-index 43c6240ec2855c0f668ce04de29d22a223d2612f..c6f398977149c8b35454fb79f099322c36d557d5 100644
+index 339832e312578ee385bbf3c9d5c131435abe7d7a..3924ba62c2df8372b67f6666f0c02d007ea3021c 100644
 --- a/src/main/java/org/spigotmc/SpigotWorldConfig.java
 +++ b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-@@ -10,17 +10,28 @@ public class SpigotWorldConfig {
-     private final YamlConfiguration config;
+@@ -15,13 +15,23 @@ public class SpigotWorldConfig {
      private boolean verbose;
  
-+    // ASP start - Improve Slime IO
-     public SpigotWorldConfig(String worldName) {
-+        this(worldName, true);
+     public SpigotWorldConfig(String legacyWorldName, Key worldKey) {
++        // ASP start - Improve Slime IO
++        this(legacyWorldName, worldKey, true);
 +    }
-+    // ASP end - Improve Slime IO
 +
-+    public SpigotWorldConfig(String worldName, boolean saveOnLoad) { // ASP - Improve Slime IO
-         this.worldName = worldName;
++    public SpigotWorldConfig(String legacyWorldName, Key worldKey, boolean saveOnLoad) {
++        // ASP end - Improve Slime IO
+         this.legacyWorldName = legacyWorldName;
+         this.worldName = worldKey.asString();
          this.config = SpigotConfig.config;
 -        this.init();
-+        this.init(saveOnLoad); // ASP - Improve Slime IO
++        this.init(saveOnLoad);  // ASP - Improve Slime IO
      }
- 
-+    // ASP start - Improve Slime IO
+-
      public void init() {
++        // ASP start - Improve Slime IO
 +        init(true);
 +    }
 +    public void init(boolean saveOnLoad) {
-+    // ASP end - Improve Slime IO
++        // ASP end - Improve Slime IO
          this.verbose = this.getBoolean("verbose", false); // Paper
+         if (SpigotConfig.version <= 12) {
+             ConfigurationSection section = this.config.getConfigurationSection("world-settings." + this.legacyWorldName);
+@@ -33,7 +43,7 @@ public class SpigotWorldConfig {
+         }
  
          this.log("-------- World Settings For [" + this.worldName + "] --------");
 -        SpigotConfig.readConfig(SpigotWorldConfig.class, this);
-+        SpigotConfig.readConfig(SpigotWorldConfig.class, this, saveOnLoad); // ASP - Improve Slime IO
++        SpigotConfig.readConfig(SpigotWorldConfig.class, this, saveOnLoad);
      }
  
      private void log(String s) {

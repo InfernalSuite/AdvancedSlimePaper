@@ -42,6 +42,10 @@ public class ChunkPruner {
         return false;
     }
 
+    public static boolean canBePruned(SlimeChunk chunk) {
+        return chunk.getTileEntities().isEmpty() && chunk.getEntities().isEmpty() && areSectionsEmpty(chunk.getSections());
+    }
+
     //  TAG_List("palette"): 1 entries of type TAG_Compound
     //[13:15:06 INFO]:    {
     //[13:15:06 INFO]:       TAG_Compound: 1 entries

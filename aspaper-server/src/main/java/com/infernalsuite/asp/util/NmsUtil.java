@@ -47,6 +47,6 @@ public class NmsUtil {
     }
 
     public static NewChunkHolder getChunkHolder(LevelChunk chunk) {
-        return chunk.level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunk.getPos().x, chunk.getPos().z);
+        return chunk.level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(chunk.getPos().x(), chunk.getPos().z());
     }
 }

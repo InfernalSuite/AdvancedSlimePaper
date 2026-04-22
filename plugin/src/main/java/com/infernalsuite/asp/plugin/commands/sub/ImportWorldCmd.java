@@ -8,8 +8,10 @@ import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.infernalsuite.asp.api.exceptions.WorldTooBigException;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
@@ -17,6 +19,7 @@ import org.incendo.cloud.annotations.CommandDescription;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.injection.RawArgs;
 import org.incendo.cloud.paper.util.sender.Source;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,13 +48,7 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                                                @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader loader,
                                                @Argument(value = "new-world-name") String newWorldName) {
         CommandSender sender = source.source();
-        File worldDir = new File(pathToWorld);
-
-        if (!worldDir.exists() || !worldDir.isDirectory()) {
-            throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
-                    Component.text("Path " + worldDir.getPath() + " does not point out to a valid world directory.")).color(NamedTextColor.RED)
-            );
-        }
+        File worldDir = getWorldFolder(pathToWorld);
 
         String[] oldArgs = importCache.getIfPresent(sender.getName());
 
@@ -158,6 +155,30 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
             importCache.put(sender.getName(), args);
             return CompletableFuture.completedFuture(null);
         }
+    }
+
+    private static @NonNull File getWorldFolder(String pathToWorld) {
+        File worldDir = Bukkit.getServer().getLevelDirectory().resolve("dimensions")
+                .resolve("minecraft")
+                .resolve(pathToWorld).toFile();
+
+        if(!worldDir.exists() || !worldDir.isDirectory() && Key.parseable(pathToWorld)) {
+            Key key = Key.key(pathToWorld);
+            worldDir = Bukkit.getServer().getLevelDirectory().resolve("dimensions")
+                    .resolve(key.namespace())
+                    .resolve(key.value()).toFile();
+        }
+
+        if(!worldDir.exists() || !worldDir.isDirectory()) {
+            worldDir = new File(pathToWorld);
+        }
+
+        if (!worldDir.exists() || !worldDir.isDirectory()) {
+            throw new com.infernalsuite.asp.plugin.commands.exception.MessageCommandException(COMMAND_PREFIX.append(
+                    Component.text("Path " + worldDir.getPath() + " does not point out to a valid world directory.")).color(NamedTextColor.RED)
+            );
+        }
+        return worldDir;
     }
 
 }

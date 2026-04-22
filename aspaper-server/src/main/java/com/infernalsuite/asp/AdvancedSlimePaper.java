@@ -48,6 +48,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
     }
 
     private final SlimeSerializationAdapter serializationAdapter = new SlimeSerializationAdapterImpl();
+    private final AnvilWorldReader reader = new AnvilWorldReader(BRIDGE_INSTANCE.getSlimeDataConverter());
 
     public static AdvancedSlimePaper instance() {
         return (AdvancedSlimePaper) AdvancedSlimePaperAPI.instance();
@@ -206,7 +207,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         SlimeWorld world;
 
         try {
-            world = AnvilWorldReader.INSTANCE.readFromData(AnvilImportData.legacy(worldDir, worldName, loader));
+            world = this.reader.readFromData(AnvilImportData.legacy(worldDir, worldName, loader));
         } catch (RuntimeException e) {
             if (e.getCause() == null) {
                 throw e;

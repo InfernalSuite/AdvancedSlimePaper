@@ -1,6 +1,7 @@
 package com.infernalsuite.asp.serialization.anvil;
 
 import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.api.exceptions.InvalidWorldException;
 import com.infernalsuite.asp.api.utils.NibbleArray;
 import com.infernalsuite.asp.api.world.SlimeChunk;
@@ -8,6 +9,7 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
+import com.infernalsuite.asp.serialization.slime.ChunkPruner;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import com.infernalsuite.asp.skeleton.SlimeChunkSkeleton;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -39,21 +41,39 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AnvilWorldReader.class);
 
-    public static final AnvilWorldReader INSTANCE = new AnvilWorldReader();
+    public static final AnvilWorldReader INSTANCE_NO_CONVERSION = new AnvilWorldReader(null);
+
+    private final SlimeDataConverter slimeDataConverter;
+
+    public AnvilWorldReader(SlimeDataConverter slimeDataConverter) {
+        this.slimeDataConverter = slimeDataConverter;
+    }
 
     @Override
     public SlimeWorld readFromData(AnvilImportData importData) {
         Path worldDir = importData.worldDir();
 
         try {
+
+            int worldVersion = 0;
+            int spawnX = 0;
+            int spawnY = 0;
+            int spawnZ = 0;
+
             Path levelFile = worldDir.resolve("level.dat");
-            if (!Files.exists(levelFile) || !Files.isRegularFile(levelFile)) {
-                throw new RuntimeException(new InvalidWorldException(worldDir));
+            if (Files.exists(levelFile) && Files.isRegularFile(levelFile)) {
+                LevelData levelData = readLevelData(levelFile);
+                worldVersion = levelData.version;
+                spawnX = levelData.x;
+                spawnY = levelData.y;
+                spawnZ = levelData.z;
+            } else {
+                if(!Files.exists(worldDir.resolve("region")))
+                    throw new RuntimeException(new InvalidWorldException(worldDir));
+
+                worldVersion = -1; //Figure that out later
+                //TODO: Spawn pos
             }
-
-            LevelData data = readLevelData(levelFile);
-
-            int worldVersion = data.version;
 
             SlimePropertyMap propertyMap = new SlimePropertyMap();
 
@@ -67,6 +87,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
              *
              * Vanilla users would need to delete the main region folder in order to import other dimensions.
              */
+            //TODO: Figure this out on 26.1.2. I think we cant so we need to make users provide this info
             Path environmentDir = worldDir;
             propertyMap.setValue(SlimeProperties.ENVIRONMENT, "normal");
             if (!doesWorldContainRegion(worldDir)) {
@@ -88,11 +109,45 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
             Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
 
+            int worldHeight;
+            int minY;
+            switch (propertyMap.getValue(SlimeProperties.ENVIRONMENT)) {
+                case "normal" -> {
+                    worldHeight = 384;
+                    minY = -64;
+                }
+                case "nether", "the_end" -> {
+                    worldHeight = 256;
+                    minY = 0;
+                }
+                case null, default -> throw new IllegalStateException("Unsupported environment, cant obtain world height data");
+            }
+
+            int minSectionY = minY >> 4;
+            int maxSectionY = (minY + worldHeight - 1) >> 4;
+
             try (var stream = Files.newDirectoryStream(regionDir, path -> path.toString().endsWith(".mca"))) {
                 for (final Path path : stream) {
                     LOGGER.info("Loading region file {}...", path.getFileName());
-                    chunks.putAll(loadChunks(path, worldVersion, propertyMap).stream()
-                            .collect(Collectors.toMap(chunk -> Util.chunkPosition(chunk.getX(), chunk.getZ()), Function.identity())));
+
+                    List<CompoundBinaryTag> chunkNBT = loadChunks(path, propertyMap);
+                    if(worldVersion == -1) {
+                        for (CompoundBinaryTag entries : chunkNBT) {
+                            int dataVersion = entries.getInt("DataVersion", -1);
+                            if (dataVersion != -1) {
+                                worldVersion = dataVersion;
+                                break;
+                            }
+                        }
+                    }
+
+                    for (CompoundBinaryTag entries : chunkNBT) {
+                        SlimeChunk slimeChunk = convertChunk(entries, worldVersion, minSectionY, maxSectionY);
+                        if(slimeChunk == null) continue;
+                        if(ChunkPruner.canBePruned(slimeChunk)) continue;
+
+                        chunks.put(Util.chunkPosition(slimeChunk.getX(), slimeChunk.getZ()), slimeChunk);
+                    }
                 }
             }
 
@@ -114,9 +169,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 throw new InvalidWorldException(environmentDir);
             }
 
-            propertyMap.setValue(SlimeProperties.SPAWN_X, data.x);
-            propertyMap.setValue(SlimeProperties.SPAWN_Y, data.y);
-            propertyMap.setValue(SlimeProperties.SPAWN_Z, data.z);
+            propertyMap.setValue(SlimeProperties.SPAWN_X, spawnX);
+            propertyMap.setValue(SlimeProperties.SPAWN_Y, spawnY);
+            propertyMap.setValue(SlimeProperties.SPAWN_Z, spawnZ);
 
             return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), importData.loader() == null,
                     chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
@@ -148,7 +203,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         throw new InvalidWorldException(file.getParent());
     }
 
-    private static void loadEntities(Path path, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
+    private void loadEntities(Path path, int version, Long2ObjectMap<SlimeChunk> chunkMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(path);
         //Is that in mca spec? Well, at least one world had empty MCA files, so lets just keep that here.
         if(regionByteArray.length == 0) return;
@@ -187,7 +242,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
     }
 
-    private static List<SlimeChunk> loadChunks(Path path, int worldVersion, SlimePropertyMap propertyMap) throws IOException {
+    private List<CompoundBinaryTag> loadChunks(Path path, SlimePropertyMap propertyMap) throws IOException {
         byte[] regionByteArray = Files.readAllBytes(path);
         DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(regionByteArray));
 
@@ -204,23 +259,6 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             }
         }
 
-        int worldHeight;
-        int minY;
-        switch (propertyMap.getValue(SlimeProperties.ENVIRONMENT)) {
-            case "normal" -> {
-                worldHeight = 384;
-                minY = -64;
-            }
-            case "nether", "the_end" -> {
-                worldHeight = 256;
-                minY = 0;
-            }
-            case null, default -> throw new IllegalStateException("Unsupported environment, cant obtain world height data");
-        }
-
-        int minSectionY = minY >> 4;
-        int maxSectionY = (minY + worldHeight - 1) >> 4;
-
         return chunks.stream().map((entry) -> {
 
             try {
@@ -232,7 +270,12 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 DataInputStream chunkStream = new DataInputStream(new ByteArrayInputStream(regionByteArray, entry.offset() + 5, chunkSize));
                 InputStream decompressorStream = compressionScheme == 1 ? new GZIPInputStream(chunkStream) : new InflaterInputStream(chunkStream);
                 CompoundBinaryTag tag = BinaryTagIO.unlimitedReader().read(decompressorStream);
-                return readChunk(tag, worldVersion, minSectionY, maxSectionY);
+
+                if(slimeDataConverter != null) {
+                    tag = slimeDataConverter.convertChunk(tag, slimeDataConverter.getServerVersion());
+                }
+
+                return tag;
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -240,14 +283,14 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    private static void readEntityChunk(CompoundBinaryTag compound, int worldVersion, Long2ObjectMap<SlimeChunk> slimeChunkMap) {
+    private void readEntityChunk(CompoundBinaryTag compound, int worldVersion, Long2ObjectMap<SlimeChunk> slimeChunkMap) {
         int[] position = compound.getIntArray("Position");
         if (position.length == 0) throw new IllegalStateException("Entity chunk is missing position data");
         int chunkX = position[0];
         int chunkZ = position[1];
 
         int dataVersion = compound.getInt("DataVersion", -1);
-        if (dataVersion != worldVersion) {
+        if (dataVersion != worldVersion && (worldVersion != -1 || slimeDataConverter == null)) {
             LOGGER.error("Cannot load entity chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
             return;
         }
@@ -259,6 +302,9 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             List<CompoundBinaryTag> entities = new ArrayList<>(chunk.getEntities());
             for (BinaryTag binaryTag : compound.getList("Entities", BinaryTagTypes.COMPOUND)) {
                 entities.add((CompoundBinaryTag) binaryTag);
+            }
+            if(slimeDataConverter != null) {
+                entities = slimeDataConverter.convertEntities(entities, dataVersion, slimeDataConverter.getServerVersion());
             }
 
             slimeChunkMap.put(Util.chunkPosition(chunkX, chunkZ), new SlimeChunkSkeleton(
@@ -277,12 +323,12 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         }
     }
 
-    private static SlimeChunk readChunk(CompoundBinaryTag compound, int worldVersion, int minSectionY, int maxSectionY) {
+    private SlimeChunk convertChunk(CompoundBinaryTag compound, int worldVersion, int minSectionY, int maxSectionY) {
         int chunkX = compound.getInt("xPos");
         int chunkZ = compound.getInt("zPos");
 
         int dataVersion = compound.getInt("DataVersion", -1);
-        if (dataVersion != worldVersion) {
+        if (dataVersion != worldVersion && (worldVersion != -1 || slimeDataConverter == null)) {
             LOGGER.error("Cannot load chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
             return null;
         }

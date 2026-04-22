@@ -129,11 +129,16 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag tag) {
-        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(tag);
+        return convertChunk(tag, 1631);
+    }
+
+    @Override
+    public CompoundBinaryTag convertChunk(CompoundBinaryTag globalTag, int to) {
+        CompoundTag nmsTag = (CompoundTag) Converter.convertTag(globalTag);
 
         int version = nmsTag.getInt("DataVersion").orElseThrow();
 
-        long encodedNewVersion = DataConverter.encodeVersions(1631, Integer.MAX_VALUE);
+        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
 
         MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
@@ -188,5 +193,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         }
 
         return Converter.convertTag(listType.getTag());
+    }
+
+    @Override
+    public int getServerVersion() {
+        return 0;
     }
 }
