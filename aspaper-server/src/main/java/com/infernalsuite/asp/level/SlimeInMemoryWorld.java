@@ -295,6 +295,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     public void promoteInChunkStorage(SlimeChunkLevel chunk) {
-        chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), chunk.getSafeSlimeReference());
+        chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), chunk.getNmsSlimeChunk());
     }
 }
