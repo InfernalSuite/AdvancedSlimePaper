@@ -56,12 +56,16 @@ public class Converter {
                 case Tag.TAG_STRING -> StringTag.valueOf(((StringBinaryTag) tag).value());
                 case Tag.TAG_LIST -> {
                     ListBinaryTag listTag = (ListBinaryTag) tag;
-                    ListTag list = new ListTag(new ArrayList<>(listTag.size()));
-                    for (BinaryTag entry : listTag) list.addAndUnwrap(convertTag(entry));
+                    int size = listTag.size();
+                    ListTag list = new ListTag(new ArrayList<>(size));
+                    for (int i = 0; i < size; i++) {
+                        list.addAndUnwrap(convertTag(listTag.get(i)));
+                    }
                     yield list;
                 }
                 case Tag.TAG_COMPOUND -> {
                     CompoundBinaryTag compoundTag = (CompoundBinaryTag) tag;
+                    if(compoundTag.isEmpty()) yield new CompoundTag();
                     CompoundTag compound = new CompoundTag(new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>(compoundTag.size(), 0.8f));
                     for (Map.Entry<String, ? extends BinaryTag> entry : compoundTag) {
                         compound.put(entry.getKey(), convertTag(entry.getValue()));
