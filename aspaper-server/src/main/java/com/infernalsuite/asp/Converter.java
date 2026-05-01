@@ -55,13 +55,17 @@ public class Converter {
                 case Tag.TAG_BYTE_ARRAY -> new ByteArrayTag(((ByteArrayBinaryTag) tag).value());
                 case Tag.TAG_STRING -> StringTag.valueOf(((StringBinaryTag) tag).value());
                 case Tag.TAG_LIST -> {
-                    ListTag list = new ListTag();
-                    for (BinaryTag entry : ((ListBinaryTag) tag)) list.addAndUnwrap(convertTag(entry));
+                    ListBinaryTag listTag = (ListBinaryTag) tag;
+                    ListTag list = new ListTag(new ArrayList<>(listTag.size()));
+                    for (BinaryTag entry : listTag) list.addAndUnwrap(convertTag(entry));
                     yield list;
                 }
                 case Tag.TAG_COMPOUND -> {
-                    CompoundTag compound = new CompoundTag();
-                    ((CompoundBinaryTag) tag).forEach(entry -> compound.put(entry.getKey(), convertTag(entry.getValue())));
+                    CompoundBinaryTag compoundTag = (CompoundBinaryTag) tag;
+                    CompoundTag compound = new CompoundTag(new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>(compoundTag.size(), 0.8f));
+                    for (Map.Entry<String, ? extends BinaryTag> entry : compoundTag) {
+                        compound.put(entry.getKey(), convertTag(entry.getValue()));
+                    }
                     yield compound;
                 }
                 case Tag.TAG_INT_ARRAY -> new IntArrayTag(((IntArrayBinaryTag) tag).value());
@@ -99,26 +103,20 @@ public class Converter {
                 if(originalList.isEmpty()) {
                     yield (T) ListBinaryTag.empty();
                 }
-                List<BinaryTag> list = new ArrayList<>(originalList.size());
 
-                BinaryTagType<?> tagType = null;
+                ListBinaryTag.Builder<BinaryTag> listBuilder = ListBinaryTag.heterogeneousListBinaryTag(originalList.size());
                 for (Tag entry : originalList) {
                     BinaryTag converted = convertTag(entry);
-
-                    if(tagType != null && !converted.type().equals(tagType)) {
-                        tagType = BinaryTagTypes.LIST_WILDCARD;
-                    } else if(tagType == null) {
-                        tagType = converted.type();
-                    }
-
-                    list.add(converted);
+                    listBuilder.add(converted);
                 }
-                yield (T) ListBinaryTag.listBinaryTag(tagType, list);
+                yield (T) listBuilder.build();
             }
             case Tag.TAG_COMPOUND -> {
-                CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder();
-                CompoundTag originalCompound = ((CompoundTag) base);
-                for (String key : originalCompound.keySet()) builder.put(key, convertTag(Objects.requireNonNull(originalCompound.get(key))));
+                CompoundTag tag = (CompoundTag) base;
+                CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder(tag.size());
+                for (Map.Entry<String, Tag> entry : tag.entrySet()) {
+                    builder.put(entry.getKey(), convertTag(entry.getValue()));
+                }
                 yield (T) builder.build();
             }
             case Tag.TAG_INT_ARRAY -> (T) IntArrayBinaryTag.intArrayBinaryTag(((IntArrayTag) base).getAsIntArray());

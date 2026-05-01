@@ -11,6 +11,7 @@ import com.infernalsuite.asp.level.SlimeLevelInstance;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.SharedConstants;
@@ -154,10 +155,15 @@ public class SlimeChunkConverter {
             upgradeData = UpgradeData.EMPTY;
         }
 
+        List<CompoundTag> tileEntities = new ObjectArrayList<>(chunk.getTileEntities().size());
+        for (CompoundBinaryTag tileEntity : chunk.getTileEntities()) {
+            tileEntities.add((CompoundTag) Converter.convertTag(tileEntity));
+        }
+
         LevelChunk.PostLoadProcessor processor = SerializableChunkData.postLoadChunk(
                 instance,
                 new ArrayList<>(), //Entities are loaded by moonrise
-                chunk.getTileEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList()
+                tileEntities
         );
 
         SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, chunk, pos, upgradeData, blockLevelChunkTicks,
