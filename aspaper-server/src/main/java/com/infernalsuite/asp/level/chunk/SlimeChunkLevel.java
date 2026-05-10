@@ -17,7 +17,6 @@ public class SlimeChunkLevel extends LevelChunk {
 
     private final SlimeInMemoryWorld inMemoryWorld;
     private final NMSSlimeChunk nmsSlimeChunk;
-    private final @Nullable SlimeChunk slimeReference;
 
     public SlimeChunkLevel(
             SlimeLevelInstance world,
@@ -34,7 +33,6 @@ public class SlimeChunkLevel extends LevelChunk {
         super(world, pos, upgradeData, blockTickScheduler, fluidTickScheduler, inhabitedTime, sectionArrayInitializer, entityLoader, blendingData);
         this.inMemoryWorld = world.slimeInstance;
         this.nmsSlimeChunk = new NMSSlimeChunk(this, reference);
-        this.slimeReference = reference;
     }
 
     @Override
@@ -44,11 +42,6 @@ public class SlimeChunkLevel extends LevelChunk {
         this.inMemoryWorld.promoteInChunkStorage(this);
 
         super.loadCallback();
-    }
-
-    public SlimeChunk getSafeSlimeReference() {
-        if(this.slimeReference == null) return this.nmsSlimeChunk;
-        return new SafeNmsChunkWrapper(this.nmsSlimeChunk, this.slimeReference);
     }
 
     public NMSSlimeChunk getNmsSlimeChunk() {
