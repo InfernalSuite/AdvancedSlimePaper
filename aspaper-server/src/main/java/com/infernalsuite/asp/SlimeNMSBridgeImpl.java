@@ -171,7 +171,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     public void registerWorld(SlimeLevelInstance server) {
         MinecraftServer mcServer = MinecraftServer.getServer();
-        mcServer.initWorld(server);
+        mcServer.initWorld(server, null);
 
         mcServer.addLevel(server);
     }
