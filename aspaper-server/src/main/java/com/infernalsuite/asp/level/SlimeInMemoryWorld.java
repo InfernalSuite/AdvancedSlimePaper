@@ -181,13 +181,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             // NMS "live" chunks need to be converted
             {
                 NMSSlimeChunk chunk = null;
-                if (clonedChunk instanceof SafeNmsChunkWrapper safeNmsChunkWrapper) {
-                    if (safeNmsChunkWrapper.shouldDefaultBackToSlimeChunk()) {
-                        clonedChunk = safeNmsChunkWrapper.getSafety();
-                    } else {
-                        chunk = safeNmsChunkWrapper.getWrapper();
-                    }
-                } else if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
                     chunk = nmsSlimeChunk;
                 }
 
