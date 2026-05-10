@@ -4,7 +4,7 @@ import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 /*
  * This dimension data storage does not serialize and/or load from disk.
  */
-public class ReadOnlyDimensionDataStorage extends DimensionDataStorage {
+public class ReadOnlyDimensionDataStorage extends SavedDataStorage {
 
     public ReadOnlyDimensionDataStorage(Path dataFolder, DataFixer fixerUpper, HolderLookup.Provider registries) {
         super(dataFolder, fixerUpper, registries);

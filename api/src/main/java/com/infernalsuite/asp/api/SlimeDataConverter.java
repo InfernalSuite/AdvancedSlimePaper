@@ -15,8 +15,11 @@ public interface SlimeDataConverter {
 
     CompoundBinaryTag convertChunkTo1_13(CompoundBinaryTag globalTag);
 
+    CompoundBinaryTag convertChunk(CompoundBinaryTag globalTag, int to);
+
     List<CompoundBinaryTag> convertEntities(List<CompoundBinaryTag> input, int from, int to);
     List<CompoundBinaryTag> convertTileEntities(List<CompoundBinaryTag> input, int from, int to);
     ListBinaryTag convertBlockPalette(ListBinaryTag input, int from, int to);
 
+    int getServerVersion();
 }
