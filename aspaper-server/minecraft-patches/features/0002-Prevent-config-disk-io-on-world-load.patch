@@ -25,7 +25,8 @@ index e34e901dce06c6bc6060418593010dcfb38e9396..e1fd30fc9b17d241c421c66114c9611b
          this.maxSectionY = this.maxY >> 4;
          this.sectionsCount = this.maxSectionY - this.minSectionY + 1;
          // Paper end - getblock optimisations - cache world height/sections
--        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(bukkitName, CraftNamespacedKey.fromMinecraft(dimension.identifier())); // Spigot
+         final org.bukkit.NamespacedKey worldKey = CraftNamespacedKey.fromMinecraft(dimension.identifier()); // Paper
+-        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(bukkitName, worldKey); // Spigot
 +        this.spigotConfig = new org.spigotmc.SpigotWorldConfig(bukkitName, CraftNamespacedKey.fromMinecraft(dimension.identifier()), !(this instanceof com.infernalsuite.asp.level.SlimeLevelInstance)); // Spigot //ASP - Improve Slime IO
          this.paperConfig = paperWorldConfigCreator.apply(this.spigotConfig); // Paper - create paper world config
          this.generator = generator;
