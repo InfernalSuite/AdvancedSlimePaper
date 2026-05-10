@@ -8,7 +8,6 @@ import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
 import com.infernalsuite.asp.serialization.slime.reader.impl.v13.v13AdditionalWorldData;
-import com.infernalsuite.asp.util.CountingOutputStream;
 import com.infernalsuite.asp.util.ThrowingConsumer;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
@@ -180,10 +179,8 @@ public class SlimeSerializer {
         ZstdOutputStream zstd = new ZstdOutputStream(compressedOut);
         DataOutputStream dataOut = new DataOutputStream(zstd);
 
-        CountingOutputStream counting = new CountingOutputStream(dataOut);
-
         // write uncompressed data into zstd stream
-        writer.accept(new DataOutputStream(counting));
+        writer.accept(dataOut);
 
         dataOut.flush();
         zstd.close();
@@ -191,7 +188,7 @@ public class SlimeSerializer {
         byte[] compressed = compressedOut.toByteArray();
 
         out.writeInt(compressed.length);
-        out.writeInt((int) counting.getCount());
+        out.writeInt(dataOut.size());
         out.write(compressed);
     }
 
