@@ -3,7 +3,7 @@ package com.infernalsuite.asp.level;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import com.infernalsuite.asp.Converter;
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
