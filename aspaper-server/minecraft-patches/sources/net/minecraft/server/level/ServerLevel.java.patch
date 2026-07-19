@@ -60,7 +60,7 @@
          // CraftBukkit start
          // Paper start - per-world time
          if (!io.papermc.paper.configuration.GlobalConfiguration.get().time.affectsAllWorlds) {
-@@ -742,6 +_,12 @@
+@@ -743,6 +_,12 @@
          // Paper end - rewrite chunk system
          this.getCraftServer().addWorld(this.getWorld()); // CraftBukkit
      }
