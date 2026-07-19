@@ -80,7 +80,7 @@ public class Converter {
             CompoundBinaryTag exceptionTag = CompoundBinaryTag.builder().put("failing_tag", tag).build();
             String tagString;
             try {
-                tagString = TagStringIO.get().asString(exceptionTag);
+                tagString = TagStringIO.tagStringIO().asString(exceptionTag);
             } catch (final IOException ioEx) {
                 LOGGER.error("Error while trying to convert exception tag to string", ioEx);
                 tagString = "UNAVAILABLE";

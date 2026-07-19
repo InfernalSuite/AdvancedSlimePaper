@@ -60,10 +60,10 @@ public record PartiallySerializedSlimeChunk(
             // Sections CANNOT be null in 1.18
 
             // Block Light Nibble Array
-            NibbleArray blockLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.BLOCK).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
+            NibbleArray blockLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.BLOCK).getDataLayerData(SectionPos.of(chunk.getPos(), chunk.getSectionYFromSectionIndex(sectionId))));
 
             // Sky light Nibble Array
-            NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
+            NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), chunk.getSectionYFromSectionIndex(sectionId))));
 
             sections[sectionId] = new PartiallySerializedSlimeChunkSection(section.copy(), blockLightArray, skyLightArray);
         }

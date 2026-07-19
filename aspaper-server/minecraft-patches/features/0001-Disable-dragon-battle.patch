@@ -5,7 +5,7 @@ Subject: [PATCH] Disable dragon battle
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index 70f12c31ad5f9b8bcb32b4be041ea16684d430f3..b59f29850d3ef1840b740cfc3b2f254686620cb9 100644
+index 9856e37c348cd82649c2989573158b906901f05d..24042efddf415121d67ee71c00d4a7f23dfcb131 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -2,6 +2,7 @@ package net.minecraft.server.level;
@@ -16,7 +16,7 @@ index 70f12c31ad5f9b8bcb32b4be041ea16684d430f3..b59f29850d3ef1840b740cfc3b2f2546
  import com.mojang.datafixers.DataFixer;
  import com.mojang.datafixers.util.Pair;
  import com.mojang.logging.LogUtils;
-@@ -748,7 +749,11 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
+@@ -751,7 +752,11 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
          );
          this.structureManager = new StructureManager(this, options, this.structureCheck);
          if (this.dimensionType().hasEnderDragonFight()) {

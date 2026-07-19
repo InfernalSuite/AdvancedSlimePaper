@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -603,8 +_,35 @@
+@@ -606,8 +_,35 @@
          this.playerTickingChunks.remove((LevelChunk)chunkHolder.getCurrentChunk());
      }
      // Paper end - chunk tick iteration
@@ -38,7 +38,7 @@
          final MinecraftServer server,
          final Executor executor,
          final LevelStorageSource.LevelStorageAccess levelStorage,
-@@ -624,6 +_,7 @@
+@@ -627,6 +_,7 @@
          io.papermc.paper.world.PaperWorldLoader.LoadedWorldData loadedWorldData
          // Paper end - add parameters
      ) {
@@ -46,7 +46,7 @@
          // CraftBukkit start
          final io.papermc.paper.world.saveddata.PaperLevelOverrides levelData = loadedWorldData.levelOverrides();
          savedDataStorage.set(io.papermc.paper.world.saveddata.PaperLevelOverrides.TYPE, levelData);
-@@ -645,7 +_,13 @@
+@@ -648,7 +_,13 @@
          this.server = server;
          this.customSpawners = customSpawners;
          this.serverLevelData = levelData;
@@ -60,7 +60,7 @@
          // CraftBukkit start
          // Paper start - per-world time
          if (!io.papermc.paper.configuration.GlobalConfiguration.get().time.affectsAllWorlds) {
-@@ -739,6 +_,12 @@
+@@ -742,6 +_,12 @@
          // Paper end - rewrite chunk system
          this.getCraftServer().addWorld(this.getWorld()); // CraftBukkit
      }

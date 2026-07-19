@@ -11,3 +11,4 @@ public net.minecraft.world.level.chunk.storage.SerializableChunkData makeBiomeCo
 public net.minecraft.world.level.chunk.storage.SerializableChunkData postLoadChunk(Lnet/minecraft/server/level/ServerLevel;Ljava/util/List;Ljava/util/List;)Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;
 public-f ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.EntityDataController
 public-f ca.spottedleaf.moonrise.patches.chunk_system.io.datacontroller.PoiDataController
+public net.minecraft.world.level.chunk.LevelChunk level

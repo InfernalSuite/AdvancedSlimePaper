@@ -44,6 +44,7 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
 
         DataInputStream chunkBytes = SlimeWorldDeserializerHelper.openCompressedStream(dataStream);
         Long2ObjectMap<SlimeChunk> chunks = readChunks(propertyMap, chunkBytes);
+        chunkBytes.close();
 
         CompoundBinaryTag extraTag = SlimeWorldDeserializerHelper.readCompressedCompound(dataStream);
 
@@ -57,7 +58,6 @@ public class v12SlimeWorldDeSerializer implements com.infernalsuite.asp.serializ
             worldPropertyMap.merge(propertyMap);
         }
 
-        chunkBytes.close();
         dataStream.close();
         return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(worldName, loader, readOnly, chunks, extraData, worldPropertyMap, worldVersion);
     }
