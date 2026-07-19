@@ -35,6 +35,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.ProgressListener;
+import net.minecraft.util.Util;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.biome.Biome;
@@ -143,7 +144,7 @@ public class SlimeLevelInstance extends ServerLevel {
         super(
                 slimeBootstrap,
                 MinecraftServer.getServer(),
-                MinecraftServer.getServer().executor,
+                Util.backgroundExecutor(),
                 CUSTOM_LEVEL_STORAGE_ACCESS,
                 settings,
                 dimensionKey,
@@ -165,7 +166,7 @@ public class SlimeLevelInstance extends ServerLevel {
 
         this.slimeInstance = new SlimeInMemoryWorld(slimeBootstrap, this);
 
-        super.chunkSource.setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
+        super.getChunkSource().setSpawnSettings(propertyMap.getValue(SlimeProperties.ALLOW_MONSTERS), propertyMap.getValue(SlimeProperties.ALLOW_ANIMALS));
 
 
         propertyMap.getOptionalValue(SlimeProperties.PVP)

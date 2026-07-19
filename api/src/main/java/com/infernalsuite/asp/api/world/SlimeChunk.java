@@ -7,7 +7,7 @@ import net.kyori.adventure.nbt.ListBinaryTag;
 
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * In-memory representation of a SRF chunk.
