@@ -5,10 +5,10 @@ Subject: [PATCH] World overrides
 
 
 diff --git a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
-index cd3e7cc8cf083915de46e03d9b2aaea3003f48fb..64fcc1333b9e72ff02176daaf85290935cb21082 100644
+index 1bf392bacaddcccaa5b17872b1646f4eb9876baf..c6cc9b061a392e420f660bbfe44ae419302cb2d7 100644
 --- a/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
 +++ b/src/main/java/io/papermc/paper/world/PaperWorldLoader.java
-@@ -131,11 +131,24 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
+@@ -121,11 +121,24 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
          final var levelStemRegistry = this.server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
          final boolean hasWorldData = this.server.storageSource.hasWorldData();
          final LevelStem overworldStem = requireNonNull(levelStemRegistry.getValue(LevelStem.OVERWORLD), "Overworld stem missing");
