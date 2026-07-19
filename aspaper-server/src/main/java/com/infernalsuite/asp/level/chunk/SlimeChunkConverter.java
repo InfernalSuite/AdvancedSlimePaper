@@ -11,6 +11,7 @@ import com.infernalsuite.asp.level.SlimeLevelInstance;
 import com.infernalsuite.asp.skeleton.SlimeChunkSectionSkeleton;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.SharedConstants;
@@ -100,12 +101,20 @@ public class SlimeChunkConverter {
 
                 PalettedContainer<BlockState> blockPalette;
                 if (slimeSection.getBlockStatesTag() != null) {
-                    DataResult<PalettedContainer<BlockState>> dataresult = instance.palettedContainerFactory().blockStatesContainerCodec().parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
+
+                    //If Paper AntiXray is not ready during upgrading, comment these three lines and uncomment the one below.
+                    final BlockState[] presetBlockStates = instance.chunkPacketBlockController.getPresetBlockStates(instance, pos, sectionId); // Paper - Anti-Xray - Add preset block states
+                    final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = presetBlockStates == null ?  instance.palettedContainerFactory().blockStatesContainerCodec()
+                            : PalettedContainer.codecRW(BlockState.CODEC,  instance.palettedContainerFactory().blockStatesStrategy(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), presetBlockStates); // Paper - Anti-Xray
+                    //For upgrading purposes only
+                    //final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = instance.palettedContainerFactory().blockStatesContainerCodec();
+
+                    DataResult<PalettedContainer<BlockState>> dataresult = antiXrayBlockStateCodec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
                     });
                     blockPalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    blockPalette = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), instance.palettedContainerFactory().blockStatesStrategy(), null);
+                    blockPalette = instance.palettedContainerFactory().createForBlockStates(instance, pos, instance.getSectionYFromSectionIndex(sectionId));
                 }
 
                 PalettedContainer<Holder<Biome>> biomePalette;
@@ -116,7 +125,7 @@ public class SlimeChunkConverter {
                     });
                     biomePalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
-                    biomePalette = new PalettedContainer<>(biomeRegistry.get(Biomes.PLAINS).orElseThrow(), instance.palettedContainerFactory().biomeStrategy(), null);
+                    biomePalette = instance.palettedContainerFactory().createForBiomes();
                 }
 
                 if (sectionId < sections.length) {
@@ -154,10 +163,15 @@ public class SlimeChunkConverter {
             upgradeData = UpgradeData.EMPTY;
         }
 
+        List<CompoundTag> tileEntities = new ObjectArrayList<>(chunk.getTileEntities().size());
+        for (CompoundBinaryTag tileEntity : chunk.getTileEntities()) {
+            tileEntities.add((CompoundTag) Converter.convertTag(tileEntity));
+        }
+
         LevelChunk.PostLoadProcessor processor = SerializableChunkData.postLoadChunk(
                 instance,
                 new ArrayList<>(), //Entities are loaded by moonrise
-                chunk.getTileEntities().stream().map(tag -> (net.minecraft.nbt.CompoundTag) Converter.convertTag(tag)).toList()
+                tileEntities
         );
 
         SlimeChunkLevel nmsChunk = new SlimeChunkLevel(instance, chunk, pos, upgradeData, blockLevelChunkTicks,

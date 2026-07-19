@@ -3,6 +3,7 @@ package com.infernalsuite.asp.config;
 import io.papermc.paper.configuration.Configurations;
 import io.papermc.paper.configuration.PaperConfigurations;
 import io.papermc.paper.configuration.WorldConfiguration;
+import net.kyori.adventure.key.Key;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.gamerules.GameRules;
@@ -30,7 +31,7 @@ public class SlimePaperWorldConfig {
             PaperConfigurations paperConfigurations,
             MinecraftServer server
     ) {
-        SpigotWorldConfig spigotWorldConfig = new SpigotWorldConfig("asp-slimeworld");
+        SpigotWorldConfig spigotWorldConfig = new SpigotWorldConfig("asp-slimeworld", Key.key(FAKE_WORLD_KEY.getNamespace(), FAKE_WORLD_KEY.getPath()), false);
 
         GameRules gameRules = new GameRules(server.worldLoaderContext.dataConfiguration().enabledFeatures());
 
@@ -43,7 +44,6 @@ public class SlimePaperWorldConfig {
                  */
                 Path.of("config", "advancedslimepaper"),
 
-                "asp-slimeworld",
                 FAKE_WORLD_KEY,
                 spigotWorldConfig,
                 server.registryAccess(),

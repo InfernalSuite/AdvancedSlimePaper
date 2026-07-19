@@ -5,10 +5,10 @@ Subject: [PATCH] Warning if people use old swm api
 
 
 diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
-index 3e82ea07ca4194844c5528446e2c4a46ff4acee5..1f8bff31ce60f9a1b143e749916fa51cf115f5d7 100644
+index 4dd7c6c0d7f54f5cc5879b9c60c60c455f00c9f8..45831c8e3f0803530b0edb511caf9835c9513963 100644
 --- a/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
 +++ b/src/main/java/io/papermc/paper/plugin/manager/PaperPluginInstanceManager.java
-@@ -64,6 +64,15 @@ class PaperPluginInstanceManager {
+@@ -69,6 +69,15 @@ class PaperPluginInstanceManager {
      }
  
      public @Nullable Plugin getPlugin(@NotNull String name) {

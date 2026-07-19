@@ -1,11 +1,11 @@
 [versions]
-adventure = "4.24.0"
-annotations = "26.0.1"
+adventure = "4.26.1"
+annotations = "1.0.0"
 autoservice = "1.1.1"
 blossom = "2.1.0"
 bstats = "3.1.0"
 cloud-core = "2.0.0"
-cloud-minecraft = "2.0.0-beta.14"
+cloud-minecraft = "2.0.0-SNAPSHOT"
 configurate = "4.1.2"
 indra-git = "3.1.3"
 gradle-profiles = "0.54.0"
@@ -15,7 +15,7 @@ lettuce = "6.5.1.RELEASE"
 lombok = "1.18.36"
 lombok-plugin = "8.11"
 mongo = "5.2.1"
-paperweight = "2.0.0-beta.19"
+paperweight = "2.0.0-SNAPSHOT"
 plugin-yml-paper = "0.6.0"
 shadow = "9.2.2"
 slf4j = "2.0.16"
@@ -33,7 +33,7 @@ shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
 [libraries]
 adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" }
-annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+annotations = { module = "org.jspecify:jspecify", version.ref = "annotations" }
 auto-service = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
 auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "autoservice" }
 bstats = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }

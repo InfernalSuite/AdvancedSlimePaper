@@ -3,7 +3,7 @@ package com.infernalsuite.asp.level;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.ChunkEntitySlices;
 import ca.spottedleaf.moonrise.patches.chunk_system.level.poi.PoiChunk;
 import com.infernalsuite.asp.Converter;
-import com.infernalsuite.asp.Util;
+import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
@@ -181,13 +181,7 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
             // NMS "live" chunks need to be converted
             {
                 NMSSlimeChunk chunk = null;
-                if (clonedChunk instanceof SafeNmsChunkWrapper safeNmsChunkWrapper) {
-                    if (safeNmsChunkWrapper.shouldDefaultBackToSlimeChunk()) {
-                        clonedChunk = safeNmsChunkWrapper.getSafety();
-                    } else {
-                        chunk = safeNmsChunkWrapper.getWrapper();
-                    }
-                } else if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
+                if (clonedChunk instanceof NMSSlimeChunk nmsSlimeChunk) {
                     chunk = nmsSlimeChunk;
                 }
 
@@ -295,6 +289,6 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
     }
 
     public void promoteInChunkStorage(SlimeChunkLevel chunk) {
-        chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), chunk.getSafeSlimeReference());
+        chunkStorage.put(Util.chunkPosition(chunk.locX, chunk.locZ), chunk.getNmsSlimeChunk());
     }
 }

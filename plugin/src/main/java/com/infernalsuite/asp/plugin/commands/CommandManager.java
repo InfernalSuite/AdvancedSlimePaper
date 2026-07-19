@@ -10,22 +10,7 @@ import com.infernalsuite.asp.plugin.commands.parser.NamedWorldData;
 import com.infernalsuite.asp.plugin.commands.parser.NamedWorldDataParser;
 import com.infernalsuite.asp.plugin.commands.parser.SlimeWorldParser;
 import com.infernalsuite.asp.plugin.commands.parser.suggestion.KnownSlimeWorldSuggestionProvider;
-import com.infernalsuite.asp.plugin.commands.sub.CloneWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.CreateWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.DSListCmd;
-import com.infernalsuite.asp.plugin.commands.sub.DeleteWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.GotoCmd;
-import com.infernalsuite.asp.plugin.commands.sub.HelpCmd;
-import com.infernalsuite.asp.plugin.commands.sub.ImportWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.LoadTemplateWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.LoadWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.MigrateWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.ReloadConfigCmd;
-import com.infernalsuite.asp.plugin.commands.sub.SaveWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.SetSpawnCmd;
-import com.infernalsuite.asp.plugin.commands.sub.UnloadWorldCmd;
-import com.infernalsuite.asp.plugin.commands.sub.VersionCmd;
-import com.infernalsuite.asp.plugin.commands.sub.WorldListCmd;
+import com.infernalsuite.asp.plugin.commands.sub.*;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
@@ -136,7 +121,8 @@ public class CommandManager {
                 new UnloadWorldCmd(this),
                 new VersionCmd(this),
                 new WorldListCmd(this),
-                new HelpCmd(this, commandManager)
+                new HelpCmd(this, commandManager),
+                new AddWorldCmd(this)
         );
 
     }

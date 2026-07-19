@@ -52,12 +52,12 @@ public class NMSSlimeChunk implements SlimeChunk {
 
     @Override
     public int getX() {
-        return chunk.getPos().x;
+        return chunk.getPos().x();
     }
 
     @Override
     public int getZ() {
-        return chunk.getPos().z;
+        return chunk.getPos().z();
     }
 
     @Override
@@ -72,10 +72,10 @@ public class NMSSlimeChunk implements SlimeChunk {
             // Sections CANNOT be null in 1.18
 
             // Block Light Nibble Array
-            NibbleArray blockLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.BLOCK).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
+            NibbleArray blockLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.BLOCK).getDataLayerData(SectionPos.of(chunk.getPos(), chunk.getSectionYFromSectionIndex(sectionId))));
 
             // Sky light Nibble Array
-            NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), sectionId)));
+            NibbleArray skyLightArray = Converter.convertArray(lightEngine.getLayerListener(LightLayer.SKY).getDataLayerData(SectionPos.of(chunk.getPos(), chunk.getSectionYFromSectionIndex(sectionId))));
 
             sections[sectionId] = SlimeChunkConverter.convertChunkSection(chunk.level.palettedContainerFactory().biomeContainerCodec(),
                     chunk.level.palettedContainerFactory().blockStatesContainerCodec(), section, blockLightArray, skyLightArray);
