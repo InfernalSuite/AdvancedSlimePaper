@@ -1,6 +1,45 @@
 --- a/paper-api/build.gradle.kts
 +++ b/paper-api/build.gradle.kts
-@@ -42,6 +_,7 @@
+@@ -1,11 +_,11 @@
+-import io.papermc.paperweight.checkstyle.JavadocTag
++//import io.papermc.paperweight.checkstyle.JavadocTag //
+ import paper.libs.com.google.gson.Gson
+ 
+ plugins {
+     `java-library`
+     `maven-publish`
+     idea
+-    id("io.papermc.paperweight.paper-checkstyle")
++    //id("io.papermc.paperweight.paper-checkstyle") //ASP: Disable checkstyle
+ }
+ 
+ java {
+@@ -13,14 +_,16 @@
+     withJavadocJar()
+ }
+ 
+-val projectCustomJavadocTags = setOf(
+-    JavadocTag("apiNote", "a", "API Note:"),
+-)
+-
+-paperCheckstyle {
+-    customJavadocTags = projectCustomJavadocTags
+-    directoriesToSkipFile = layout.projectDirectory.file(".checkstyle/ignored_directories.txt")
+-}
++//ASP start: Disable checkstyle
++//val projectCustomJavadocTags = setOf(
++//    JavadocTag("apiNote", "a", "API Note:"),
++//)
++//
++//paperCheckstyle {
++//    customJavadocTags = projectCustomJavadocTags
++//    directoriesToSkipFile = layout.projectDirectory.file(".checkstyle/ignored_directories.txt")
++//}
++//ASP end: Disable checkstyle
+ 
+ val annotationsVersion = "26.0.2"
+ val adventureVersion = "5.2.0"
+@@ -53,6 +_,7 @@
  }
  
  dependencies {
@@ -8,8 +47,12 @@
      // api dependencies are listed transitively to API consumers
      api("com.google.guava:guava:33.6.0-jre")
      api("com.google.code.gson:gson:2.14.0")
-@@ -94,7 +_,7 @@
+@@ -105,10 +_,10 @@
      testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
+ 
+     // checkstyle
+-    checkstyle(project(":paper-checkstyle"))
++    //checkstyle(project(":paper-checkstyle")) //ASP: Disable checkstyle
  }
  
 -val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("src/generated/java").asFile.toPath()
@@ -17,7 +60,7 @@
  idea {
      module {
          generatedSourceDirs.add(generatedDir.toFile())
-@@ -104,6 +_,18 @@
+@@ -118,6 +_,18 @@
      main {
          java {
              srcDir(generatedDir)
@@ -36,7 +79,7 @@
          }
      }
  }
-@@ -186,7 +_,7 @@
+@@ -200,7 +_,7 @@
  
  tasks.withType<Javadoc>().configureEach {
      val options = options as StandardJavadocDocletOptions
@@ -45,7 +88,17 @@
      options.use()
      options.isDocFilesSubDirs = true
      options.links(
-@@ -213,11 +_,11 @@
+@@ -215,7 +_,8 @@
+         "https://logging.apache.org/log4j/2.x/javadoc/log4j-api/",
+         "https://www.javadocs.dev/org.apache.maven.resolver/maven-resolver-api/1.7.3",
+     )
+-    options.tags(projectCustomJavadocTags.map { it.toOptionString() })
++    options.tags("apiNote:a:API Note:")  //ASP: Disable checkstyle
++    //options.tags(projectCustomJavadocTags.map { it.toOptionString() }) //ASP: Disable checkstyle
+ 
+     inputs.files(javadocSourcepath).ignoreEmptyDirectories().withPropertyName(javadocSourcepath.name + "-configuration")
+     val javadocSourcepathElements = javadocSourcepath.elements
+@@ -227,11 +_,11 @@
      }
  
      // workaround for https://github.com/gradle/gradle/issues/4046
