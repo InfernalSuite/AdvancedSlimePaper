@@ -7,6 +7,8 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
     implementation(project(":aspaper-api"))
+    implementation(libs.lz4)
+    runtimeOnly(libs.slf4j.simple)
 }
 
 tasks {
@@ -17,7 +19,10 @@ tasks {
     }
     shadowJar {
         archiveClassifier.set("")
-        minimize()
+        minimize {
+            exclude(dependency("at.yawk.lz4:.*"))
+            exclude(dependency("org.slf4j:.*"))
+        }
     }
     assemble {
         dependsOn(shadowJar)
