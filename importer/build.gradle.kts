@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":aspaper-api"))
     implementation(libs.lz4)
+    runtimeOnly(libs.slf4j.simple)
 }
 
 tasks {
@@ -20,6 +21,7 @@ tasks {
         archiveClassifier.set("")
         minimize {
             exclude(dependency("at.yawk.lz4:.*"))
+            exclude(dependency("org.slf4j:.*"))
         }
     }
     assemble {
