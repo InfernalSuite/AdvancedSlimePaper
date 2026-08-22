@@ -4,6 +4,7 @@ import com.infernalsuite.asp.util.Util;
 import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.api.exceptions.InvalidWorldException;
 import com.infernalsuite.asp.api.utils.NibbleArray;
+import com.infernalsuite.asp.api.world.ExtraRegionFolder;
 import com.infernalsuite.asp.api.world.SlimeChunk;
 import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
@@ -167,6 +168,13 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
             if (chunks.isEmpty()) {
                 throw new InvalidWorldException(environmentDir);
+            }
+
+            for (ExtraRegionFolder extraRegionFolder : importData.extraRegionFolders()) {
+                Path extraRegionDir = worldDir.resolve(extraRegionFolder.directory());
+                if (Files.isDirectory(extraRegionDir)) {
+                    ExtraRegionReader.attachTo(extraRegionDir, extraRegionFolder.extraDataKey(), chunks);
+                }
             }
 
             propertyMap.setValue(SlimeProperties.SPAWN_X, spawnX);

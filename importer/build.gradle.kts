@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
     implementation(project(":aspaper-api"))
+    implementation(libs.lz4)
 }
 
 tasks {
@@ -17,7 +18,9 @@ tasks {
     }
     shadowJar {
         archiveClassifier.set("")
-        minimize()
+        minimize {
+            exclude(dependency("at.yawk.lz4:.*"))
+        }
     }
     assemble {
         dependsOn(shadowJar)
