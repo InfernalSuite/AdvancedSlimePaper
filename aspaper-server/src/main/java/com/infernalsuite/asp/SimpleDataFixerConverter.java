@@ -198,6 +198,6 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public int getServerVersion() {
-        return 0;
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 }
