@@ -55,7 +55,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
 
         try {
 
-            int worldVersion = 0;
+            int targetWorldVersion = 0;
             int spawnX = 0;
             int spawnY = 0;
             int spawnZ = 0;
@@ -63,7 +63,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             Path levelFile = worldDir.resolve("level.dat");
             if (Files.exists(levelFile) && Files.isRegularFile(levelFile)) {
                 LevelData levelData = readLevelData(levelFile);
-                worldVersion = levelData.version;
+                targetWorldVersion = levelData.version;
                 spawnX = levelData.x;
                 spawnY = levelData.y;
                 spawnZ = levelData.z;
@@ -71,8 +71,14 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 if(!Files.exists(worldDir.resolve("region")))
                     throw new RuntimeException(new InvalidWorldException(worldDir));
 
-                worldVersion = -1; //Figure that out later
+                targetWorldVersion = -1; //Figure that out later
                 //TODO: Spawn pos
+            }
+
+            if(slimeDataConverter != null && slimeDataConverter.getServerVersion() < targetWorldVersion) {
+                throw new RuntimeException("Cannot import world with data version " + targetWorldVersion + " as the slime data converter only supports up to " + slimeDataConverter.getServerVersion());
+            } else if(slimeDataConverter != null) {
+                targetWorldVersion = slimeDataConverter.getServerVersion();
             }
 
             SlimePropertyMap propertyMap = new SlimePropertyMap();
@@ -131,18 +137,20 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                     LOGGER.info("Loading region file {}...", path.getFileName());
 
                     List<CompoundBinaryTag> chunkNBT = loadChunks(path, propertyMap);
-                    if(worldVersion == -1) {
+
+                    //If we don't have a target world version yet, find the newest one in the chunk data
+                    if(targetWorldVersion == -1) {
                         for (CompoundBinaryTag entries : chunkNBT) {
                             int dataVersion = entries.getInt("DataVersion", -1);
                             if (dataVersion != -1) {
-                                worldVersion = dataVersion;
+                                targetWorldVersion = dataVersion;
                                 break;
                             }
                         }
                     }
 
                     for (CompoundBinaryTag entries : chunkNBT) {
-                        SlimeChunk slimeChunk = convertChunk(entries, worldVersion, minSectionY, maxSectionY);
+                        SlimeChunk slimeChunk = convertChunk(entries, targetWorldVersion, minSectionY, maxSectionY);
                         if(slimeChunk == null) continue;
                         if(ChunkPruner.canBePruned(slimeChunk)) continue;
 
@@ -159,7 +167,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
                 try (var stream = Files.newDirectoryStream(entityDir, path -> path.toString().endsWith(".mca"))) {
                     for (final Path path : stream) {
                         LOGGER.info("Loading entity region file {}...", path.getFileName());
-                        loadEntities(path, worldVersion, chunks);
+                        loadEntities(path, targetWorldVersion, chunks);
                     }
                 }
             }
@@ -174,7 +182,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
             propertyMap.setValue(SlimeProperties.SPAWN_Z, spawnZ);
 
             return new com.infernalsuite.asp.skeleton.SkeletonSlimeWorld(importData.newName(), importData.loader(), importData.loader() == null,
-                    chunks, new ConcurrentHashMap<>(), propertyMap, worldVersion);
+                    chunks, new ConcurrentHashMap<>(), propertyMap, targetWorldVersion);
         } catch (IOException | InvalidWorldException e) {
 
             throw new RuntimeException(e);
@@ -290,7 +298,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         int chunkZ = position[1];
 
         int dataVersion = compound.getInt("DataVersion", -1);
-        if (dataVersion != worldVersion && (worldVersion != -1 || slimeDataConverter == null)) {
+        if (dataVersion != worldVersion && (worldVersion == -1 || slimeDataConverter == null)) {
             LOGGER.error("Cannot load entity chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
             return;
         }
@@ -328,7 +336,7 @@ public class AnvilWorldReader implements com.infernalsuite.asp.serialization.Sli
         int chunkZ = compound.getInt("zPos");
 
         int dataVersion = compound.getInt("DataVersion", -1);
-        if (dataVersion != worldVersion && (worldVersion != -1 || slimeDataConverter == null)) {
+        if (dataVersion != worldVersion && (worldVersion == -1 || slimeDataConverter == null)) {
             LOGGER.error("Cannot load chunk at {},{}: data version {} does not match world version {}", chunkX, chunkZ, dataVersion, worldVersion);
             return null;
         }
