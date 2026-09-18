@@ -29,12 +29,12 @@ public class SlimePoiDataLoader extends PoiDataController {
         SlimeChunk chunk = instance.getSlimeInstance().getChunk(chunkX, chunkZ);
 
         if(chunk == null || chunk.getPoiChunkSections() == null) {
-            return new ReadData(ReadData.ReadResult.NO_DATA, null, null, 0);
+            return new ReadData(ReadData.ReadResult.NO_DATA, null, null/* TODO(26.3): , 0 */);
         }
 
 
         CompoundTag tag = SlimeChunkConverter.createPoiChunk(chunk);
-        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag, 0);
+        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag/* TODO(26.3): , 0 */);
     }
 
     @Override

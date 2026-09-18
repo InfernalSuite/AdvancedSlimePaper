@@ -4,6 +4,7 @@ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeResolver;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
@@ -35,8 +36,8 @@ public class SlimeLevelGenerator extends FlatLevelSource {
             }
 
             @Override
-            public Holder<Biome> getNoiseBiome(int x, int y, int z, Climate.Sampler noise) {
-                return biome;
+            public BiomeResolver createResolver(Climate.Sampler sampler) {
+                return (_, _, _) -> biome;
             }
         };
     }
