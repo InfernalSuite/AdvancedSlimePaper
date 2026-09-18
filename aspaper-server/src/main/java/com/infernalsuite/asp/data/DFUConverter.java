@@ -1,11 +1,5 @@
 package com.infernalsuite.asp.data;
 
-import ca.spottedleaf.converter.DataConverter;
-import ca.spottedleaf.converter.types.MapType;
-import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
-import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
-import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
-import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import ca.spottedleaf.moonrise.common.PlatformHooks;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.SlimeDataConverter;
