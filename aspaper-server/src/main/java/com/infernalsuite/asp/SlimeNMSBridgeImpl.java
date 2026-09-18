@@ -5,26 +5,34 @@ import com.infernalsuite.asp.api.SlimeNMSBridge;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
-import com.infernalsuite.asp.data.DFUConverter;
-import com.infernalsuite.asp.data.SimpleDataFixerConverter;
 import com.infernalsuite.asp.level.SlimeBootstrap;
 import com.infernalsuite.asp.level.SlimeInMemoryWorld;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.WorldLoader;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerProperties;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.gamerules.GameRuleMap;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.storage.CommandStorage;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.storage.SavedDataStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -34,20 +42,13 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     public static final CraftPersistentDataTypeRegistry PERSISTENT_DATA_TYPE_REGISTRY = new CraftPersistentDataTypeRegistry();
-    private static final SlimeDataConverter DATA_FIXER_CONVERTER;
-
-    static {
-        if(Boolean.getBoolean("asp.force-dfu") || !SimpleDataFixerConverter.SUPPORTED_RIGHT_NOW) {
-            DATA_FIXER_CONVERTER = new DFUConverter();
-        } else {
-            DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
-        }
-    }
+    private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 
     private SlimeWorld defaultWorld;
     private SlimeWorld defaultNetherWorld;
