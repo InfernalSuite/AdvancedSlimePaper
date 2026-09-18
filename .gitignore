@@ -15,3 +15,5 @@ aspaper-api/build.gradle.kts
 paper-api/
 paper-api-generator/
 aspaper-server/.gradle/
+
+.checkstyle
