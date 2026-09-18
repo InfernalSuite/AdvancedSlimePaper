@@ -20,6 +20,7 @@ include(":loaders")
 include(":plugin")
 include(":aspaper-api")
 include(":aspaper-server")
+include(":aspaper-checkstyle")
 
 include("loaders:mongo-loader")
 findProject(":loaders:mongo-loader")?.name = "mongo-loader"

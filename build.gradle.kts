@@ -22,7 +22,17 @@ paperweight {
             outputFile = file("aspaper-server/build.gradle.kts")
             patchFile = file("aspaper-server/build.gradle.kts.patch")
         }
-
+        patchFile {
+            path = "paper-checkstyle/build.gradle.kts"
+            outputFile = file("aspaper-checkstyle/build.gradle.kts")
+            patchFile = file("aspaper-checkstyle/build.gradle.kts.patch")
+        }
+        patchDir("paperCheckstyle") {
+            upstreamPath = "paper-checkstyle"
+            excludes = setOf("build.gradle.kts")
+            patchesDir = file("aspaper-checkstyle/paper-patches")
+            outputDir = file("paper-checkstyle")
+        }
         patchDir("paperApi") {
             upstreamPath = "paper-api"
             excludes = setOf("build.gradle.kts")
