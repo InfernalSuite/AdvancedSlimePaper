@@ -12,7 +12,7 @@
 +    overrideConfigFile.set(layout.projectDirectory.file("../paper-api/.checkstyle/checkstyle.xml"))
  }
  
- val annotationsVersion = "26.0.2"
+ val annotationsVersion = "26.1.0"
 @@ -53,6 +_,7 @@
  }
  
@@ -21,7 +21,7 @@
      // api dependencies are listed transitively to API consumers
      api("com.google.guava:guava:33.6.0-jre")
      api("com.google.code.gson:gson:2.14.0")
-@@ -105,10 +_,10 @@
+@@ -103,10 +_,10 @@
      testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
  
      // checkstyle
@@ -34,7 +34,7 @@
  idea {
      module {
          generatedSourceDirs.add(generatedDir.toFile())
-@@ -118,6 +_,18 @@
+@@ -116,6 +_,18 @@
      main {
          java {
              srcDir(generatedDir)
@@ -53,7 +53,7 @@
          }
      }
  }
-@@ -200,7 +_,7 @@
+@@ -198,7 +_,7 @@
  
  tasks.withType<Javadoc>().configureEach {
      val options = options as StandardJavadocDocletOptions
@@ -62,7 +62,7 @@
      options.use()
      options.isDocFilesSubDirs = true
      options.links(
-@@ -215,7 +_,8 @@
+@@ -213,7 +_,8 @@
          "https://logging.apache.org/log4j/2.x/javadoc/log4j-api/",
          "https://www.javadocs.dev/org.apache.maven.resolver/maven-resolver-api/1.7.3",
      )
@@ -72,7 +72,7 @@
  
      inputs.files(javadocSourcepath).ignoreEmptyDirectories().withPropertyName(javadocSourcepath.name + "-configuration")
      val javadocSourcepathElements = javadocSourcepath.elements
-@@ -227,11 +_,11 @@
+@@ -225,11 +_,11 @@
      }
  
      // workaround for https://github.com/gradle/gradle/issues/4046

@@ -5,7 +5,7 @@
      gitFilePatches = false
  
 -    updatingMinecraft {
--        // oldPaperCommit = "d4fe85375af18bfa88f44d7c1e6a61904ae550cc"
+-        //oldPaperCommit = "e5fe71723e2ffde7cc9fafc085ac3bb73e63175e"
 +    val aspaper = forks.register("aspaper") {
 +        upstream.patchDir("paperServer") {
 +            upstreamPath = "paper-server"
