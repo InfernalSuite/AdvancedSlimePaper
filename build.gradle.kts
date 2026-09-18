@@ -39,6 +39,11 @@ paperweight {
             patchesDir = file("aspaper-api/paper-patches")
             outputDir = file("paper-api")
         }
+        patchDir("paperCheckstyleConfig") {
+            upstreamPath = ".checkstyle"
+            patchesDir = file("aspaper-checkstyle/config-patches")
+            outputDir = file(".checkstyle")
+        }
     }
 }
 
