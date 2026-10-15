@@ -114,7 +114,7 @@ public class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, S
 
     private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
         CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
-        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+        MCTypeRegistry.POI_CHUNK.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
         return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
