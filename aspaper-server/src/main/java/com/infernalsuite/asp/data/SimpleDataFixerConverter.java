@@ -1,4 +1,4 @@
-package com.infernalsuite.asp;
+package com.infernalsuite.asp.data;
 
 import ca.spottedleaf.converter.DataConverter;
 import ca.spottedleaf.converter.types.MapType;
@@ -6,6 +6,7 @@ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
 import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.level.chunk.SlimeChunkConverter;
 import com.infernalsuite.asp.serialization.SlimeWorldReader;
@@ -28,7 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConverter {
+public class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConverter {
+
+    //Is DataConverter supported this version?
+    public static final boolean SUPPORTED_RIGHT_NOW = true;
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
@@ -138,7 +142,6 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         CompoundTag nmsTag = (CompoundTag) Converter.convertTag(globalTag);
 
         int version = nmsTag.getInt("DataVersion").orElseThrow();
-
         long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
         long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
 
@@ -186,10 +189,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
         NBTListType listType = new NBTListType(nbtList);
 
         for (int i = 0, len = listType.size(); i < len; ++i) {
-            final MapType replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
+            final Object replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
                     encodedCurrentVersion, encodedNewVersion);
             if (replace != null) {
-                listType.setMap(i, replace);
+                listType.setGeneric(i, replace);
             }
         }
 
