@@ -52,8 +52,7 @@ public class SlimeChunkConverter {
         PalettedContainerFactory factory = PalettedContainerFactory.create(net.minecraft.server.MinecraftServer.getServer().registryAccess());
         {
             //When paper is upgrading and anti-xray is missing, remove the third "null" argument
-            //TODO(26.3): Re-add once Anti-Xray is back
-            PalettedContainer<BlockState> empty = new PalettedContainer<>(Blocks.AIR.defaultBlockState(),factory.blockStatesStrategy());
+            PalettedContainer<BlockState> empty = new PalettedContainer<>(Blocks.AIR.defaultBlockState(),factory.blockStatesStrategy(), null);
             Tag tag = factory.blockStatesContainerCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BLOCK_STATE_PALETTE = Converter.convertTag(tag);
@@ -61,8 +60,7 @@ public class SlimeChunkConverter {
         {
             Registry<Biome> biomes = net.minecraft.server.MinecraftServer.getServer().registryAccess().lookupOrThrow(Registries.BIOME);
             //When paper is upgrading and anti-xray is missing, remove the third "null" argument
-            //TODO(26.3): Re-add once Anti-Xray is back
-            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.get(Biomes.PLAINS).orElseThrow(), factory.biomeStrategy());
+            PalettedContainer<Holder<Biome>> empty = new PalettedContainer<>(biomes.get(Biomes.PLAINS).orElseThrow(), factory.biomeStrategy(), null);
             Tag tag = factory.biomeContainerRWCodec().encodeStart(NbtOps.INSTANCE, empty).getOrThrow();
 
             EMPTY_BIOME_PALETTE = Converter.convertTag(tag);
@@ -107,12 +105,11 @@ public class SlimeChunkConverter {
                 if (slimeSection.getBlockStatesTag() != null) {
 
                     //If Paper AntiXray is not ready during upgrading, comment these three lines and uncomment the one below.
-                    //TODO(26.3): Re-add once Anti-Xray is back
-//                    final BlockState[] presetBlockStates = instance.chunkPacketBlockController.getPresetBlockStates(instance, pos, sectionId); // Paper - Anti-Xray - Add preset block states
-//                    final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = presetBlockStates == null ?  instance.palettedContainerFactory().blockStatesContainerCodec()
-//                            : PalettedContainer.codecRW(BlockState.CODEC,  instance.palettedContainerFactory().blockStatesStrategy(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), presetBlockStates); // Paper - Anti-Xray
+                    final BlockState[] presetBlockStates = instance.chunkPacketBlockController.getPresetBlockStates(instance, pos, sectionId); // Paper - Anti-Xray - Add preset block states
+                    final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = presetBlockStates == null ?  instance.palettedContainerFactory().blockStatesContainerCodec()
+                            : PalettedContainer.codecRW(BlockState.CODEC,  instance.palettedContainerFactory().blockStatesStrategy(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), presetBlockStates); // Paper - Anti-Xray
                     //For upgrading purposes only
-                    final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = instance.palettedContainerFactory().blockStatesContainerCodec();
+//                    final Codec<PalettedContainer<BlockState>> antiXrayBlockStateCodec = instance.palettedContainerFactory().blockStatesContainerCodec();
 
                     DataResult<PalettedContainer<BlockState>> dataresult = antiXrayBlockStateCodec.parse(NbtOps.INSTANCE, Converter.convertTag(slimeSection.getBlockStatesTag())).promotePartial((s) -> {
                         System.out.println("Recoverable error when parsing section " + x + "," + z + ": " + s); // todo proper logging
@@ -120,10 +117,9 @@ public class SlimeChunkConverter {
                     blockPalette = dataresult.getOrThrow(); // todo proper logging
                 } else {
                     //If Paper AntiXray is not ready during upgrading, comment this line and uncomment the one below.
-                    //TODO(26.3): Re-add once Anti-Xray is back
-//                    blockPalette = instance.palettedContainerFactory().createForBlockStates(instance, pos, instance.getSectionYFromSectionIndex(sectionId));
+                    blockPalette = instance.palettedContainerFactory().createForBlockStates(instance, pos, instance.getSectionYFromSectionIndex(sectionId));
                     //For upgrading purposes only
-                    blockPalette = instance.palettedContainerFactory().createForBlockStates();
+//                    blockPalette = instance.palettedContainerFactory().createForBlockStates();
                 }
 
                 PalettedContainer<Holder<Biome>> biomePalette;

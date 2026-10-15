@@ -1,11 +1,11 @@
 package com.infernalsuite.asp.data;
 
-//import ca.spottedleaf.converter.DataConverter;
-//import ca.spottedleaf.converter.types.MapType;
-//import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
-//import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
-//import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
-//import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
+import ca.spottedleaf.converter.DataConverter;
+import ca.spottedleaf.converter.types.MapType;
+import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
+import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
+import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
+import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.Converter;
 import com.infernalsuite.asp.api.SlimeDataConverter;
 import com.infernalsuite.asp.level.chunk.SlimeChunkConverter;
@@ -32,8 +32,7 @@ import java.util.function.Consumer;
 public class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConverter {
 
     //Is DataConverter supported this version?
-    //TODO(26.3): Not supported on 26.3
-    public static final boolean SUPPORTED_RIGHT_NOW = false;
+    public static final boolean SUPPORTED_RIGHT_NOW = true;
 
     @Override
     public SlimeWorld readFromData(SlimeWorld data) {
@@ -43,84 +42,80 @@ public class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, S
         if (currentVersion == newVersion) {
             return data;
         }
-        return data;
-        //TODO(26.3): Not supported on 26.3
-//
-//        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
-//        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
-//
-//        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
-//        for (SlimeChunk chunk : data.getChunkStorage()) {
-//            List<CompoundBinaryTag> entities = new ArrayList<>();
-//            List<CompoundBinaryTag> blockEntities = new ArrayList<>();
-//            for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
-//                blockEntities.add(
-//                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-//                );
-//            }
-//            for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
-//                entities.add(
-//                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-//                );
-//            }
-//            long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
-//
-//            SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
-//            for (int i = 0; i < sections.length; i++) {
-//                SlimeChunkSection dataSection = chunk.getSections()[i];
-//                if (dataSection == null) continue;
-//
-//                CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
-//                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
-//                });
-//
-//                CompoundBinaryTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
-//                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
-//                });
-//
-//                sections[i] = new SlimeChunkSectionSkeleton(
-//                        blockStateTag,
-//                        biomeTag,
-//                        dataSection.getBlockLight(),
-//                        dataSection.getSkyLight()
-//                );
-//            }
-//
-//            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
-//
-//            chunks.put(chunkPos, new SlimeChunkSkeleton(
-//                    chunk.getX(),
-//                    chunk.getZ(),
-//                    sections,
-//                    chunk.getHeightMaps(),
-//                    blockEntities,
-//                    entities,
-//                    chunk.getExtraData(),
-//                    chunk.getUpgradeData(),
-//                    newPoi,
-//                    chunk.getBlockTicks(),
-//                    chunk.getFluidTicks()
-//            ));
-//
-//        }
-//
-//        return new SkeletonSlimeWorld(
-//                data.getName(),
-//                data.getLoader(),
-//                data.isReadOnly(),
-//                chunks,
-//                data.getExtraData(),
-//                data.getPropertyMap(),
-//                newVersion
-//        );
+
+        long encodedNewVersion = DataConverter.encodeVersions(newVersion, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(currentVersion, Integer.MAX_VALUE);
+
+        Long2ObjectMap<SlimeChunk> chunks = new Long2ObjectOpenHashMap<>();
+        for (SlimeChunk chunk : data.getChunkStorage()) {
+            List<CompoundBinaryTag> entities = new ArrayList<>();
+            List<CompoundBinaryTag> blockEntities = new ArrayList<>();
+            for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
+                blockEntities.add(
+                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+                );
+            }
+            for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
+                entities.add(
+                        convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+                );
+            }
+            long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
+
+            SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
+            for (int i = 0; i < sections.length; i++) {
+                SlimeChunkSection dataSection = chunk.getSections()[i];
+                if (dataSection == null) continue;
+
+                CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
+                    WalkerUtils.convertList(MCTypeRegistry.BLOCK_STATE, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+                });
+
+                CompoundBinaryTag biomeTag = convertAndBack(dataSection.getBiomeTag(), (tag) -> {
+                    WalkerUtils.convertList(MCTypeRegistry.BIOME, new NBTMapType(tag), "palette", encodedCurrentVersion, encodedNewVersion);
+                });
+
+                sections[i] = new SlimeChunkSectionSkeleton(
+                        blockStateTag,
+                        biomeTag,
+                        dataSection.getBlockLight(),
+                        dataSection.getSkyLight()
+                );
+            }
+
+            CompoundBinaryTag newPoi = chunk.getPoiChunkSections() != null ? convertPoiSections(chunk.getPoiChunkSections(), currentVersion, encodedCurrentVersion, encodedNewVersion) : null;
+
+            chunks.put(chunkPos, new SlimeChunkSkeleton(
+                    chunk.getX(),
+                    chunk.getZ(),
+                    sections,
+                    chunk.getHeightMaps(),
+                    blockEntities,
+                    entities,
+                    chunk.getExtraData(),
+                    chunk.getUpgradeData(),
+                    newPoi,
+                    chunk.getBlockTicks(),
+                    chunk.getFluidTicks()
+            ));
+
+        }
+
+        return new SkeletonSlimeWorld(
+                data.getName(),
+                data.getLoader(),
+                data.isReadOnly(),
+                chunks,
+                data.getExtraData(),
+                data.getPropertyMap(),
+                newVersion
+        );
     }
 
     private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
-        //TODO(26.3): Not supported on 26.3
-//        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
-//        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
-//        return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
-        return poiChunkSections;
+        CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
+        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+        return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
     @Override
@@ -147,68 +142,61 @@ public class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, S
         CompoundTag nmsTag = (CompoundTag) Converter.convertTag(globalTag);
 
         int version = nmsTag.getInt("DataVersion").orElseThrow();
-        //TODO(26.3): Not supported on 26.3
-//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
-//        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
-//
-//        MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
-//
+        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(version, Integer.MAX_VALUE);
+
+        MCTypeRegistry.CHUNK.convert(new NBTMapType(nmsTag), encodedCurrentVersion, encodedNewVersion);
+
         return Converter.convertTag(nmsTag);
     }
 
     @Override
     public List<CompoundBinaryTag> convertEntities(List<CompoundBinaryTag> input, int from, int to) {
-        return input;
-        //TODO(26.3): Not supported on 26.3
-//        List<CompoundBinaryTag> entities = new ArrayList<>(input.size());
+        List<CompoundBinaryTag> entities = new ArrayList<>(input.size());
 
-//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
-//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
-//
-//        for (CompoundBinaryTag upgradeEntity : input) {
-//            entities.add(
-//                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-//            );
-//        }
-//        return entities;
+        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+
+        for (CompoundBinaryTag upgradeEntity : input) {
+            entities.add(
+                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+            );
+        }
+        return entities;
     }
 
     @Override
     public List<CompoundBinaryTag> convertTileEntities(List<CompoundBinaryTag> input, int from, int to) {
-        return input;
-        //TODO(26.3): Not supported on 26.3
-//        List<CompoundBinaryTag> blockEntities = new ArrayList<>(input.size());
-//
-//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
-//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
-//
-//        for (CompoundBinaryTag upgradeEntity : input) {
-//            blockEntities.add(
-//                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
-//            );
-//        }
-//        return blockEntities;
+        List<CompoundBinaryTag> blockEntities = new ArrayList<>(input.size());
+
+        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+
+        for (CompoundBinaryTag upgradeEntity : input) {
+            blockEntities.add(
+                    convertAndBack(upgradeEntity, (tag) -> MCTypeRegistry.TILE_ENTITY.convert(new NBTMapType(tag), encodedCurrentVersion, encodedNewVersion))
+            );
+        }
+        return blockEntities;
     }
 
     @Override
     public ListBinaryTag convertBlockPalette(ListBinaryTag input, int from, int to) {
-        return input;
-        //TODO(26.3): Not supported on 26.3
-//        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
-//        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
-//
-//        ListTag nbtList = (ListTag) Converter.convertTag(input);
-//        NBTListType listType = new NBTListType(nbtList);
-//
-//        for (int i = 0, len = listType.size(); i < len; ++i) {
-//            final MapType replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
-//                    encodedCurrentVersion, encodedNewVersion);
-//            if (replace != null) {
-//                listType.setMap(i, replace);
-//            }
-//        }
-//
-//        return Converter.convertTag(listType.getTag());
+        long encodedNewVersion = DataConverter.encodeVersions(to, Integer.MAX_VALUE);
+        long encodedCurrentVersion = DataConverter.encodeVersions(from, Integer.MAX_VALUE);
+
+        ListTag nbtList = (ListTag) Converter.convertTag(input);
+        NBTListType listType = new NBTListType(nbtList);
+
+        for (int i = 0, len = listType.size(); i < len; ++i) {
+            final Object replace = MCTypeRegistry.BLOCK_STATE.convert(listType.getMap(i),
+                    encodedCurrentVersion, encodedNewVersion);
+            if (replace != null) {
+                listType.setGeneric(i, replace);
+            }
+        }
+
+        return Converter.convertTag(listType.getTag());
     }
 
     @Override
