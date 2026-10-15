@@ -8,6 +8,7 @@ import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.level.SlimeBootstrap;
 import com.infernalsuite.asp.level.SlimeInMemoryWorld;
 import com.infernalsuite.asp.level.SlimeLevelInstance;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
@@ -46,7 +47,7 @@ import java.util.Locale;
 
 public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
-    private static final CraftPersistentDataTypeRegistry REGISTRY = new CraftPersistentDataTypeRegistry();
+    public static final CraftPersistentDataTypeRegistry PERSISTENT_DATA_TYPE_REGISTRY = new CraftPersistentDataTypeRegistry();
     private static final SimpleDataFixerConverter DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
 
     private SlimeWorld defaultWorld;

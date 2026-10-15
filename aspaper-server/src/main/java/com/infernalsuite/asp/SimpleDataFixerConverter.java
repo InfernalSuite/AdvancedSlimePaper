@@ -1,9 +1,9 @@
 package com.infernalsuite.asp;
 
-import ca.spottedleaf.dataconverter.converters.DataConverter;
+import ca.spottedleaf.converter.DataConverter;
+import ca.spottedleaf.converter.types.MapType;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.minecraft.walkers.generic.WalkerUtils;
-import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTListType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
 import com.infernalsuite.asp.api.SlimeDataConverter;
@@ -110,7 +110,7 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     private CompoundBinaryTag convertPoiSections(CompoundBinaryTag poiChunkSections, int currentVersion, long encodedCurrentVersion, long encodedNewVersion) {
         CompoundTag poiChunk = SlimeChunkConverter.createPoiChunkFromSlimeSections(poiChunkSections, currentVersion);
-        MCTypeRegistry.ENTITY.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
+        MCTypeRegistry.POI_CHUNK.convert(new NBTMapType(poiChunk), encodedCurrentVersion, encodedNewVersion);
         return SlimeChunkConverter.getSlimeSectionsFromPoiCompound(poiChunk);
     }
 
@@ -198,6 +198,6 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
 
     @Override
     public int getServerVersion() {
-        return 0;
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 }

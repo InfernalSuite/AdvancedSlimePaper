@@ -5,10 +5,10 @@ Subject: [PATCH] Prevent config disk io on world load
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index b59f29850d3ef1840b740cfc3b2f254686620cb9..54cdc9c357c446b530c2ae757f1243d1912d02a0 100644
+index 24042efddf415121d67ee71c00d4a7f23dfcb131..dae32b15ccaba07549cf5844579be3dd019142b9 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -660,7 +660,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
+@@ -663,7 +663,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
          savedDataStorage.set(io.papermc.paper.world.saveddata.PaperWorldPDC.TYPE, loadedWorldData.pdc() == null ? io.papermc.paper.world.saveddata.PaperWorldPDC.TYPE.constructor().get() : loadedWorldData.pdc());
          final GameRules gameRules = new GameRules(server.getWorldData().enabledFeatures(), savedDataStorage.computeIfAbsent(net.minecraft.world.level.gamerules.GameRuleMap.TYPE));
          this.gameRules = gameRules;
@@ -18,10 +18,10 @@ index b59f29850d3ef1840b740cfc3b2f254686620cb9..54cdc9c357c446b530c2ae757f1243d1
          this.weatherData.setLevel(this);
          this.typeKey = typeKey;
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index 56659181dc817ea028428eabf5937308c04b8cc5..90600ee28f28b7a863dba2c750b4a2195fb91c7a 100644
+index db6b1e72ee54c7b94381bad93f3693cd7e273055..5a1c80ffb76a0a3d5cd3973be8a5b60eafba523b 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
-@@ -850,7 +850,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+@@ -851,7 +851,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
          this.sectionsCount = this.maxSectionY - this.minSectionY + 1;
          // Paper end - getblock optimisations - cache world height/sections
          final org.bukkit.NamespacedKey worldKey = CraftNamespacedKey.fromMinecraft(dimension.identifier()); // Paper
