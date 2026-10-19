@@ -6,6 +6,7 @@ import com.infernalsuite.asp.api.exceptions.InvalidWorldException;
 import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.infernalsuite.asp.api.exceptions.WorldTooBigException;
+import com.infernalsuite.asp.api.world.ExtraRegionFolder;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import net.kyori.adventure.key.Key;
@@ -16,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
 import org.incendo.cloud.annotations.CommandDescription;
+import org.incendo.cloud.annotations.Flag;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.injection.RawArgs;
 import org.incendo.cloud.paper.util.sender.Source;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +49,9 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
     public CompletableFuture<Void> importWorld(Source source, String[] args,
                                                @Argument(value = "path-to-world") String pathToWorld,
                                                @Argument(value = "data-source") com.infernalsuite.asp.plugin.commands.parser.NamedSlimeLoader loader,
-                                               @Argument(value = "new-world-name") String newWorldName) {
+                                               @Argument(value = "new-world-name") String newWorldName,
+                                               @Flag(value = "extra-region", repeatable = true,
+                                                       description = "Extra region folder to import, either 'folder' or 'folder=chunkDataKey'") List<String> extraRegions) {
         CommandSender sender = source.source();
         File worldDir = getWorldFolder(pathToWorld);
 
@@ -69,10 +74,12 @@ public class ImportWorldCmd extends com.infernalsuite.asp.plugin.commands.SlimeC
                     );
                 }
 
+                List<ExtraRegionFolder> extraRegionFolders = extraRegions.stream().map(ExtraRegionFolder::parse).toList();
+
                 return CompletableFuture.runAsync(() -> {
                     try {
                         long start = System.currentTimeMillis();
-                        SlimeWorld world = asp.readVanillaWorld(worldDir, worldName, loader.slimeLoader());
+                        SlimeWorld world = asp.readVanillaWorld(worldDir, worldName, loader.slimeLoader(), extraRegionFolders);
                         asp.saveWorld(world);
 
                         com.infernalsuite.asp.plugin.util.ExecutorUtil.runSyncAndWait(plugin, () -> {

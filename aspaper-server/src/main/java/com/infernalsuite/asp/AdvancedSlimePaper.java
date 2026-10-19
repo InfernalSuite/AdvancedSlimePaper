@@ -6,6 +6,7 @@ import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
 import com.infernalsuite.asp.api.exceptions.*;
 import com.infernalsuite.asp.api.loaders.SlimeLoader;
 import com.infernalsuite.asp.api.loaders.SlimeSerializationAdapter;
+import com.infernalsuite.asp.api.world.ExtraRegionFolder;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
@@ -190,9 +191,10 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
     }
 
     @Override
-    public SlimeWorld readVanillaWorld(File worldDir, String worldName, SlimeLoader loader) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException {
+    public SlimeWorld readVanillaWorld(File worldDir, String worldName, SlimeLoader loader, List<ExtraRegionFolder> extraRegionFolders) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException {
         Objects.requireNonNull(worldDir, "World directory cannot be null");
         Objects.requireNonNull(worldName, "World name cannot be null");
+        Objects.requireNonNull(extraRegionFolders, "Extra region folders cannot be null");
 
         if (loader != null && loader.worldExists(worldName)) {
             throw new WorldAlreadyExistsException(worldName);
@@ -207,7 +209,7 @@ public class AdvancedSlimePaper implements AdvancedSlimePaperAPI {
         SlimeWorld world;
 
         try {
-            world = this.reader.readFromData(AnvilImportData.legacy(worldDir, worldName, loader));
+            world = this.reader.readFromData(new AnvilImportData(worldDir.toPath(), worldName, loader, extraRegionFolders));
         } catch (RuntimeException e) {
             if (e.getCause() == null) {
                 throw e;

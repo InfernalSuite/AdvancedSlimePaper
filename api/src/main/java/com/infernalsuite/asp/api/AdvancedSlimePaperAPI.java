@@ -8,6 +8,7 @@ import com.infernalsuite.asp.api.exceptions.WorldAlreadyExistsException;
 import com.infernalsuite.asp.api.exceptions.WorldLoadedException;
 import com.infernalsuite.asp.api.exceptions.WorldTooBigException;
 import com.infernalsuite.asp.api.loaders.SlimeSerializationAdapter;
+import com.infernalsuite.asp.api.world.ExtraRegionFolder;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.SlimeWorldInstance;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
@@ -132,7 +133,11 @@ public interface AdvancedSlimePaperAPI {
      * @throws WorldTooBigException        if the world is too big to be imported into the SRF.
      * @throws IOException                 if the world could not be read or stored.
      */
-    SlimeWorld readVanillaWorld(File worldDir, String worldName, @Nullable SlimeLoader loader) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException;
+    default SlimeWorld readVanillaWorld(File worldDir, String worldName, @Nullable SlimeLoader loader) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException {
+        return readVanillaWorld(worldDir, worldName, loader, List.of());
+    }
+
+    SlimeWorld readVanillaWorld(File worldDir, String worldName, @Nullable SlimeLoader loader, List<ExtraRegionFolder> extraRegionFolders) throws InvalidWorldException, WorldLoadedException, WorldTooBigException, IOException, WorldAlreadyExistsException;
 
     /**
      * Returns the {@link SlimeSerializationAdapter} used to serialize and deserialize SlimeWorlds.
