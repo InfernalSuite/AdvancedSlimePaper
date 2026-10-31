@@ -25,6 +25,7 @@ import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.CommandStorage;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.storage.SavedDataStorage;
+import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -43,6 +44,7 @@ public class SlimeNMSBridgeImpl implements SlimeNMSBridge {
 
     static {
         if(Boolean.getBoolean("asp.force-dfu") || !SimpleDataFixerConverter.SUPPORTED_RIGHT_NOW) {
+            LogManager.getLogger().info("Using the experimental DFU Converter as DataConverter is either not supported for this version yet or was explicitly disabled.");
             DATA_FIXER_CONVERTER = new DFUConverter();
         } else {
             DATA_FIXER_CONVERTER = new SimpleDataFixerConverter();
