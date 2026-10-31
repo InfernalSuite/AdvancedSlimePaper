@@ -87,8 +87,9 @@ public class SlimeChunkConverter {
 
         Codec<PalettedContainer<Holder<Biome>>> codec = instance.palettedContainerFactory().biomeContainerRWCodec();
 
-        for (int sectionId = 0; sectionId < chunk.getSections().length; sectionId++) {
-            SlimeChunkSection slimeSection = chunk.getSections()[sectionId];
+        SlimeChunkSection[] slimeSections = chunk.getSections();
+        for (int sectionId = 0; sectionId < slimeSections.length; sectionId++) {
+            SlimeChunkSection slimeSection = slimeSections[sectionId];
 
             if (slimeSection != null) {
                 NibbleArray blockLight = slimeSection.getBlockLight();
