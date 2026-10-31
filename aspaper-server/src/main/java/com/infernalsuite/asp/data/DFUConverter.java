@@ -41,6 +41,11 @@ import java.util.function.Function;
  * <p>
  * This could in theory replace SimpleDataFixerConverter in the future, once convertList isn't directly reliant on DFU anymore.
  * PlatformHooks already use DataConverter whenever possible, but convertList does not.
+ * <p>
+ * Implementation Note: Some things use PlatformHooks, others use DFU directly. When Paper isn't including DataConverter,
+ * PlatformHooks works fine for everything. But when DataConverter is enabled, only PLAYER, CHUNK, STRUCTURE, POI_CHUNK,
+ * ENTITY_CHUNK, ITEM_STACK and ENTITY/ENTITY_TREE are supported. See ConvertUtil. We use PlatformHooks wherever we can,
+ * but otherwise DFU will have to do.
  */
 public class DFUConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConverter {
 
@@ -51,7 +56,7 @@ public class DFUConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConv
         int newVersion = SharedConstants.getCurrentVersion().dataVersion().version();
         int currentVersion = data.getDataVersion();
         // Already fixed
-        if (currentVersion == newVersion) {
+        if (currentVersion >= newVersion) {
             return data;
         }
         DataFixer dataFixer = MinecraftServer.getServer().getFixerUpper();
@@ -62,7 +67,9 @@ public class DFUConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConv
             List<CompoundBinaryTag> blockEntities = new ArrayList<>();
             for (CompoundBinaryTag upgradeEntity : chunk.getTileEntities()) {
                 blockEntities.add(
-                        convertAndBack(upgradeEntity, (tag) -> PlatformHooks.get().convertNBT(References.BLOCK_ENTITY, dataFixer, tag, currentVersion, newVersion))
+                        convertAndBack(upgradeEntity, (tag) -> (CompoundTag)dataFixer.update(
+                                References.BLOCK_ENTITY, new Dynamic<>(NbtOps.INSTANCE, tag), currentVersion, newVersion
+                        ).getValue())
                 );
             }
             for (CompoundBinaryTag upgradeEntity : chunk.getEntities()) {
@@ -193,7 +200,7 @@ public class DFUConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConv
 
         for (CompoundBinaryTag upgradeEntity : input) {
             entities.add(
-                    convertAndBack(upgradeEntity, (tag) -> PlatformHooks.get().convertNBT(References.CHUNK, dataFixer, tag, from, to))
+                    convertAndBack(upgradeEntity, (tag) -> PlatformHooks.get().convertNBT(References.ENTITY, dataFixer, tag, from, to))
             );
         }
         return entities;
@@ -206,7 +213,9 @@ public class DFUConverter implements SlimeWorldReader<SlimeWorld>, SlimeDataConv
 
         for (CompoundBinaryTag upgradeEntity : input) {
             blockEntities.add(
-                    convertAndBack(upgradeEntity, (tag) -> PlatformHooks.get().convertNBT(References.BLOCK_ENTITY, dataFixer, tag, from, to))
+                    convertAndBack(upgradeEntity, (tag) -> (CompoundTag)dataFixer.update(
+                            References.BLOCK_ENTITY, new Dynamic<>(NbtOps.INSTANCE, tag), from, to
+                    ).getValue())
             );
         }
         return blockEntities;
