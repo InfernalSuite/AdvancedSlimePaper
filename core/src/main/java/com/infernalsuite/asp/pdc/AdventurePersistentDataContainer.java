@@ -1,10 +1,10 @@
 package com.infernalsuite.asp.pdc;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.BinaryTagIO;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.*;
 import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.ListPersistentDataType;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -145,6 +146,67 @@ public class AdventurePersistentDataContainer implements PersistentDataContainer
         } else {
             throw new IllegalArgumentException("Cannot copy to a container that isn't an AdventurePersistentDataContainer (got " + other.getClass().getName() + ")");
         }
+    }
+
+    @Override
+    public @Nullable PersistentDataType<?, ?> getPrimitiveStorageType(Key key) {
+        Preconditions.checkArgument(key != null, "The key cannot be null");
+
+        final BinaryTag value = this.tags.get(key.asString());
+        if (value == null) {
+            return null;
+        }
+
+        return getTagType(value);
+    }
+
+    private static @Nullable PersistentDataType<?, ?> getTagType(final BinaryTag value) {
+        return switch (value) {
+            case ByteBinaryTag _ -> PersistentDataType.BYTE;
+            case ShortBinaryTag _ -> PersistentDataType.SHORT;
+            case IntBinaryTag _ -> PersistentDataType.INTEGER;
+            case LongBinaryTag _ -> PersistentDataType.LONG;
+            case FloatBinaryTag _ -> PersistentDataType.FLOAT;
+            case DoubleBinaryTag _ -> PersistentDataType.DOUBLE;
+            case ByteArrayBinaryTag _ -> PersistentDataType.BYTE_ARRAY;
+            case StringBinaryTag _ -> PersistentDataType.STRING;
+            case CompoundBinaryTag _ -> PersistentDataType.TAG_CONTAINER;
+            case IntArrayBinaryTag _ -> PersistentDataType.INTEGER_ARRAY;
+            case LongArrayBinaryTag _ -> PersistentDataType.LONG_ARRAY;
+            case ListBinaryTag listTag -> getListTagType(listTag);
+            default -> null;
+        };
+    }
+
+    private static @Nullable ListPersistentDataType<?, ?> getListTagType(final ListBinaryTag value) {
+        final BinaryTagType<? extends BinaryTag> type = value.elementType();
+
+        if (type == BinaryTagTypes.BYTE) return PersistentDataType.LIST.bytes();
+        if (type == BinaryTagTypes.SHORT) return PersistentDataType.LIST.shorts();
+        if (type == BinaryTagTypes.INT) return PersistentDataType.LIST.integers();
+        if (type == BinaryTagTypes.LONG) return PersistentDataType.LIST.longs();
+        if (type == BinaryTagTypes.FLOAT) return PersistentDataType.LIST.floats();
+        if (type == BinaryTagTypes.DOUBLE) return PersistentDataType.LIST.doubles();
+        if (type == BinaryTagTypes.BYTE_ARRAY) return PersistentDataType.LIST.byteArrays();
+        if (type == BinaryTagTypes.STRING) return PersistentDataType.LIST.strings();
+        if (type == BinaryTagTypes.COMPOUND) return PersistentDataType.LIST.dataContainers();
+        if (type == BinaryTagTypes.INT_ARRAY) return PersistentDataType.LIST.integerArrays();
+        if (type == BinaryTagTypes.LONG_ARRAY) return PersistentDataType.LIST.longArrays();
+
+        if (type == BinaryTagTypes.LIST) {
+            final Iterator<BinaryTag> it = value.iterator();
+            if (!it.hasNext()) {
+                return null;
+            }
+
+            if (!(it.next() instanceof ListBinaryTag nestedListTag)) {
+                return null;
+            }
+
+            final ListPersistentDataType<?, ?> nestedListType = getListTagType(nestedListTag);
+            return nestedListType != null ? PersistentDataType.LIST.listTypeFrom(nestedListType) : null;
+        }
+        return null;
     }
 
     @Override
