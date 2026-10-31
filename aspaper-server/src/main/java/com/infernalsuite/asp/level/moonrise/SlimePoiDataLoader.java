@@ -34,7 +34,7 @@ public class SlimePoiDataLoader extends PoiDataController {
 
 
         CompoundTag tag = SlimeChunkConverter.createPoiChunk(chunk);
-        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag, 0);
+        return new ReadData(ReadData.ReadResult.SYNC_READ, null, tag,0);
     }
 
     @Override

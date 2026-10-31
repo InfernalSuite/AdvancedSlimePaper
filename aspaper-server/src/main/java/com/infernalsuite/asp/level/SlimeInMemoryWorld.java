@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.ticks.LevelChunkTicks;
 import org.bukkit.World;
@@ -95,8 +96,8 @@ public class SlimeInMemoryWorld implements SlimeWorld, SlimeWorldInstance {
                     0L, null, null, null);
 
             //Make SlimeProperties.DEFAULT_BIOME work
-            levelChunk.fillBiomesFromNoise(instance.getChunkSource().getGenerator().getBiomeSource(),
-                    instance.getChunkSource().randomState().sampler());
+            levelChunk.fillBiomesFromNoise(instance.getChunkSource().getGenerator().getBiomeSource().createResolver(
+                    instance.getChunkSource().randomState().createClimateSampler(SamplerContext.EMPTY_UNCACHED)));
 
         } else {
             levelChunk = SlimeChunkConverter.deserializeSlimeChunk(this.instance, chunk);

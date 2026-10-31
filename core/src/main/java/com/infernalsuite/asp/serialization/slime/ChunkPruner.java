@@ -5,9 +5,7 @@ import com.infernalsuite.asp.api.world.SlimeChunkSection;
 import com.infernalsuite.asp.api.world.SlimeWorld;
 import com.infernalsuite.asp.api.world.properties.SlimeProperties;
 import com.infernalsuite.asp.api.world.properties.SlimePropertyMap;
-import net.kyori.adventure.nbt.BinaryTagTypes;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.ListBinaryTag;
+import net.kyori.adventure.nbt.*;
 
 import java.util.List;
 
@@ -56,12 +54,14 @@ public class ChunkPruner {
         for (SlimeChunkSection chunkSection : sections) {
             try {
                 ListBinaryTag paletteTag = chunkSection.getBlockStatesTag().getList("palette");
-                if (paletteTag.elementType() != BinaryTagTypes.COMPOUND) {
-                    continue; // If the element type isn't a compound tag, consider the section empty
+                if (paletteTag.size() > 1) return false; // If there is more than one palette, the section is not empty
+
+                if (!paletteTag.isEmpty()) {
+                    // If the only palette entry is not air, the section is not empty
+                    BinaryTag first = paletteTag.get(0);
+                    if(first instanceof StringBinaryTag tag && !tag.value().equals("minecraft:air")) return false;
+                    if(first instanceof CompoundBinaryTag tag && !tag.getString("id").equals("minecraft:air")) return false;
                 }
-                List<CompoundBinaryTag> palette = paletteTag.stream().map(tag -> (CompoundBinaryTag) tag).toList();
-                if (palette.size() > 1) return false; // If there is more than one palette, the section is not empty
-                if (!palette.getFirst().getString("Name").equals("minecraft:air")) return false; // If the only palette entry is not air, the section is not empty
             } catch (final Exception e) {
                 return false;
             }
