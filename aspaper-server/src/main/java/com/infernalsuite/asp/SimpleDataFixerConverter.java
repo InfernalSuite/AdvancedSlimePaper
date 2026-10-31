@@ -58,9 +58,10 @@ class SimpleDataFixerConverter implements SlimeWorldReader<SlimeWorld>, SlimeDat
             }
             long chunkPos = Util.chunkPosition(chunk.getX(), chunk.getZ());
 
-            SlimeChunkSection[] sections = new SlimeChunkSection[chunk.getSections().length];
+            SlimeChunkSection[] dataSections = chunk.getSections();
+            SlimeChunkSection[] sections = new SlimeChunkSection[dataSections.length];
             for (int i = 0; i < sections.length; i++) {
-                SlimeChunkSection dataSection = chunk.getSections()[i];
+                SlimeChunkSection dataSection = dataSections[i];
                 if (dataSection == null) continue;
 
                 CompoundBinaryTag blockStateTag = convertAndBack(dataSection.getBlockStatesTag(), (tag) -> {
