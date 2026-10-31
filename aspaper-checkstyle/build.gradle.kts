@@ -24,7 +24,7 @@ testData.java.srcDir(file("../paper-checkstyle/src/testData/java"))
 testData.resources.srcDir(file("../paper-checkstyle/src/testData/resources"))
 
 dependencies {
-    implementation("com.puppycrawl.tools:checkstyle:13.8.0")
+    implementation("com.puppycrawl.tools:checkstyle:14.3.0")
     implementation("org.jspecify:jspecify:1.0.0")
 
     testCompileOnly("org.jetbrains:annotations:26.1.0")

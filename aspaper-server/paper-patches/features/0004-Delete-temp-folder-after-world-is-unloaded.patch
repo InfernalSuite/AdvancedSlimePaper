@@ -5,10 +5,10 @@ Subject: [PATCH] Delete temp folder after world is unloaded
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index a28292f699b26adfe8191452468c4d078aebb48e..050561cbf4f02363dc1494347f14a6f5e4bb27fa 100644
+index 797ef669301b971da7a21aa3ab55984f2eec0f70..6261c596dc29aab9eb6ef9b01b813255df1b52bc 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -1356,6 +1356,12 @@ public final class CraftServer implements Server {
+@@ -1337,6 +1337,12 @@ public final class CraftServer implements Server {
  
              handle.getChunkSource().close(save);
              io.papermc.paper.FeatureHooks.closeEntityManager(handle, save); // SPIGOT-6722: close entityManager // Paper - chunk system
