@@ -94,7 +94,15 @@ public final class ChunkDataLoadTask implements CommonLoadTask {
 
     @Override
     public boolean cancel() {
-        return this.task.cancel();
+        // Like Moonrise's GenericDataLoadTask#cancel: a successful cancel must still report back, otherwise
+        // ChunkLoadTask#tryCompleteLoad is never called for the chunk data and the load hangs forever.
+        // The result is ignored by ChunkLoadTask once it is cancelled.
+        // If the task already started executing, cancel() returns false and the task reports back itself.
+        if (this.task.cancel()) {
+            this.onRun.accept(new GenericDataLoadTask.TaskResult<>(null, null));
+            return true;
+        }
+        return false;
     }
 
     public boolean schedule(boolean schedule) {
